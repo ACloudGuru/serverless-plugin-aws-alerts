@@ -1,10 +1,10 @@
-# Serverless Package Env Plugin [![Build Status](https://travis-ci.org/ACloudGuru/serverless-plugin-package-dotenv-file.svg?branch=master)](https://travis-ci.org/ACloudGuru/serverless-plugin-package-dotenv-file)
+# Serverless AWS Alerts Plugin [![Build Status](https://travis-ci.org/ACloudGuru/serverless-plugin-package-dotenv-file.svg?branch=master)](https://travis-ci.org/ACloudGuru/serverless-plugin-package-dotenv-file)
 
-A Serverless plugin to copy a .env file into the serverless package
+A Serverless plugin to easily add CloudWatch alarms to functions
 
 
 ## Installation
-`npm i serverless-plugin-package-dotenv-file`
+`npm i serverless-plugin-lambda-alarms`
 
 
 ## Default definitions
