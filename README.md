@@ -10,30 +10,38 @@ A Serverless plugin to copy a .env file into the serverless package
 ## Default definitions
 ```
 definitions:
-  invocations:
-    metric: invocations
+  functionInvocations:
+    namespace: 'AWS/Lambda'
+    metric: Invocations
     threshold: 100
-    statistic: sum
+    statistic: Sum
     period: 60
     evaluationPeriods: 1
-  errors:
-    metric: errors
+    comparisonOperator: GreaterThanThreshold
+  functionErrors:
+    namespace: 'AWS/Lambda'
+    metric: Errors
     threshold: 10
-    statistic: maximum
+    statistic: Maximum
     period: 60
     evaluationPeriods: 1
-  duration:
-    metric: duration
+    comparisonOperator: GreaterThanThreshold
+  functionDuration:
+    namespace: 'AWS/Lambda'
+    metric: Duration
     threshold: 500
-    statistic: maximum
+    statistic: Maximum
     period: 60
     evaluationPeriods: 1
-  throttles:
-    metric: throttles
+    comparisonOperator: GreaterThanThreshold
+  functionThrottles:
+    namespace: 'AWS/Lambda'
+    metric: Throttles
     threshold: 50
-    statistic: sum
+    statistic: Sum
     period: 60
     evaluationPeriods: 1
+    comparisonOperator: GreaterThanThreshold
 ```
 
 
@@ -45,9 +53,10 @@ service: your-service
 custom:
   lambdaAlarms:
     definitions:  # these defaults are merged with your definitions
-      errors:
+      functionErrors:
         period: 300 # override period
       customAlarm:
+        namespace: 'AWS/Lambda'
         metric: duration
         threshold: 200
         statistic: average
@@ -55,9 +64,9 @@ custom:
     global:
       - throttles
     function:
-      - invocations
-      - errors
-      - duration
+      - functionInvocations
+      - functionErrors
+      - functionDuration
 
 plugins:
   - serverless-plugin-lambda-alarms

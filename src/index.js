@@ -8,6 +8,7 @@ class Plugin {
   constructor(serverless, options) {
     this.serverless = serverless;
     this.options = options;
+    this.provider = this.serverless.getProvider('aws');
 
     this.hooks = {
         'deploy:compileEvents': this.compileCloudWatchAlamrs.bind(this),
@@ -19,7 +20,7 @@ class Plugin {
   }
 
   getDefinitions(config) {
-    return _.assign({}, defaultDefinitions, config.definitions)
+    return _.merge({}, defaultDefinitions, config.definitions)
   }
 
   getFunctionAlarms(functionObj, config, definitions) {
@@ -45,32 +46,45 @@ class Plugin {
       return result;
     }, []);
   }
-  
+
+  getAlarmCloudFormation(definition) {
+    const properties = {
+      Namespace: definition.namespace,
+      MetricName: definition.metric,
+      Threshold: definition.threshold,
+      Statistic: definition.statistic,
+      Period: definition.period,
+      EvaluationPeriods: definition.evaluationPeriods,
+      ComparisonOperator: definition.comparisonOperator,
+      //AlarmActions: [ ],
+      //OkActions: [ ],
+    };
+
+
+    return {
+      Type: 'AWS::CloudWatch::Alarm',
+      Properties: properties
+    };
+  }
+
   compileCloudWatchAlamrs() {
     const config = this.getConfig();
     const definitions = this.getDefinitions(config);
 
-    // const baseCf = {
-    //   Type: 'AWS::CloudWatch::Alarm',
-    // };
-
-    // const baseProperties = {
-    //       MetricName: 'Errors',
-    //       Namespace: 'AWS/Lambda',
-    //       Statistic: 'Sum',
-    //       Period: 60,
-    //       EvaluationPeriods: 2,
-    //       Threshold: 90,
-    //       ComparisonOperator: 'GreaterThanThreshold',
-    //       AlarmActions: [ ],
-    //       OkActions: [ ],
-    //   }
-
     this.serverless.service.getAllFunctions().forEach((functionName) => {
       const functionObj = this.serverless.service.getFunction(functionName);
+      const normalizedName = this.provider.naming.getNormalizedFunctionName(functionName);
+
       const alarms = this.getFunctionAlarms(functionObj, config, definitions);
 
-      //_.merge(this.serverless.service.provider.compiledCloudFormationTemplate.Resources, newFilterStatement, newLogGroupStatement);
+      const alarmStatements = _.reduce(alarms, (statements, alarm) => {
+        const key = `${normalizedName}${_.upperFirst(alarm.name)}Alarm`;
+        const cf = this.getAlarmCloudFormation(alarm);
+        statements[key] = cf;
+        return statements;
+      }, {});
+
+      _.merge(this.serverless.service.provider.compiledCloudFormationTemplate.Resources, alarmStatements);
     });
   }
 }

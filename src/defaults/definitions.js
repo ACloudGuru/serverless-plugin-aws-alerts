@@ -1,32 +1,42 @@
 'use strict';
 
+const lambdaNamespace = 'AWS/Lambda';
+
 module.exports = {
-  invocations: {
-    metric: 'invocations',
+  functionInvocations: {
+    namespace: lambdaNamespace,
+    metric: 'Invocations',
     threshold: 100,
-    statistic: 'sum',
+    statistic: 'Sum',
     period: 60,
     evaluationPeriods: 1,
+    comparisonOperator: 'GreaterThanThreshold',
   },
-  errors: {
-    metric: 'errors',
+  functionErrors: {
+    namespace: lambdaNamespace,
+    metric: 'Errors',
     threshold: 10,
-    statistic: 'maximum',
+    statistic: 'Maximum',
     period: 60,
     evaluationPeriods: 1,
+    comparisonOperator: 'GreaterThanThreshold',
   },
-  duration: {
-    metric: 'duration',
+  functionDuration: {
+    namespace: lambdaNamespace,
+    metric: 'Duration',
     threshold: 500,
-    statistic: 'maximum',
+    statistic: 'Maximum',
     period: 60,
     evaluationPeriods: 1,
+    comparisonOperator: 'GreaterThanThreshold',
   },
-  throttles: {
-    metric: 'throttles',
+  functionThrottles: {
+    namespace: lambdaNamespace,
+    metric: 'Throttles',
     threshold: 50,
-    statistic: 'sum',
+    statistic: 'Sum',
     period: 60,
     evaluationPeriods: 1,
+    comparisonOperator: 'GreaterThanThreshold',
   }
 };

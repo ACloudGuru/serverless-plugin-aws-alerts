@@ -1,10 +1,10 @@
 {
-  "name": "serverless-plugin-package-dotenv-file",
+  "name": "serverless-plugin-aws-alerts",
   "version": "0.0.1",
   "description": "",
   "main": "src/index.js",
   "repository": {
-    "url": "https://github.com/ACloudGuru/serverless-plugin-package-dotenv-file.git",
+    "url": "https://github.com/ACloudGuru/serverless-plugin-aws-alerts.git",
     "type": "git"
   },
   "author": "John McKim <johncmckim@gmail.com>",
