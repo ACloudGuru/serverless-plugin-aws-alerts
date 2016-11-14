@@ -2,10 +2,48 @@
 
 A Serverless plugin to easily add CloudWatch alarms to functions
 
-
 ## Installation
-`npm i serverless-plugin-lambda-alarms`
+`npm i serverless-plugin-aws-alerts`
 
+## Usage
+
+```
+service: your-service
+...
+custom:
+  lambdaAlarms:
+    definitions:  # these defaults are merged with your definitions
+      functionErrors:
+        period: 300 # override period
+      customAlarm:
+        namespace: 'AWS/Lambda'
+        metric: duration
+        threshold: 200
+        statistic: average
+        period: 300
+    global:
+      - throttles
+    function:
+      - functionInvocations
+      - functionErrors
+      - functionDuration
+
+plugins:
+  - serverless-plugin-aws-alerts
+
+
+functions:
+  foo:
+    handler: foo.handler
+    alarms: # merged with function alarms
+      - customAlarm
+      - name: fooAlarm
+        metric: errors # define custom metrics here
+        threshold: 1
+        statistic: minimum
+        period: 60
+        evaluationPeriods: 1
+```
 
 ## Default definitions
 ```
@@ -42,45 +80,4 @@ definitions:
     period: 60
     evaluationPeriods: 1
     comparisonOperator: GreaterThanThreshold
-```
-
-
-## Usage
-
-```
-service: your-service
-...
-custom:
-  lambdaAlarms:
-    definitions:  # these defaults are merged with your definitions
-      functionErrors:
-        period: 300 # override period
-      customAlarm:
-        namespace: 'AWS/Lambda'
-        metric: duration
-        threshold: 200
-        statistic: average
-        period: 300
-    global:
-      - throttles
-    function:
-      - functionInvocations
-      - functionErrors
-      - functionDuration
-
-plugins:
-  - serverless-plugin-lambda-alarms
-
-
-functions:
-  foo:
-    handler: foo.handler
-    alarms: # merged with function alarms
-      - customAlarm
-      - name: fooAlarm
-        metric: errors # define custom metrics here
-        threshold: 1
-        statistic: minimum
-        period: 60
-        evaluationPeriods: 1
 ```
