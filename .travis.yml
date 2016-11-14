@@ -13,6 +13,8 @@ deploy:
     tags: true
     repo: ACloudGuru/serverless-plugin-aws-alerts
     branch: master
+    node: '4.4'
+
 notifications:
   slack:
     secure: KOs6IURWgOVOiB6haTYcaQVVueM2/0mLiQbZEV++DsrNIZkd/ArqU+ufr18jCb7z4mWJ+TNTj4QSiwFFjaB2o2ZF+0/2hzGzj/y41E/Qir9MswdgpdZSpPcPBDYB8IK1o+1FlX81o1jOibeQyUv+CMOej8aXk/kYlEvtxqec9NqRdPQHM56V7AizrjYOZGH7MVcxOYmvvmcWWAEfzg5SxzgJvVNbXZvqkMut9kcpD6rOMUYtXbIQ22Xy3lfJ5MHCckQMFKYUwZSjwmhWOayrevNfXPdiAPCuxVXm0Hgzyzm8vNSntmet+j9mdqS5dYRiteoAXN+Th0fgf9l/nhkPpoNW7VIJMUmjMaxbxb/McU2+1h/ZGF+OG10kTZzX+5Bw7nKrtUUAs0bKQ8hfEWh7YTgTKPfLOd5ieR+9LGUy/bqfTfvoBdP8bi//wY72VyrfYmDCUmWfE9X0u8VaMR/cOhKT6WAueoseOXebpvKo1wcxHI2GH0SHDRWnIWQrSQuE/3sdan8ek3ZCiQBv74n4cCcTN0hV3KFk2EG9ENMtL1+3FZ924vqW1yV1LzME8CrzVxwJ08cauzfAPTABa2m/iXWyGgr0O5BALjrAHqIuTWCCjwKZhfLrZnSrfzOPBggkzPqqlpMHBAqo7+1sOSYZMSglLZaLpm9055/wn2OBfYg=
