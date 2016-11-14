@@ -1,0 +1,19 @@
+language: node_js
+node_js:
+  - '4.4'
+  - '5.11'
+  - '6.2'
+
+script: npm run lint && npm test
+deploy:
+  provider: npm
+  email: accounts@acloud.guru
+  api_key:
+    secure: v4eFNEPAF6DvgAlwubtWVLLiqF5/t753Aa2VaqRKGSCy6+obnrSrFpN1tbVT9pOBRVSpoCqJcliqEdYr19bs103l1NpkhP21N+NQRJrKuYifiTc/ZL8j7z2DWQSijuJo8S7Gz0f7bW/hjbsovpbdxEDmvfwuVJb5RbmRNVGQtEtqTxb4K1MoaqDLDSTJBfmdp5JEZP235lsjjHaKBAKX4PpBhGG2Qg1rCLSEldW859gJD4YjRSrr9tjihEOg2YuL+TsUN/PnHvEqWo6XoEygJ6ymSh+HtkSVp89L9cKP0ilGZqwgKbbV5SFfjKdwmFcPLswCp5P67k3emeqeNKkQ4/EtqUjh4CS7fHbrrdlVFuSh+d5zmaJBtFU/OntZuHZNBa++AtV9Hm7aoD4BnoMsdnU5SWvcnjxdhP0v9oHJ4AlXbNuNG0jStjUtN6OEBjQRC60tVjYVJbDQiY7B4wdz/TJoR6LZnKEdDWAszu2IhwdsYP5efTa0iSZRqKI8WoN7Y99S6yrIKOwnAa1yGNocGyNsibE5oXSleYZZc1QWYg4iIiwozmkmgDY6tth+mC3kMN73Qfapaen5Kd4GjrSfezWbQPbtzGH6oo16CJWH1r8VucCk1PCk2QDe0G6hE9htPaw8CtgyOwgei/cO03J4SakSc+SDILrDpq6B2UOpQKU=
+  on:
+    tags: true
+    repo: ACloudGuru/serverless-plugin-package-dotenv-file
+    branch: master
+notifications:
+  slack:
+    secure: JB3mlMMJHR92ZPV82ybysLi6s3IA4JJmkoI2y3z1FdNalB60SUdUZsnobE5TkjWFDw5a6zoYwvhDdXqohZuUewBiNWBDJoSh/OSJRSDGB5AGaIkD25NrqICFmocpkyux1dWZJT9emWXDZLiTfBGKsJwzvcDJ/C0vFk4uWNJaA3D7u1Bho/jdvguRhOYk4dmqsdURKGGgolnCAaPxoI0HJhVr53BDnP2OlKY3sMWktTOWUIM6UoUXB1f5Raf/pfoLnz1Lx/Ppkse49iu7mXHMr3g6LVzn00BA8im03hhgm06BdYkXfKPLG/y9o7wMgYoSdwOs5G/Y9/5exzFiEjsDjlBhoj6x8dvBjApZrxIzbv0QveqsSYwRJt1JUMkvAdLDCiqe4wqhqMSN9tbJpMSLi/ywBXQ3Phy1oBZPc1fpU/0HRORMGXiBHBVvCON2D3zxFRM5eGMB16MrNp/2KNpkwCSBWM531nOgtFcbLQnMBtuo1K653fgFLguAJGhA0r9yn4Wpcs3zdUzoBURfvKPU02tpGzbBJhsj+DFcCv6nYSmePwR/UFLMg+ov+BmErVWG2huFDKGnPtk3aPAv0kXHZFH6YRjmqb6W+V+jk+Htdfp/YAfx+p+5BUAwHj6zGBMfle9sVwngtd/GMt7kJ5BSrBXgn2kxHINCJ959iEyjFeQ=
