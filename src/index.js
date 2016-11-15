@@ -2,12 +2,14 @@
 
 const _ = require('lodash');
 
+const Naming = require('./naming');
 const defaultDefinitions = require('./defaults/definitions');
 
 class Plugin {
 	constructor(serverless, options) {
 		this.serverless = serverless;
 		this.options = options;
+		this.naming = new Naming();
 
 		this.hooks = {
 			'deploy:compileEvents': this.compileCloudWatchAlamrs.bind(this),
@@ -15,18 +17,14 @@ class Plugin {
 	}
 
 	getConfig() {
-		return this.serverless.service.custom.lambdaAlarms;
+		return this.serverless.service.custom.alerts;
 	}
 
 	getDefinitions(config) {
 		return _.merge({}, defaultDefinitions, config.definitions)
 	}
 
-	getFunctionAlarms(functionObj, config, definitions) {
-		if (!config) throw new Error('Missing config argument');
-		if (!definitions) throw new Error('Missing definitions argument');
-
-		const alarms = _.union(config.function, functionObj.alarms);
+	getAlarms(alarms, definitions) {
 		return _.reduce(alarms, (result, alarm) => {
 			if (_.isString(alarm)) {
 				const definition = definitions[alarm];
@@ -46,7 +44,51 @@ class Plugin {
 		}, []);
 	}
 
-	getAlarmCloudFormation(definition) {
+	getGlobalAlarms(config, definitions) {
+		if (!config) throw new Error('Missing config argument');
+		if (!definitions) throw new Error('Missing definitions argument');
+
+		return this.getAlarms(config.global, definitions);
+	}
+
+	getFunctionAlarms(functionObj, config, definitions) {
+		if (!config) throw new Error('Missing config argument');
+		if (!definitions) throw new Error('Missing definitions argument');
+
+		const alarms = _.union(config.function, functionObj.alarms);
+		return this.getAlarms(alarms, definitions);
+	}
+
+	getAlarmCloudFormation(alertTopics, definition, functionRefs) {
+		if(!functionRefs || !functionRefs.length) {
+			return;
+		}
+
+		const okActions = [];
+		const alarmActions = [];
+		const insufficientDataActions = [];
+
+		if(alertTopics.ok) {
+			okActions.push({ Ref: alertTopics.ok })
+		}
+
+		if(alertTopics.alarm) {
+			alarmActions.push({ Ref: alertTopics.alarm })
+		}
+
+		if(alertTopics.insufficientData) {
+			insufficientDataActions.push({ Ref: alertTopics.insufficientData })
+		}
+
+		const dimensions = _.map(functionRefs, (ref) => {
+			return {
+				Name: `${ref}Name`,
+				Value: {
+					Ref: ref,
+				},
+			};
+		});
+
 		const properties = {
 			Namespace: definition.namespace,
 			MetricName: definition.metric,
@@ -55,10 +97,11 @@ class Plugin {
 			Period: definition.period,
 			EvaluationPeriods: definition.evaluationPeriods,
 			ComparisonOperator: definition.comparisonOperator,
-			//AlarmActions: [ ],
-			//OkActions: [ ],
+			OKActions: okActions,
+			AlarmActions: alarmActions,
+			InsufficientDataActions: insufficientDataActions,
+			Dimensions: dimensions,
 		};
-
 
 		return {
 			Type: 'AWS::CloudWatch::Alarm',
@@ -66,26 +109,92 @@ class Plugin {
 		};
 	}
 
-	compileCloudWatchAlamrs() {
-		const config = this.getConfig();
-		const definitions = this.getDefinitions(config);
+	getCfSnsTopic(topicName) {
+		return {
+			Type: "AWS::SNS::Topic",
+			Properties: {
+				TopicName: topicName,
+			}
+		};
+	}
 
+	compileAlertTopics(config) {
+		const alertTopics = {};
+
+		if(config.topics) {
+			Object.keys(config.topics).forEach((key) => {
+				const topicName = config.topics[key];
+				if(topicName) {
+					const cfRef = `AwsAlerts${_.upperFirst(key)}`
+					alertTopics[key] = cfRef;
+					
+					this.addCfResources({
+						[cfRef]: this.getCfSnsTopic(topicName),
+					});
+				}
+			});
+		}
+
+		return alertTopics;
+	}
+
+	compileGlobalAlarms(config, definitions, alertTopics) {
+		const globalAlarms = this.getGlobalAlarms(config, definitions);
+		const functionRefs = this.serverless.service
+			.getAllFunctions()
+			.map(functionName => {
+				const normalizedName = this.naming.getNormalisedName(functionName)
+				return this.naming.getLambdaFunctionCFRef(normalizedName);
+			});
+
+		const alarmStatements = _.reduce(globalAlarms, (statements, alarm) => {
+			const key = this.naming.getAlarmCFRef(alarm.name, 'Global');
+			const cf = this.getAlarmCloudFormation(alertTopics, alarm, functionRefs);
+			statements[key] = cf;
+			return statements;
+		}, {});
+
+		this.addCfResources(alarmStatements);
+	}
+
+	compileFunctionAlarms(config, definitions, alertTopics) {
 		this.serverless.service.getAllFunctions().forEach((functionName) => {
 			const functionObj = this.serverless.service.getFunction(functionName);
-      
-			const normalizedName = `${_.upperFirst(functionName.replace(/-/g, 'Dash').replace(/_/g, 'Underscore'))}`;
+
+			const normalizedName = this.naming.getNormalisedName(functionName)
+			const normalizedFunctionName = this.naming.getLambdaFunctionCFRef(normalizedName);
 
 			const alarms = this.getFunctionAlarms(functionObj, config, definitions);
 
 			const alarmStatements = _.reduce(alarms, (statements, alarm) => {
-				const key = `${normalizedName}${_.upperFirst(alarm.name)}Alarm`;
-				const cf = this.getAlarmCloudFormation(alarm);
+				const key = this.naming.getAlarmCFRef(alarm.name, normalizedName);
+				const cf = this.getAlarmCloudFormation(alertTopics, alarm, [
+					normalizedFunctionName
+				]);
 				statements[key] = cf;
 				return statements;
 			}, {});
 
-			_.merge(this.serverless.service.provider.compiledCloudFormationTemplate.Resources, alarmStatements);
+			this.addCfResources(alarmStatements);
 		});
+	}
+
+	compileCloudWatchAlamrs() {
+		const config = this.getConfig();
+		if(!config) {
+			// TODO warn no config
+			return;
+		}
+
+		const definitions = this.getDefinitions(config);
+		const alertTopics = this.compileAlertTopics(config);
+
+		this.compileGlobalAlarms(config, definitions, alertTopics);
+		this.compileFunctionAlarms(config, definitions, alertTopics);
+	}
+
+	addCfResources(resources) {
+		_.merge(this.serverless.service.provider.compiledCloudFormationTemplate.Resources, resources);
 	}
 }
 

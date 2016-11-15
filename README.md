@@ -7,11 +7,18 @@ A Serverless plugin to easily add CloudWatch alarms to functions
 
 ## Usage
 
-```
+```yaml
 service: your-service
-...
+provider:
+  name: aws
+  runtime: nodejs4.3
+
 custom:
-  lambdaAlarms:
+  alerts:
+    topics:
+      ok: ${self:service}-${opt:stage}-alerts-ok
+      alarm: ${self:service}-${opt:stage}-alerts-alarm
+      insufficientData: ${self:service}-${opt:stage}-alerts-insufficientData
     definitions:  # these defaults are merged with your definitions
       functionErrors:
         period: 300 # override period
@@ -22,10 +29,10 @@ custom:
         statistic: average
         period: 300
     global:
-      - throttles
+      - functionThrottles
+      - functionErrors
     function:
       - functionInvocations
-      - functionErrors
       - functionDuration
 
 plugins:
@@ -46,7 +53,7 @@ functions:
 ```
 
 ## Default definitions
-```
+```yaml
 definitions:
   functionInvocations:
     namespace: 'AWS/Lambda'
