@@ -1,6 +1,6 @@
 {
   "name": "serverless-plugin-aws-alerts",
-  "version": "0.0.2",
+  "version": "0.0.3",
   "description": "",
   "main": "src/index.js",
   "repository": {
@@ -14,6 +14,7 @@
     "test": "istanbul cover _mocha test -- -R spec"
   },
   "dependencies": {
+    "coveralls": "^2.11.15",
     "lodash": "^4.16.6"
   },
   "devDependencies": {

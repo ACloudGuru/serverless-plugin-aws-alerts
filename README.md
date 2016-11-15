@@ -1,4 +1,5 @@
-# Serverless AWS Alerts Plugin [![Build Status](https://travis-ci.org/ACloudGuru/serverless-plugin-package-dotenv-file.svg?branch=master)](https://travis-ci.org/ACloudGuru/serverless-plugin-package-dotenv-file)
+# generator-serverless-service [![NPM version][npm-image]][npm-url] [![Build Status][travis-image]][travis-url] [![Dependency Status][daviddm-image]][daviddm-url] [![Coverage percentage][coveralls-image]][coveralls-url]
+> Serverless AWS Alerts Plugin
 
 A Serverless plugin to easily add CloudWatch alarms to functions
 
@@ -7,11 +8,18 @@ A Serverless plugin to easily add CloudWatch alarms to functions
 
 ## Usage
 
-```
+```yaml
 service: your-service
-...
+provider:
+  name: aws
+  runtime: nodejs4.3
+
 custom:
-  lambdaAlarms:
+  alerts:
+    topics:
+      ok: ${self:service}-${opt:stage}-alerts-ok
+      alarm: ${self:service}-${opt:stage}-alerts-alarm
+      insufficientData: ${self:service}-${opt:stage}-alerts-insufficientData
     definitions:  # these defaults are merged with your definitions
       functionErrors:
         period: 300 # override period
@@ -22,10 +30,10 @@ custom:
         statistic: average
         period: 300
     global:
-      - throttles
+      - functionThrottles
+      - functionErrors
     function:
       - functionInvocations
-      - functionErrors
       - functionDuration
 
 plugins:
@@ -46,7 +54,7 @@ functions:
 ```
 
 ## Default definitions
-```
+```yaml
 definitions:
   functionInvocations:
     namespace: 'AWS/Lambda'
@@ -81,3 +89,14 @@ definitions:
     evaluationPeriods: 1
     comparisonOperator: GreaterThanThreshold
 ```
+
+
+
+[npm-image]: https://badge.fury.io/js/serverless-plugin-aws-alerts.svg
+[npm-url]: https://npmjs.org/package/serverless-plugin-aws-alerts
+[travis-image]: https://travis-ci.org/ACloudGuru/serverless-plugin-aws-alerts.svg?branch=master
+[travis-url]: https://travis-ci.org/ACloudGuru/serverless-plugin-aws-alerts
+[daviddm-image]: https://david-dm.org/ACloudGuru/serverless-plugin-aws-alerts.svg?theme=shields.io
+[daviddm-url]: https://david-dm.org/ACloudGuru/serverless-plugin-aws-alerts
+[coveralls-image]: https://coveralls.io/repos/ACloudGuru/serverless-plugin-aws-alerts/badge.svg
+[coveralls-url]: https://coveralls.io/r/ACloudGuru/serverless-plugin-aws-alerts

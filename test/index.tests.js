@@ -2,31 +2,17 @@
 
 const path = require('path');
 
-const _ = require('lodash');
-
 const expect = require('chai').expect;
+const sinon = require('sinon');
 
 const Plugin = require('../src');
 
 const testServicePath = path.join(__dirname, '.tmp');
 
-const provider = {
-	naming: {
-		normalizeName(name) {
-			return `${_.upperFirst(name)}`;
-		},
-		getNormalizedFunctionName(functionName) {
-			return this.normalizeName(functionName
-				.replace(/-/g, 'Dash')
-				.replace(/_/g, 'Underscore'));
-		},
-	}
-}
-
 const pluginFactory = (alarmsConfig) => {
-  const functions = {
-    foo: {}
-  }
+	const functions = {
+		foo: {}
+	}
 
 	const serverless = {
 		cli: {
@@ -37,17 +23,16 @@ const pluginFactory = (alarmsConfig) => {
 		},
 		service: {
 			custom: {
-				lambdaAlarms: alarmsConfig
+				alerts: alarmsConfig
 			},
-      getAllFunctions: () => Object.keys(functions),
-      getFunction: (name) => functions[name],
-      provider: {
-        compiledCloudFormationTemplate: {
-          Resources: {},
-        },
-      },
+			getAllFunctions: () => Object.keys(functions),
+			getFunction: (name) => functions[name],
+			provider: {
+				compiledCloudFormationTemplate: {
+					Resources: {},
+				},
+			},
 		},
-		getProvider: () => provider,
 	};
 
 	return new Plugin(serverless, {});
@@ -153,7 +138,7 @@ describe('#index', function () {
 					comparisonOperator: 'GreaterThanThreshold',
 				}
 			},
-			global: ['throttles'],
+			global: ['functionThrottles'],
 			'function': [
 				'functionInvocations',
 			]
@@ -212,7 +197,7 @@ describe('#index', function () {
 				statistic: 'Sum',
 				period: 60,
 				evaluationPeriods: 1,
-        comparisonOperator: 'GreaterThanThreshold',
+				comparisonOperator: 'GreaterThanThreshold',
 			}, {
 				name: 'customAlarm',
 				namespace: 'AWS/Lambda',
@@ -221,7 +206,7 @@ describe('#index', function () {
 				statistic: 'Minimum',
 				period: 120,
 				evaluationPeriods: 2,
-        comparisonOperator: 'GreaterThanThreshold',
+				comparisonOperator: 'GreaterThanThreshold',
 			}]);
 		});
 
@@ -237,7 +222,7 @@ describe('#index', function () {
 					statistic: 'Minimum',
 					period: 120,
 					evaluationPeriods: 2,
-          comparisonOperator: 'GreaterThanThreshold',
+					comparisonOperator: 'GreaterThanThreshold',
 				}]
 			}, config, definitions);
 
@@ -249,7 +234,7 @@ describe('#index', function () {
 				statistic: 'Sum',
 				period: 60,
 				evaluationPeriods: 1,
-        comparisonOperator: 'GreaterThanThreshold',
+				comparisonOperator: 'GreaterThanThreshold',
 			}, {
 				name: 'fooAlarm',
 				namespace: 'AWS/Lambda',
@@ -258,7 +243,7 @@ describe('#index', function () {
 				statistic: 'Minimum',
 				period: 120,
 				evaluationPeriods: 2,
-        comparisonOperator: 'GreaterThanThreshold',
+				comparisonOperator: 'GreaterThanThreshold',
 			}]);
 		});
 
@@ -274,18 +259,55 @@ describe('#index', function () {
 		});
 	});
 
+	describe('#compileCloudWatchAlamrs', () => {
+		it('should compile global alarms', () => {
+			const plugin = pluginFactory({
+				global: ['functionThrottles'],
+			});
+
+			const config = plugin.getConfig();
+			const definitions = plugin.getDefinitions(config);
+			const alertTopics = plugin.compileAlertTopics(config);
+
+			plugin.compileGlobalAlarms(config, definitions, alertTopics);
+
+			expect(plugin.serverless.service.provider.compiledCloudFormationTemplate.Resources).to.deep.equal({
+				'GlobalFunctionThrottlesAlarm': {
+					Type: 'AWS::CloudWatch::Alarm',
+					Properties: {
+						Namespace: 'AWS/Lambda',
+						MetricName: 'Throttles',
+						Threshold: 50,
+						Statistic: 'Sum',
+						Period: 60,
+						EvaluationPeriods: 1,
+						ComparisonOperator: 'GreaterThanThreshold',
+						AlarmActions: [],
+						OKActions: [],
+						InsufficientDataActions: [],
+						Dimensions: [{
+							Name: 'FooLambdaFunctionName',
+							Value: { Ref: 'FooLambdaFunction' },
+						}]
+					}
+				}
+			});
+		});
+	});
 
 	describe('#compileCloudWatchAlamrs', () => {
-		const config = {
-			global: ['throttles'],
-			'function': [
-				'functionInvocations',
-			]
-		};
+		it('should compile default function alarms', () => {
+			const plugin = pluginFactory({
+				'function': [
+					'functionInvocations',
+				]
+			});
 
-		it('should get default function alarms - no alarms', () => {
-			const plugin = pluginFactory(config);
-			plugin.compileCloudWatchAlamrs();
+			const config = plugin.getConfig();
+			const definitions = plugin.getDefinitions(config);
+			const alertTopics = plugin.compileAlertTopics(config);
+
+			plugin.compileFunctionAlarms(config, definitions, alertTopics);
 
 			expect(plugin.serverless.service.provider.compiledCloudFormationTemplate.Resources).to.deep.equal({
 				'FooFunctionInvocationsAlarm': {
@@ -298,9 +320,79 @@ describe('#index', function () {
 						Period: 60,
 						EvaluationPeriods: 1,
 						ComparisonOperator: 'GreaterThanThreshold',
+						AlarmActions: [],
+						OKActions: [],
+						InsufficientDataActions: [],
+						Dimensions: [{
+							Name: 'FooLambdaFunctionName',
+							Value: { Ref: 'FooLambdaFunction' },
+						}]
 					}
 				}
 			});
+		});
+	});
+
+	describe('#compileCloudWatchAlamrs', () => {
+		let plugin = null;
+
+		let getConfigStub = null;
+		let getDefinitionsStub = null;
+		let compileAlertTopicsStub = null;
+		let compileGlobalAlarmsStub = null;
+		let compileFunctionAlarmsStub = null;
+
+		beforeEach(() => {
+			plugin = pluginFactory({});
+
+			getConfigStub = sinon.stub(plugin, 'getConfig');
+			getDefinitionsStub = sinon.stub(plugin, 'getDefinitions');
+			compileAlertTopicsStub = sinon.stub(plugin, 'compileAlertTopics');
+			compileGlobalAlarmsStub = sinon.stub(plugin, 'compileGlobalAlarms');
+			compileFunctionAlarmsStub = sinon.stub(plugin, 'compileFunctionAlarms');
+		});
+
+		it('should compile alarms', () => {
+			const config = {};
+			const definitions = {};
+			const alertTopics = {};
+
+			getConfigStub.returns(config);
+			getDefinitionsStub.returns(definitions);
+			compileAlertTopicsStub.returns(alertTopics);
+
+			plugin.compileCloudWatchAlamrs();
+
+			expect(getConfigStub.calledOnce).to.equal(true);
+
+			expect(getDefinitionsStub.calledOnce).to.equal(true);
+			expect(getDefinitionsStub.args[0][0]).to.equal(config);
+
+			expect(compileAlertTopicsStub.calledOnce).to.equal(true);
+			expect(compileAlertTopicsStub.args[0][0]).to.equal(config);
+
+			expect(compileGlobalAlarmsStub.calledOnce).to.equal(true);
+			expect(compileGlobalAlarmsStub.args[0][0]).to.equal(config);
+			expect(compileGlobalAlarmsStub.args[0][1]).to.equal(definitions);
+			expect(compileGlobalAlarmsStub.args[0][2]).to.equal(alertTopics);
+
+			expect(compileFunctionAlarmsStub.calledOnce).to.equal(true);
+			expect(compileFunctionAlarmsStub.args[0][0]).to.equal(config);
+			expect(compileFunctionAlarmsStub.args[0][1]).to.equal(definitions);
+			expect(compileFunctionAlarmsStub.args[0][2]).to.equal(alertTopics);
+		});
+
+		it('should not compile alarms without config', () => {
+			getConfigStub.returns(null);
+
+			plugin.compileCloudWatchAlamrs();
+
+			expect(getConfigStub.calledOnce).to.equal(true);
+
+			expect(getDefinitionsStub.calledOnce).to.equal(false);
+			expect(compileAlertTopicsStub.calledOnce).to.equal(false);
+			expect(compileGlobalAlarmsStub.calledOnce).to.equal(false);
+			expect(compileFunctionAlarmsStub.calledOnce).to.equal(false);
 		});
 	});
 });

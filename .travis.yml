@@ -3,7 +3,12 @@ node_js:
 - '4.4'
 - '5.11'
 - '6.2'
+
 script: npm run lint && npm test
+
+after_success:
+  - cat ./coverage/lcov.info | ./node_modules/.bin/coveralls && rm -rf ./coverage
+
 deploy:
   provider: npm
   email: accounts@acloud.guru
