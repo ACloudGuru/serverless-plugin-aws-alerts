@@ -54,6 +54,30 @@ functions:
 ```
 
 ## Default definitions
+The plugin provides some default definitions that you can simply drop into your application. For example:
+
+```yaml
+  alerts:
+    global:
+      - functionThrottles
+      - functionErrors
+    function:
+      - functionInvocations
+      - functionDuration
+```
+
+If these definitions do not quite suit i.e. the threshold is too high, you can override a setting without
+creating a completely new definition.
+
+```yaml
+alerts:
+  definitions:  # these defaults are merged with your definitions
+    functionErrors:
+      period: 300 # override period
+```
+
+The default definitions are below.
+
 ```yaml
 definitions:
   functionInvocations:
@@ -90,6 +114,9 @@ definitions:
     comparisonOperator: GreaterThanThreshold
 ```
 
+## License
+
+MIT © [A Cloud Guru](https://acloud.guru/)
 
 
 [npm-image]: https://badge.fury.io/js/serverless-plugin-aws-alerts.svg
