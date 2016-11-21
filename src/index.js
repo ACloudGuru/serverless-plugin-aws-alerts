@@ -186,6 +186,11 @@ class Plugin {
 			return;
 		}
 
+		if(config.stages && !_.includes(config.stages, this.options.stage)) {
+			this.serverless.cli.log(`Warning: Not deploying alerts on stage ${this.options.stage}`);
+			return;
+		}
+
 		const definitions = this.getDefinitions(config);
 		const alertTopics = this.compileAlertTopics(config);
 

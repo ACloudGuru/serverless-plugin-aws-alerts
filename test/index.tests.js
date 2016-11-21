@@ -9,7 +9,7 @@ const Plugin = require('../src');
 
 const testServicePath = path.join(__dirname, '.tmp');
 
-const pluginFactory = (alarmsConfig) => {
+const pluginFactory = (alarmsConfig, stage) => {
 	const functions = {
 		foo: {}
 	}
@@ -35,7 +35,9 @@ const pluginFactory = (alarmsConfig) => {
 		},
 	};
 
-	return new Plugin(serverless, {});
+	return new Plugin(serverless, {
+		stage,
+	});
 }
 
 describe('#index', function () {
@@ -259,7 +261,7 @@ describe('#index', function () {
 		});
 	});
 
-	describe('#compileCloudWatchAlamrs', () => {
+	describe('#compileGlobalAlarms', () => {
 		it('should compile global alarms', () => {
 			const plugin = pluginFactory({
 				global: ['functionThrottles'],
@@ -295,7 +297,7 @@ describe('#index', function () {
 		});
 	});
 
-	describe('#compileCloudWatchAlamrs', () => {
+	describe('#compileFunctionAlarms', () => {
 		it('should compile default function alarms', () => {
 			const plugin = pluginFactory({
 				'function': [
@@ -334,6 +336,7 @@ describe('#index', function () {
 	});
 
 	describe('#compileCloudWatchAlamrs', () => {
+		const stage = 'production';
 		let plugin = null;
 
 		let getConfigStub = null;
@@ -342,27 +345,7 @@ describe('#index', function () {
 		let compileGlobalAlarmsStub = null;
 		let compileFunctionAlarmsStub = null;
 
-		beforeEach(() => {
-			plugin = pluginFactory({});
-
-			getConfigStub = sinon.stub(plugin, 'getConfig');
-			getDefinitionsStub = sinon.stub(plugin, 'getDefinitions');
-			compileAlertTopicsStub = sinon.stub(plugin, 'compileAlertTopics');
-			compileGlobalAlarmsStub = sinon.stub(plugin, 'compileGlobalAlarms');
-			compileFunctionAlarmsStub = sinon.stub(plugin, 'compileFunctionAlarms');
-		});
-
-		it('should compile alarms', () => {
-			const config = {};
-			const definitions = {};
-			const alertTopics = {};
-
-			getConfigStub.returns(config);
-			getDefinitionsStub.returns(definitions);
-			compileAlertTopicsStub.returns(alertTopics);
-
-			plugin.compileCloudWatchAlamrs();
-
+		const expectCompiled = (config, definitions, alertTopics) => {
 			expect(getConfigStub.calledOnce).to.equal(true);
 
 			expect(getDefinitionsStub.calledOnce).to.equal(true);
@@ -380,10 +363,66 @@ describe('#index', function () {
 			expect(compileFunctionAlarmsStub.args[0][0]).to.equal(config);
 			expect(compileFunctionAlarmsStub.args[0][1]).to.equal(definitions);
 			expect(compileFunctionAlarmsStub.args[0][2]).to.equal(alertTopics);
+
+		};
+
+		beforeEach(() => {
+			plugin = pluginFactory({}, stage);
+
+			getConfigStub = sinon.stub(plugin, 'getConfig');
+			getDefinitionsStub = sinon.stub(plugin, 'getDefinitions');
+			compileAlertTopicsStub = sinon.stub(plugin, 'compileAlertTopics');
+			compileGlobalAlarmsStub = sinon.stub(plugin, 'compileGlobalAlarms');
+			compileFunctionAlarmsStub = sinon.stub(plugin, 'compileFunctionAlarms');
+		});
+
+		it('should compile alarms - by default', () => {
+			const config = {};
+			const definitions = {};
+			const alertTopics = {};
+
+			getConfigStub.returns(config);
+			getDefinitionsStub.returns(definitions);
+			compileAlertTopicsStub.returns(alertTopics);
+
+			plugin.compileCloudWatchAlamrs();
+
+			expectCompiled(config, definitions, alertTopics);			
+		});
+
+		it('should compile alarms - for stage', () => {
+			const config = {
+				stages: [stage]
+			};
+			const definitions = {};
+			const alertTopics = {};
+
+			getConfigStub.returns(config);
+			getDefinitionsStub.returns(definitions);
+			compileAlertTopicsStub.returns(alertTopics);
+
+			plugin.compileCloudWatchAlamrs();
+
+			expectCompiled(config, definitions, alertTopics);			
 		});
 
 		it('should not compile alarms without config', () => {
 			getConfigStub.returns(null);
+
+			plugin.compileCloudWatchAlamrs();
+
+			expect(getConfigStub.calledOnce).to.equal(true);
+
+			expect(getDefinitionsStub.calledOnce).to.equal(false);
+			expect(compileAlertTopicsStub.calledOnce).to.equal(false);
+			expect(compileGlobalAlarmsStub.calledOnce).to.equal(false);
+			expect(compileFunctionAlarmsStub.calledOnce).to.equal(false);
+		});
+
+		it('should not compile alarms on invalid stage', () => {
+			getConfigStub.returns({
+				stages: ['blah']
+			});
 
 			plugin.compileCloudWatchAlamrs();
 
