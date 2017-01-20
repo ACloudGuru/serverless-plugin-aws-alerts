@@ -80,16 +80,8 @@ class Plugin {
 			insufficientDataActions.push({ Ref: alertTopics.insufficientData })
 		}
 
-		const dimensions = _.map(functionRefs, (ref) => {
-			return {
-				Name: `${ref}Name`,
-				Value: {
-					Ref: ref,
-				},
-			};
-		});
-
-		const properties = {
+               
+		var properties = {
 			Namespace: definition.namespace,
 			MetricName: definition.metric,
 			Threshold: definition.threshold,
@@ -100,8 +92,26 @@ class Plugin {
 			OKActions: okActions,
 			AlarmActions: alarmActions,
 			InsufficientDataActions: insufficientDataActions,
-			Dimensions: dimensions,
 		};
+ 
+                if (definition.pattern){
+                    //                    
+                    properties.Namespace = this.serverless.service.service + '_' + properties.Namespace
+                    properties.MetricName =  properties.MetricName + functionRefs[0]                   
+                }else{
+                    // use dimensions unless a pattern is specified
+
+                    const dimensions = _.map(functionRefs, (ref) => {
+		    	return {
+				Name: `${ref}Name`,
+				Value: {
+					Ref: ref,
+				},
+			};
+        	    });
+
+                    properties.Dimensions = dimensions
+                }
 
 		return {
 			Type: 'AWS::CloudWatch::Alarm',
@@ -138,6 +148,32 @@ class Plugin {
 		return alertTopics;
 	}
 
+        getLogMetricCF(alarm, functionName, normalizedFunctionName){
+            var output = {}
+            if (alarm.pattern){
+                //add custom log metric
+                const logMetricCFRef = this.naming.getLogMetricCFRef(normalizedFunctionName,alarm.name)
+                const CFLogName = this.serverless.providers.aws.naming.getLogGroupLogicalId(functionName);
+                output[logMetricCFRef] = {
+                    Type: "AWS::Logs::MetricFilter",
+                    DependsOn: CFLogName,
+                    Properties: {
+                        FilterPattern: alarm.pattern,
+                        LogGroupName: this.serverless.providers.aws.naming.getLogGroupName(this.serverless.service.getFunction(functionName).name),
+                        MetricTransformations:[{
+                            MetricValue: 1,
+                            MetricNamespace:this.serverless.service.service + '_' + alarm.namespace,
+                            MetricName: alarm.metric + normalizedFunctionName
+                        }]
+                    }
+                }    
+
+            }else{
+                // not a custom log metric, nothing to add
+            }
+            return output
+        }
+
 	compileGlobalAlarms(config, definitions, alertTopics) {
 		const globalAlarms = this.getGlobalAlarms(config, definitions);
 		const functionRefs = this.serverless.service
@@ -151,6 +187,10 @@ class Plugin {
 			const key = this.naming.getAlarmCFRef(alarm.name, 'Global');
 			const cf = this.getAlarmCloudFormation(alertTopics, alarm, functionRefs);
 			statements[key] = cf;
+                        if (alarm.pattern){
+                            const logMetricCF = this.getLogMetricCF(alarm, functionRefs);
+                            _.merge(statements, logMetricCF)
+                        }
 			return statements;
 		}, {});
 
@@ -172,6 +212,9 @@ class Plugin {
 					normalizedFunctionName
 				]);
 				statements[key] = cf;
+                                const logMetricCF = this.getLogMetricCF(alarm, functionName, normalizedFunctionName);
+                                _.merge(statements, logMetricCF)
+
 				return statements;
 			}, {});
 
