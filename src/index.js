@@ -98,7 +98,7 @@ class Plugin {
                     //                    
                     properties.Namespace = this.serverless.service.service + '_' + properties.Namespace
                     properties.MetricName =  properties.MetricName + functionRefs[0]                   
-                }else{
+                } else {
                     // use dimensions unless a pattern is specified
 
                     const dimensions = _.map(functionRefs, (ref) => {

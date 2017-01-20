@@ -45,7 +45,7 @@ module.exports = {
     threshold: 0,
     statistic: 'Minimum',
     period: 60,
-    evaluationPeriods:  1,
+    evaluationPeriods: 1,
     comparisonOperator: 'GreaterThanThreshold',
     pattern: '{$.level = 40}'
   }, 
@@ -55,7 +55,7 @@ module.exports = {
     threshold: 0,
     statistic: 'Minimum',
     period: 60,
-    evaluationPeriods:  1,
+    evaluationPeriods: 1,
     comparisonOperator: 'GreaterThanThreshold',
     pattern: '{$.level > 40}'
   }  
