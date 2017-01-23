@@ -102,13 +102,13 @@ class Plugin {
                     // use dimensions unless a pattern is specified
 
                     const dimensions = _.map(functionRefs, (ref) => {
-		    	return {
+                        return {
 				Name: `${ref}Name`,
 				Value: {
 					Ref: ref,
 				},
 			};
-        	    });
+                    });
 
                     properties.Dimensions = dimensions
                 }
