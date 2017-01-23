@@ -55,6 +55,25 @@ functions:
         period: 60
         evaluationPeriods: 1
 ```
+## Metric Log Filters
+You can monitor a log group for a function for a specific pattern. Do this by adding the pattern key.
+You can learn about custom patterns at: http://docs.aws.amazon.com/AmazonCloudWatch/latest/logs/FilterAndPatternSyntax.html 
+
+The following would create a custom metric log filter based alarm named "barAlarm". Any function that included this alarm would have its logs scaned for the pattern 'exception Bar' and if found would trigger an alarm.
+
+```yaml
+    custom:
+        alerts:
+            function:
+                - name: barAlarm
+                  metric: barExceptions
+                  threshold: 0
+                  statistic: Minimum
+                  period: 60
+                  evaluationPeriods: 1
+                  comparisonOperator: GreaterThanThreshold
+                  pattern: 'exception Bar'
+```
 
 ## Default definitions
 The plugin provides some default definitions that you can simply drop into your application. For example:
@@ -115,6 +134,24 @@ definitions:
     period: 60
     evaluationPeriods: 1
     comparisonOperator: GreaterThanThreshold
+  bunyanWarnings:
+    namespace: 'bunyan'
+    metric: warnings
+    threshold: 0
+    statistic: Minimum
+    period: 60
+    evaluationPeriods: 1
+    comparisonOperator: GreaterThanThreshold
+    pattern: '{$.level = 40}'
+  bunyanErrors:
+    namespace: 'bunyan'
+    metric: errors
+    threshold: 0
+    statistic: Minimum
+    period: 60
+    evaluationPeriods: 1
+    comparisonOperator: GreaterThanThreshold
+    pattern: '{$.level > 40}'
 ```
 
 ## License

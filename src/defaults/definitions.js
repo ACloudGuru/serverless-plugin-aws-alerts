@@ -38,5 +38,25 @@ module.exports = {
     period: 60,
     evaluationPeriods: 1,
     comparisonOperator: 'GreaterThanThreshold',
-  }
+  },
+  bunyanWarnings: {
+    namespace: 'bunyan',
+    metric: 'warnings',
+    threshold: 0,
+    statistic: 'Minimum',
+    period: 60,
+    evaluationPeriods: 1,
+    comparisonOperator: 'GreaterThanThreshold',
+    pattern: '{$.level = 40}'
+  }, 
+  bunyanErrors: {
+    namespace: 'bunyan',
+    metric: 'errors',
+    threshold: 0,
+    statistic: 'Minimum',
+    period: 60,
+    evaluationPeriods: 1,
+    comparisonOperator: 'GreaterThanThreshold',
+    pattern: '{$.level > 40}'
+  }  
 };
