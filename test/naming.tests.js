@@ -4,10 +4,10 @@ const expect = require('chai').expect;
 
 const Naming = require('../src/naming');
 
-describe('#index', function () {
+describe('#naming', function () {
 	describe('#getNormalisedName', () => {
-        let naming = null;
-        beforeEach(() => naming = new Naming());
+		let naming = null;
+		beforeEach(() => naming = new Naming());
 
 		it('should normalise name', () => {
 			const expected = 'FuncName';
@@ -29,8 +29,8 @@ describe('#index', function () {
 	});
 
 	describe('#getLambdaFunctionCFRef', () => {
-        let naming = null;
-        beforeEach(() => naming = new Naming());
+		let naming = null;
+		beforeEach(() => naming = new Naming());
 
 		it('should get lambda function name', () => {
 			const expected = 'FuncNameLambdaFunction';
@@ -40,8 +40,8 @@ describe('#index', function () {
 	});
 
 	describe('#getAlarmCFRef', () => {
-        let naming = null;
-        beforeEach(() => naming = new Naming());
+		let naming = null;
+		beforeEach(() => naming = new Naming());
 
 		it('should get alarm name', () => {
 			const expected = 'GlobalFunctionErrorsAlarm';

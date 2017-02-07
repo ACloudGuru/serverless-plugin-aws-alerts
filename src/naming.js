@@ -1,4 +1,4 @@
-'use strict'
+'use strict';
 
 const _ = require('lodash');
 
@@ -16,9 +16,9 @@ class Naming {
 		return `${prefix}${normalizedName}Alarm`;
 	}
         
-        getLogMetricCFRef(normalizedName,alarmName){
+	getLogMetricCFRef(normalizedName,alarmName){
 		return `${normalizedName}${alarmName}LogMetricFilter`;
-        }
+	}
 
 }
 
