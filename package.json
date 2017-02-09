@@ -11,7 +11,7 @@
   "license": "MIT",
   "scripts": {
     "lint": "eslint .",
-    "test": "istanbul cover _mocha test -- -R spec"
+    "test": "istanbul cover node_modules/mocha/bin/_mocha test -- -R spec"
   },
   "dependencies": {
     "lodash": "^4.16.6"

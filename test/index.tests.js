@@ -11,7 +11,9 @@ const testServicePath = path.join(__dirname, '.tmp');
 
 const pluginFactory = (alarmsConfig, stage) => {
 	const functions = {
-		foo: {}
+		foo: {
+			name: 'foo'
+		}
 	};
 
 	const serverless = {
@@ -32,9 +34,17 @@ const pluginFactory = (alarmsConfig, stage) => {
 					Resources: {},
 				},
 			},
+			service: 'fooservice',
 		},
+		getProvider: () => {
+			return {
+				naming: {
+					getLogGroupLogicalId: (name) => name,
+					getLogGroupName: (name) => `/aws/lambda/${name}`
+				}
+			};
+		}
 	};
-
 	return new Plugin(serverless, {
 		stage,
 	});
@@ -360,6 +370,20 @@ describe('#index', function () {
 				}
 			});
 		});
+		it('should not add any global log metrics', () => {
+			const plugin = pluginFactory({
+				global: ['bunyanErrors'],
+			});
+
+			const config = plugin.getConfig();
+			const definitions = plugin.getDefinitions(config);
+			const alertTopics = plugin.compileAlertTopics(config);
+
+			plugin.compileGlobalAlarms(config, definitions, alertTopics);
+
+			expect(plugin.serverless.service.provider.compiledCloudFormationTemplate.Resources).to.deep.equal({});
+		});
+
 	});
 
 	describe('#compileFunctionAlarms', () => {
@@ -398,6 +422,54 @@ describe('#index', function () {
 				}
 			});
 		});
+		it('should compile default log metric function alarms', () => {
+			const plugin = pluginFactory({
+				'function': [
+					'bunyanErrors',
+				]
+			});
+
+			const config = plugin.getConfig();
+			const definitions = plugin.getDefinitions(config);
+			const alertTopics = plugin.compileAlertTopics(config);
+
+			plugin.compileFunctionAlarms(config, definitions, alertTopics);
+			expect(plugin.serverless.service.provider.compiledCloudFormationTemplate.Resources).to.deep.equal(
+				{
+					"FooBunyanErrorsAlarm": {
+						"Type": "AWS::CloudWatch::Alarm",
+						"Properties": {
+							"Namespace": "fooservice_bunyan",
+							"MetricName": "errorsFooLambdaFunction",
+							"Threshold": 0,
+							"Statistic": "Minimum",
+							"Period": 60,
+							"EvaluationPeriods": 1,
+							"ComparisonOperator": "GreaterThanThreshold",
+							"OKActions": [],
+							"AlarmActions": [],
+							"InsufficientDataActions": []
+						}
+					},
+					"FooLambdaFunctionbunyanErrorsLogMetricFilter": {
+						"Type": "AWS::Logs::MetricFilter",
+						"DependsOn": "foo",
+						"Properties": {
+							"FilterPattern": "{$.level > 40}",
+							"LogGroupName": "/aws/lambda/foo",
+							"MetricTransformations": [
+								{
+									"MetricValue": 1,
+									"MetricNamespace": "fooservice_bunyan",
+									"MetricName": "errorsFooLambdaFunction"
+								}
+							]
+						}
+					}
+				}
+			);
+		});
+
 	});
 
 	describe('#compileCloudWatchAlarms', () => {

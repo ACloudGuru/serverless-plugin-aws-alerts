@@ -151,7 +151,7 @@ class Plugin {
 	getLogMetricCF(alarm, functionName, normalizedFunctionName){
 		var output = {};
 		if (alarm.pattern) {
-      //add custom log metric
+			//add custom log metric
 			const logMetricCFRef = this.naming.getLogMetricCFRef(normalizedFunctionName,alarm.name);
 			const CFLogName = this.serverless.getProvider('aws').naming.getLogGroupLogicalId(functionName);
 			output[logMetricCFRef] = {
@@ -184,10 +184,10 @@ class Plugin {
 		const alarmStatements = _.reduce(globalAlarms, (statements, alarm) => {
 			const key = this.naming.getAlarmCFRef(alarm.name, 'Global');
 			const cf = this.getAlarmCloudFormation(alertTopics, alarm, functionRefs);
-			statements[key] = cf;
 			if (alarm.pattern){
-				const logMetricCF = this.getLogMetricCF(alarm, functionRefs);
-				_.merge(statements, logMetricCF);
+				this.serverless.cli.log('Note: global log metric filters are not supported');
+			} else {
+				statements[key] = cf;
 			}
 			return statements;
 		}, {});
