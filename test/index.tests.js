@@ -128,7 +128,7 @@ describe('#index', function () {
 					namespace: 'bunyan',
 					metric: 'errors',
 					threshold: 0,
-					statistic: 'Minimum',
+					statistic: 'Sum',
 					period: 60,
 					evaluationPeriods: 1,
 					comparisonOperator: 'GreaterThanThreshold',
@@ -138,7 +138,7 @@ describe('#index', function () {
 					namespace: 'bunyan',
 					metric: 'warnings',
 					threshold: 0,
-					statistic: 'Minimum',
+					statistic: 'Sum',
 					period: 60,
 					evaluationPeriods: 1,
 					comparisonOperator: 'GreaterThanThreshold',
@@ -442,7 +442,7 @@ describe('#index', function () {
 							"Namespace": "fooservice_bunyan",
 							"MetricName": "errorsFooLambdaFunction",
 							"Threshold": 0,
-							"Statistic": "Minimum",
+							"Statistic": "Sum",
 							"Period": 60,
 							"EvaluationPeriods": 1,
 							"ComparisonOperator": "GreaterThanThreshold",
@@ -451,7 +451,7 @@ describe('#index', function () {
 							"InsufficientDataActions": []
 						}
 					},
-					"FooLambdaFunctionbunyanErrorsLogMetricFilter": {
+					"FooLambdaFunctionbunyanErrorsLogMetricFilterALERT": {
 						"Type": "AWS::Logs::MetricFilter",
 						"DependsOn": "foo",
 						"Properties": {
@@ -460,6 +460,21 @@ describe('#index', function () {
 							"MetricTransformations": [
 								{
 									"MetricValue": 1,
+									"MetricNamespace": "fooservice_bunyan",
+									"MetricName": "errorsFooLambdaFunction"
+								}
+							]
+						}
+					},
+					"FooLambdaFunctionbunyanErrorsLogMetricFilterOK": {
+						"Type": "AWS::Logs::MetricFilter",
+						"DependsOn": "foo",
+						"Properties": {
+							"FilterPattern": "",
+							"LogGroupName": "/aws/lambda/foo",
+							"MetricTransformations": [
+								{
+									"MetricValue": 0,
 									"MetricNamespace": "fooservice_bunyan",
 									"MetricName": "errorsFooLambdaFunction"
 								}
