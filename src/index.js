@@ -151,24 +151,46 @@ class Plugin {
 	getLogMetricCF(alarm, functionName, normalizedFunctionName){
 		var output = {};
 		if (alarm.pattern) {
-			//add custom log metric
-			const logMetricCFRef = this.naming.getLogMetricCFRef(normalizedFunctionName,alarm.name);
+			const logMetricCFRefBase = this.naming.getLogMetricCFRef(normalizedFunctionName,alarm.name);
+			const logMetricCFRefALERT = `${logMetricCFRefBase}ALERT`;
+			const logMetricCFRefOK = `${logMetricCFRefBase}OK`;
 			const CFLogName = this.serverless.getProvider('aws').naming.getLogGroupLogicalId(functionName);
-			output[logMetricCFRef] = {
+			const metricNamespace = `${this.serverless.service.service}_${alarm.namespace}`;
+			const logGroupName =  this.serverless.getProvider('aws').naming.getLogGroupName(this.serverless.service.getFunction(functionName).name);
+			const metricName = `${alarm.metric}${normalizedFunctionName}`;
+
+			//add custom log metric for alert state
+			output[logMetricCFRefALERT] = {
 				Type: "AWS::Logs::MetricFilter",
 				DependsOn: CFLogName,
 				Properties: {
 					FilterPattern: alarm.pattern,
-					LogGroupName: this.serverless.getProvider('aws').naming.getLogGroupName(this.serverless.service.getFunction(functionName).name),
+					LogGroupName: logGroupName,
 					MetricTransformations: [{
 						MetricValue: 1,
-						MetricNamespace: `${this.serverless.service.service}_${alarm.namespace}`,
-						MetricName: alarm.metric + normalizedFunctionName
+						MetricNamespace: metricNamespace,
+						MetricName: metricName
+					}]
+				}
+			};
+			//add custom log metric for ok state
+						//NOTE: empty filter pattern matches all log lines
+			output[logMetricCFRefOK] = {
+				Type: "AWS::Logs::MetricFilter",
+				DependsOn: CFLogName,
+				Properties: {
+					FilterPattern: "",
+					LogGroupName: logGroupName,
+					MetricTransformations: [{
+						MetricValue: 0,
+						MetricNamespace: metricNamespace,
+						MetricName: metricName 
 					}]
 				}
 			};
 
 		}
+
 		return output;
 	}
 
