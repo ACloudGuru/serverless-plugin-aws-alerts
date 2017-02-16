@@ -126,7 +126,6 @@ describe('#index', function () {
 					comparisonOperator: 'GreaterThanThreshold',
 				},
 				bunyanErrors: {
-					namespace: 'AWS/Lambda',
 					metric: 'BunyanErrors',
 					threshold: 0,
 					statistic: 'Sum',
@@ -136,7 +135,6 @@ describe('#index', function () {
 					pattern: '{$.level > 40}'
 				},
 				bunyanWarnings: {
-					namespace: 'AWS/Lambda',
 					metric: 'BunyanWarnings',
 					threshold: 0,
 					statistic: 'Sum',
@@ -440,8 +438,8 @@ describe('#index', function () {
 					"FooBunyanErrorsAlarm": {
 						"Type": "AWS::CloudWatch::Alarm",
 						"Properties": {
-							"Namespace": "AWS/Lambda",
-							"MetricName": "FooserviceDevBunyanErrorsFooLambdaFunction",
+							"Namespace": "fooservice-dev",
+							"MetricName": "BunyanErrorsFooLambdaFunction",
 							"Threshold": 0,
 							"Statistic": "Sum",
 							"Period": 60,
@@ -452,7 +450,7 @@ describe('#index', function () {
 							"InsufficientDataActions": []
 						}
 					},
-					"FooLambdaFunctionbunyanErrorsLogMetricFilterALERT": {
+					"FooLambdaFunctionBunyanErrorsLogMetricFilterALERT": {
 						"Type": "AWS::Logs::MetricFilter",
 						"DependsOn": "foo",
 						"Properties": {
@@ -461,13 +459,13 @@ describe('#index', function () {
 							"MetricTransformations": [
 								{
 									"MetricValue": 1,
-									"MetricNamespace": "AWS/Lambda",
-									"MetricName": "FooserviceDevBunyanErrorsFooLambdaFunction"
+									"MetricNamespace": "fooservice-dev",
+									"MetricName": "BunyanErrorsFooLambdaFunction"
 								}
 							]
 						}
 					},
-					"FooLambdaFunctionbunyanErrorsLogMetricFilterOK": {
+					"FooLambdaFunctionBunyanErrorsLogMetricFilterOK": {
 						"Type": "AWS::Logs::MetricFilter",
 						"DependsOn": "foo",
 						"Properties": {
@@ -476,8 +474,8 @@ describe('#index', function () {
 							"MetricTransformations": [
 								{
 									"MetricValue": 0,
-									"MetricNamespace": "AWS/Lambda",
-									"MetricName": "FooserviceDevBunyanErrorsFooLambdaFunction"
+									"MetricNamespace": "fooservice-dev",
+									"MetricName": "BunyanErrorsFooLambdaFunction"
 								}
 							]
 						}
