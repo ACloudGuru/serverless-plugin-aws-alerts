@@ -94,8 +94,8 @@ class Plugin {
 		};
 
 		if (definition.pattern) {
-			const stackName = this.serverless.getProvider('aws').naming.getStackName();
-			properties.MetricName =  this.naming.getPatternMetricName(properties.MetricName, stackName, functionRefs[0]);
+			properties.Namespace = this.serverless.getProvider('aws').naming.getStackName();
+			properties.MetricName =  this.naming.getPatternMetricName(properties.MetricName, functionRefs[0]);
 		} else {
 			const dimensions = _.map(functionRefs, (ref) => {
 				return {
@@ -151,16 +151,16 @@ class Plugin {
 	getLogMetricCF(alarm, functionName, normalizedFunctionName){
 		var output = {};
 		if (alarm.pattern) {
-			const stackName = this.serverless.getProvider('aws').naming.getStackName();
-			const logMetricCFRefBase = this.naming.getLogMetricCFRef(normalizedFunctionName,alarm.name);
+			const logMetricCFRefBase = this.naming.getLogMetricCFRef(normalizedFunctionName, alarm.name);
 			const logMetricCFRefALERT = `${logMetricCFRefBase}ALERT`;
 			const logMetricCFRefOK = `${logMetricCFRefBase}OK`;
-			const CFLogName = this.serverless.getProvider('aws').naming.getLogGroupLogicalId(functionName);
-			const metricNamespace = alarm.namespace;
-			const logGroupName =  this.serverless.getProvider('aws').naming.getLogGroupName(this.serverless.service.getFunction(functionName).name);
-			const metricName = this.naming.getPatternMetricName(alarm.metric, stackName, normalizedFunctionName);
+			const providerNaming = this.serverless.getProvider('aws').naming;
+			const CFLogName = providerNaming.getLogGroupLogicalId(functionName);
+			const metricNamespace = providerNaming.getStackName();
+			const logGroupName =  providerNaming.getLogGroupName(this.serverless.service.getFunction(functionName).name);
+			const metricName = this.naming.getPatternMetricName(alarm.metric, normalizedFunctionName);
 
-			//add custom log metric for alert state
+			// add custom log metric for alert state
 			output[logMetricCFRefALERT] = {
 				Type: "AWS::Logs::MetricFilter",
 				DependsOn: CFLogName,
@@ -185,7 +185,7 @@ class Plugin {
 					MetricTransformations: [{
 						MetricValue: 0,
 						MetricNamespace: metricNamespace,
-						MetricName: metricName 
+						MetricName: metricName
 					}]
 				}
 			};
@@ -208,7 +208,7 @@ class Plugin {
 			const key = this.naming.getAlarmCFRef(alarm.name, 'Global');
 			const cf = this.getAlarmCloudFormation(alertTopics, alarm, functionRefs);
 			if (alarm.pattern){
-				this.serverless.cli.log('Note: global log metric filters are not supported');
+				this.serverless.cli.log('Warning: global log metric filters are not supported');
 			} else {
 				statements[key] = cf;
 			}

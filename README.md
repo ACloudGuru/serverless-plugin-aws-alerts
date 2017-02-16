@@ -79,6 +79,8 @@ custom:
         pattern: 'exception Bar'
 ```
 
+> Note: For custom log metrics, namespace property will automatically be set to stack name (e.g. `fooservice-dev`).
+
 ## Default Definitions
 The plugin provides some default definitions that you can simply drop into your application. For example:
 
@@ -139,7 +141,6 @@ definitions:
     evaluationPeriods: 1
     comparisonOperator: GreaterThanThreshold
   bunyanWarnings:
-    namespace: 'AWS/Lambda'
     metric: BunyanWarnings
     threshold: 0
     statistic: Sum
@@ -148,7 +149,6 @@ definitions:
     comparisonOperator: GreaterThanThreshold
     pattern: '{$.level = 40}'
   bunyanErrors:
-    namespace: 'AWS/Lambda'
     metric: BunyanErrors
     threshold: 0
     statistic: Sum

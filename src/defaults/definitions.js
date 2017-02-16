@@ -40,7 +40,6 @@ module.exports = {
 		comparisonOperator: 'GreaterThanThreshold',
 	},
 	bunyanWarnings: {
-		namespace: lambdaNamespace,
 		metric: 'BunyanWarnings',
 		threshold: 0,
 		statistic: 'Sum',
@@ -48,9 +47,8 @@ module.exports = {
 		evaluationPeriods: 1,
 		comparisonOperator: 'GreaterThanThreshold',
 		pattern: '{$.level = 40}'
-	}, 
+	},
 	bunyanErrors: {
-		namespace: lambdaNamespace,
 		metric: 'BunyanErrors',
 		threshold: 0,
 		statistic: 'Sum',
@@ -58,5 +56,14 @@ module.exports = {
 		evaluationPeriods: 1,
 		comparisonOperator: 'GreaterThanThreshold',
 		pattern: '{$.level > 40}'
-	}  
+	},
+	functionTimeouts: {
+		metric: 'FunctionTimeouts',
+		threshold: 0,
+		statistic: 'Sum',
+		period: 60,
+		evaluationPeriods: 1,
+		comparisonOperator: 'GreaterThanThreshold',
+		pattern: 'Task timed out after'
+	}
 };
