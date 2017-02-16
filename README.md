@@ -139,19 +139,19 @@ definitions:
     evaluationPeriods: 1
     comparisonOperator: GreaterThanThreshold
   bunyanWarnings:
-    namespace: 'bunyan'
-    metric: warnings
+    namespace: 'AWS/Lambda'
+    metric: BunyanWarnings
     threshold: 0
-    statistic: Minimum
+    statistic: Sum
     period: 60
     evaluationPeriods: 1
     comparisonOperator: GreaterThanThreshold
     pattern: '{$.level = 40}'
   bunyanErrors:
-    namespace: 'bunyan'
-    metric: errors
+    namespace: 'AWS/Lambda'
+    metric: BunyanErrors
     threshold: 0
-    statistic: Minimum
+    statistic: Sum
     period: 60
     evaluationPeriods: 1
     comparisonOperator: GreaterThanThreshold

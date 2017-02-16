@@ -94,8 +94,8 @@ class Plugin {
 		};
 
 		if (definition.pattern) {
-			properties.Namespace = `${this.serverless.service.service}_${properties.Namespace}`;
-			properties.MetricName =  `${properties.MetricName}${functionRefs[0]}`;
+			const stackName = this.serverless.getProvider('aws').naming.getStackName();
+			properties.MetricName =  this.naming.getPatternMetricName(properties.MetricName, stackName, functionRefs[0]);
 		} else {
 			const dimensions = _.map(functionRefs, (ref) => {
 				return {
@@ -151,13 +151,14 @@ class Plugin {
 	getLogMetricCF(alarm, functionName, normalizedFunctionName){
 		var output = {};
 		if (alarm.pattern) {
+			const stackName = this.serverless.getProvider('aws').naming.getStackName();
 			const logMetricCFRefBase = this.naming.getLogMetricCFRef(normalizedFunctionName,alarm.name);
 			const logMetricCFRefALERT = `${logMetricCFRefBase}ALERT`;
 			const logMetricCFRefOK = `${logMetricCFRefBase}OK`;
 			const CFLogName = this.serverless.getProvider('aws').naming.getLogGroupLogicalId(functionName);
-			const metricNamespace = `${this.serverless.service.service}_${alarm.namespace}`;
+			const metricNamespace = alarm.namespace;
 			const logGroupName =  this.serverless.getProvider('aws').naming.getLogGroupName(this.serverless.service.getFunction(functionName).name);
-			const metricName = `${alarm.metric}${normalizedFunctionName}`;
+			const metricName = this.naming.getPatternMetricName(alarm.metric, stackName, normalizedFunctionName);
 
 			//add custom log metric for alert state
 			output[logMetricCFRefALERT] = {

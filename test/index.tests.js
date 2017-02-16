@@ -40,7 +40,8 @@ const pluginFactory = (alarmsConfig, stage) => {
 			return {
 				naming: {
 					getLogGroupLogicalId: (name) => name,
-					getLogGroupName: (name) => `/aws/lambda/${name}`
+					getLogGroupName: (name) => `/aws/lambda/${name}`,
+					getStackName: () => 'fooservice-dev'
 				}
 			};
 		}
@@ -125,8 +126,8 @@ describe('#index', function () {
 					comparisonOperator: 'GreaterThanThreshold',
 				},
 				bunyanErrors: {
-					namespace: 'bunyan',
-					metric: 'errors',
+					namespace: 'AWS/Lambda',
+					metric: 'BunyanErrors',
 					threshold: 0,
 					statistic: 'Sum',
 					period: 60,
@@ -135,8 +136,8 @@ describe('#index', function () {
 					pattern: '{$.level > 40}'
 				},
 				bunyanWarnings: {
-					namespace: 'bunyan',
-					metric: 'warnings',
+					namespace: 'AWS/Lambda',
+					metric: 'BunyanWarnings',
 					threshold: 0,
 					statistic: 'Sum',
 					period: 60,
@@ -439,8 +440,8 @@ describe('#index', function () {
 					"FooBunyanErrorsAlarm": {
 						"Type": "AWS::CloudWatch::Alarm",
 						"Properties": {
-							"Namespace": "fooservice_bunyan",
-							"MetricName": "errorsFooLambdaFunction",
+							"Namespace": "AWS/Lambda",
+							"MetricName": "FooserviceDevBunyanErrorsFooLambdaFunction",
 							"Threshold": 0,
 							"Statistic": "Sum",
 							"Period": 60,
@@ -460,8 +461,8 @@ describe('#index', function () {
 							"MetricTransformations": [
 								{
 									"MetricValue": 1,
-									"MetricNamespace": "fooservice_bunyan",
-									"MetricName": "errorsFooLambdaFunction"
+									"MetricNamespace": "AWS/Lambda",
+									"MetricName": "FooserviceDevBunyanErrorsFooLambdaFunction"
 								}
 							]
 						}
@@ -475,8 +476,8 @@ describe('#index', function () {
 							"MetricTransformations": [
 								{
 									"MetricValue": 0,
-									"MetricNamespace": "fooservice_bunyan",
-									"MetricName": "errorsFooLambdaFunction"
+									"MetricNamespace": "AWS/Lambda",
+									"MetricName": "FooserviceDevBunyanErrorsFooLambdaFunction"
 								}
 							]
 						}

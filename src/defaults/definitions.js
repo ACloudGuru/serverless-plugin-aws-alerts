@@ -40,8 +40,8 @@ module.exports = {
 		comparisonOperator: 'GreaterThanThreshold',
 	},
 	bunyanWarnings: {
-		namespace: 'bunyan',
-		metric: 'warnings',
+		namespace: lambdaNamespace,
+		metric: 'BunyanWarnings',
 		threshold: 0,
 		statistic: 'Sum',
 		period: 60,
@@ -50,8 +50,8 @@ module.exports = {
 		pattern: '{$.level = 40}'
 	}, 
 	bunyanErrors: {
-		namespace: 'bunyan',
-		metric: 'errors',
+		namespace: lambdaNamespace,
+		metric: 'BunyanErrors',
 		threshold: 0,
 		statistic: 'Sum',
 		period: 60,

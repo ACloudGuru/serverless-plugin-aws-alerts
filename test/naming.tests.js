@@ -49,4 +49,15 @@ describe('#naming', function () {
 			expect(actual).to.equal(expected);
 		});
 	});
+		
+	describe('#getPatternMetricName', () => {
+		let naming = null;
+		beforeEach(() => naming = new Naming());
+
+		it('should get the pattern metric name', () => {
+			const expected = 'FooServiceTestMetricNamefoo';
+			const actual = naming.getPatternMetricName('MetricName','fooService-test','foo');
+			expect(actual).to.equal(expected);
+		});
+	});
 });
