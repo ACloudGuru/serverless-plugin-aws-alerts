@@ -125,6 +125,15 @@ describe('#index', function () {
 					evaluationPeriods: 1,
 					comparisonOperator: 'GreaterThanThreshold',
 				},
+				functionTimeouts: {
+					metric: 'FunctionTimeouts',
+					threshold: 0,
+					statistic: 'Sum',
+					period: 60,
+					evaluationPeriods: 1,
+					comparisonOperator: 'GreaterThanThreshold',
+					pattern: 'Task timed out after'
+				},
 				bunyanErrors: {
 					metric: 'BunyanErrors',
 					threshold: 0,

@@ -56,5 +56,14 @@ module.exports = {
 		evaluationPeriods: 1,
 		comparisonOperator: 'GreaterThanThreshold',
 		pattern: '{$.level > 40}'
+	},
+	functionTimeouts: {
+		metric: 'FunctionTimeouts',
+		threshold: 0,
+		statistic: 'Sum',
+		period: 60,
+		evaluationPeriods: 1,
+		comparisonOperator: 'GreaterThanThreshold',
+		pattern: 'Task timed out after'
 	}
 };
