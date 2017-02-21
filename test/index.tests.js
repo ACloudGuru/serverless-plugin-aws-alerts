@@ -125,33 +125,6 @@ describe('#index', function () {
 					evaluationPeriods: 1,
 					comparisonOperator: 'GreaterThanThreshold',
 				},
-				functionTimeouts: {
-					metric: 'FunctionTimeouts',
-					threshold: 0,
-					statistic: 'Sum',
-					period: 60,
-					evaluationPeriods: 1,
-					comparisonOperator: 'GreaterThanThreshold',
-					pattern: 'Task timed out after'
-				},
-				bunyanErrors: {
-					metric: 'BunyanErrors',
-					threshold: 0,
-					statistic: 'Sum',
-					period: 60,
-					evaluationPeriods: 1,
-					comparisonOperator: 'GreaterThanThreshold',
-					pattern: '{$.level > 40}'
-				},
-				bunyanWarnings: {
-					metric: 'BunyanWarnings',
-					threshold: 0,
-					statistic: 'Sum',
-					period: 60,
-					evaluationPeriods: 1,
-					comparisonOperator: 'GreaterThanThreshold',
-					pattern: '{$.level = 40}'
-				},
 				customDefinition: {
 					namespace: 'AWS/Lambda',
 					metric: 'Invocations',
@@ -380,6 +353,17 @@ describe('#index', function () {
 		});
 		it('should not add any global log metrics', () => {
 			const plugin = pluginFactory({
+				definitions: {
+					bunyanErrors: {
+						metric: 'BunyanErrors',
+						threshold: 0,
+						statistic: 'Sum',
+						period: 60,
+						evaluationPeriods: 1,
+						comparisonOperator: 'GreaterThanThreshold',
+						pattern: '{$.level > 40}'
+					}
+				},
 				global: ['bunyanErrors'],
 			});
 
@@ -430,14 +414,25 @@ describe('#index', function () {
 				}
 			});
 		});
-		it('should compile default log metric function alarms', () => {
-			const plugin = pluginFactory({
-				'function': [
-					'bunyanErrors',
-				]
-			});
+		it('should compile log metric function alarms', () => {
+			let config = {
+				definitions: {
+					bunyanErrors: {
+						metric: 'BunyanErrors',
+						threshold: 0,
+						statistic: 'Sum',
+						period: 60,
+						evaluationPeriods: 1,
+						comparisonOperator: 'GreaterThanThreshold',
+						pattern: '{$.level > 40}'
+					}
+				},
+				'function':['bunyanErrors']
+			};
 
-			const config = plugin.getConfig();
+			const plugin = pluginFactory(config);
+
+			config = plugin.getConfig();
 			const definitions = plugin.getDefinitions(config);
 			const alertTopics = plugin.compileAlertTopics(config);
 

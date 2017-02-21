@@ -38,32 +38,5 @@ module.exports = {
 		period: 60,
 		evaluationPeriods: 1,
 		comparisonOperator: 'GreaterThanThreshold',
-	},
-	bunyanWarnings: {
-		metric: 'BunyanWarnings',
-		threshold: 0,
-		statistic: 'Sum',
-		period: 60,
-		evaluationPeriods: 1,
-		comparisonOperator: 'GreaterThanThreshold',
-		pattern: '{$.level = 40}'
-	},
-	bunyanErrors: {
-		metric: 'BunyanErrors',
-		threshold: 0,
-		statistic: 'Sum',
-		period: 60,
-		evaluationPeriods: 1,
-		comparisonOperator: 'GreaterThanThreshold',
-		pattern: '{$.level > 40}'
-	},
-	functionTimeouts: {
-		metric: 'FunctionTimeouts',
-		threshold: 0,
-		statistic: 'Sum',
-		period: 60,
-		evaluationPeriods: 1,
-		comparisonOperator: 'GreaterThanThreshold',
-		pattern: 'Task timed out after'
 	}
 };
