@@ -11,8 +11,6 @@ env:
   node: true
 
 rules:
-  indent: [2, "tab"]
   no-console: 0
-  semi: 2
   strict: 0
   node/no-unsupported-features: [ 2, { "version": 4 }]
