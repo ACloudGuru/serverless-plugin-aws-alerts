@@ -3,29 +3,29 @@
   "version": "0.0.7",
   "description": "",
   "main": "src/index.js",
+  "scripts": {
+    "lint": "eslint .",
+    "lint-fix": "eslint . --fix",
+    "test": "jest",
+    "test:watch": "jest --watch",
+    "test:cover": "jest --coverage"
+  },
   "repository": {
     "url": "https://github.com/ACloudGuru/serverless-plugin-aws-alerts.git",
     "type": "git"
   },
   "author": "John McKim <johncmckim@gmail.com>",
   "license": "MIT",
-  "scripts": {
-    "lint": "eslint .",
-    "test": "istanbul cover node_modules/mocha/bin/_mocha test -- -R spec"
-  },
   "dependencies": {
     "lodash": "^4.16.6"
   },
   "devDependencies": {
-    "chai": "^3.5.0",
     "coveralls": "^2.11.16",
     "eslint": "^3.15.0",
     "eslint-config-standard": "^6.2.0",
     "eslint-plugin-node": "^4.0.0",
     "eslint-plugin-promise": "^3.4.1",
     "eslint-plugin-standard": "^2.0.1",
-    "istanbul": "^0.4.5",
-    "mocha": "^3.1.2",
-    "sinon": "^1.17.6"
+    "jest": "^19.0.2"
   }
 }
