@@ -2,10 +2,7 @@
 
 const path = require('path');
 
-const expect = require('chai').expect;
-const sinon = require('sinon');
-
-const Plugin = require('../src');
+const Plugin = require('./index');
 
 const testServicePath = path.join(__dirname, '.tmp');
 
@@ -57,7 +54,7 @@ describe('#index', function () {
 			const expected = {};
 			const plugin = pluginFactory(expected);
 			const actual = plugin.getConfig();
-			expect(actual).to.equal(expected);
+			expect(actual).toEqual(expected);
 		});
 	});
 
@@ -88,7 +85,7 @@ describe('#index', function () {
 			const plugin = pluginFactory(config);
 			const actual = plugin.getDefinitions(config);
 
-			expect(actual).to.deep.equal({
+			expect(actual).toEqual({
 				functionInvocations: {
 					namespace: 'AWS/Lambda',
 					metric: 'Invocations',
@@ -162,7 +159,7 @@ describe('#index', function () {
 			const definitions = plugin.getDefinitions(config);
 			const actual = plugin.getFunctionAlarms({}, config, definitions);
 
-			expect(actual).to.deep.equal([{
+			expect(actual).toEqual([{
 				name: 'functionInvocations',
 				namespace: 'AWS/Lambda',
 				metric: 'Invocations',
@@ -181,7 +178,7 @@ describe('#index', function () {
 				alarms: []
 			}, config, definitions);
 
-			expect(actual).to.deep.equal([{
+			expect(actual).toEqual([{
 				name: 'functionInvocations',
 				namespace: 'AWS/Lambda',
 				metric: 'Invocations',
@@ -202,7 +199,7 @@ describe('#index', function () {
 				]
 			}, config, definitions);
 
-			expect(actual).to.deep.equal([{
+			expect(actual).toEqual([{
 				name: 'functionInvocations',
 				namespace: 'AWS/Lambda',
 				metric: 'Invocations',
@@ -239,7 +236,7 @@ describe('#index', function () {
 				}]
 			}, config, definitions);
 
-			expect(actual).to.deep.equal([{
+			expect(actual).toEqual([{
 				name: 'functionInvocations',
 				namespace: 'AWS/Lambda',
 				metric: 'Invocations',
@@ -268,7 +265,7 @@ describe('#index', function () {
 				alarms: [
 					'missingAlarm'
 				]
-			}, config, definitions)).to.throw(Error);
+			}, config, definitions)).toThrow(Error);
 		});
 	});
 
@@ -284,11 +281,11 @@ describe('#index', function () {
 			const config = plugin.getConfig();
 			const topics = plugin.compileAlertTopics(config);
 
-			expect(topics).to.be.deep.equal({
+			expect(topics).toEqual({
 				ok: topicArn
 			});
 
-			expect(plugin.serverless.service.provider.compiledCloudFormationTemplate.Resources).to.deep.equal({});
+			expect(plugin.serverless.service.provider.compiledCloudFormationTemplate.Resources).toEqual({});
 		});
 
 		it('should create SNS topic when name is passed', () => {
@@ -302,11 +299,11 @@ describe('#index', function () {
 			const config = plugin.getConfig();
 			const topics = plugin.compileAlertTopics(config);
 
-			expect(topics).to.be.deep.equal({
+			expect(topics).toEqual({
 				ok: { Ref: `AwsAlertsOk` }
 			});
 
-			expect(plugin.serverless.service.provider.compiledCloudFormationTemplate.Resources).to.deep.equal({
+			expect(plugin.serverless.service.provider.compiledCloudFormationTemplate.Resources).toEqual({
 				'AwsAlertsOk': {
 					Type: 'AWS::SNS::Topic',
 					Properties: {
@@ -329,7 +326,7 @@ describe('#index', function () {
 
 			plugin.compileGlobalAlarms(config, definitions, alertTopics);
 
-			expect(plugin.serverless.service.provider.compiledCloudFormationTemplate.Resources).to.deep.equal({
+			expect(plugin.serverless.service.provider.compiledCloudFormationTemplate.Resources).toEqual({
 				'GlobalFunctionThrottlesAlarm': {
 					Type: 'AWS::CloudWatch::Alarm',
 					Properties: {
@@ -373,7 +370,7 @@ describe('#index', function () {
 
 			plugin.compileGlobalAlarms(config, definitions, alertTopics);
 
-			expect(plugin.serverless.service.provider.compiledCloudFormationTemplate.Resources).to.deep.equal({});
+			expect(plugin.serverless.service.provider.compiledCloudFormationTemplate.Resources).toEqual({});
 		});
 
 	});
@@ -392,7 +389,7 @@ describe('#index', function () {
 
 			plugin.compileFunctionAlarms(config, definitions, alertTopics);
 
-			expect(plugin.serverless.service.provider.compiledCloudFormationTemplate.Resources).to.deep.equal({
+			expect(plugin.serverless.service.provider.compiledCloudFormationTemplate.Resources).toEqual({
 				'FooFunctionInvocationsAlarm': {
 					Type: 'AWS::CloudWatch::Alarm',
 					Properties: {
@@ -437,7 +434,7 @@ describe('#index', function () {
 			const alertTopics = plugin.compileAlertTopics(config);
 
 			plugin.compileFunctionAlarms(config, definitions, alertTopics);
-			expect(plugin.serverless.service.provider.compiledCloudFormationTemplate.Resources).to.deep.equal(
+			expect(plugin.serverless.service.provider.compiledCloudFormationTemplate.Resources).toEqual(
 				{
 					"FooBunyanErrorsAlarm": {
 						"Type": "AWS::CloudWatch::Alarm",
@@ -494,40 +491,34 @@ describe('#index', function () {
 		const stage = 'production';
 		let plugin = null;
 
-		let getConfigStub = null;
-		let getDefinitionsStub = null;
-		let compileAlertTopicsStub = null;
-		let compileGlobalAlarmsStub = null;
-		let compileFunctionAlarmsStub = null;
-
 		const expectCompiled = (config, definitions, alertTopics) => {
-			expect(getConfigStub.calledOnce).to.equal(true);
+			expect(plugin.getConfig.mock.calls.length).toEqual(1);
 
-			expect(getDefinitionsStub.calledOnce).to.equal(true);
-			expect(getDefinitionsStub.args[0][0]).to.equal(config);
+			expect(plugin.getDefinitions.mock.calls.length).toEqual(1);
+			expect(plugin.getDefinitions.mock.calls[0][0]).toEqual(config);
 
-			expect(compileAlertTopicsStub.calledOnce).to.equal(true);
-			expect(compileAlertTopicsStub.args[0][0]).to.equal(config);
+			expect(plugin.compileAlertTopics.mock.calls.length).toEqual(1);
+			expect(plugin.compileAlertTopics.mock.calls[0][0]).toEqual(config);
 
-			expect(compileGlobalAlarmsStub.calledOnce).to.equal(true);
-			expect(compileGlobalAlarmsStub.args[0][0]).to.equal(config);
-			expect(compileGlobalAlarmsStub.args[0][1]).to.equal(definitions);
-			expect(compileGlobalAlarmsStub.args[0][2]).to.equal(alertTopics);
+			expect(plugin.compileGlobalAlarms.mock.calls.length).toEqual(1);
+			expect(plugin.compileGlobalAlarms.mock.calls[0][0]).toEqual(config);
+			expect(plugin.compileGlobalAlarms.mock.calls[0][1]).toEqual(definitions);
+			expect(plugin.compileGlobalAlarms.mock.calls[0][2]).toEqual(alertTopics);
 
-			expect(compileFunctionAlarmsStub.calledOnce).to.equal(true);
-			expect(compileFunctionAlarmsStub.args[0][0]).to.equal(config);
-			expect(compileFunctionAlarmsStub.args[0][1]).to.equal(definitions);
-			expect(compileFunctionAlarmsStub.args[0][2]).to.equal(alertTopics);
+			expect(plugin.compileFunctionAlarms.mock.calls.length).toEqual(1);
+			expect(plugin.compileFunctionAlarms.mock.calls[0][0]).toEqual(config);
+			expect(plugin.compileFunctionAlarms.mock.calls[0][1]).toEqual(definitions);
+			expect(plugin.compileFunctionAlarms.mock.calls[0][2]).toEqual(alertTopics);
 		};
 
 		beforeEach(() => {
 			plugin = pluginFactory({}, stage);
 
-			getConfigStub = sinon.stub(plugin, 'getConfig');
-			getDefinitionsStub = sinon.stub(plugin, 'getDefinitions');
-			compileAlertTopicsStub = sinon.stub(plugin, 'compileAlertTopics');
-			compileGlobalAlarmsStub = sinon.stub(plugin, 'compileGlobalAlarms');
-			compileFunctionAlarmsStub = sinon.stub(plugin, 'compileFunctionAlarms');
+			plugin.getConfig = jest.fn();
+			plugin.getDefinitions = jest.fn();
+			plugin.compileAlertTopics = jest.fn();
+			plugin.compileGlobalAlarms = jest.fn();
+			plugin.compileFunctionAlarms = jest.fn();
 		});
 
 		it('should compile alarms - by default', () => {
@@ -535,9 +526,9 @@ describe('#index', function () {
 			const definitions = {};
 			const alertTopics = {};
 
-			getConfigStub.returns(config);
-			getDefinitionsStub.returns(definitions);
-			compileAlertTopicsStub.returns(alertTopics);
+			plugin.getConfig.mockImplementation(() => config);
+			plugin.getDefinitions.mockImplementation(() => definitions);
+			plugin.compileAlertTopics.mockImplementation(() => alertTopics);
 
 			plugin.compileCloudWatchAlarms();
 
@@ -551,9 +542,9 @@ describe('#index', function () {
 			const definitions = {};
 			const alertTopics = {};
 
-			getConfigStub.returns(config);
-			getDefinitionsStub.returns(definitions);
-			compileAlertTopicsStub.returns(alertTopics);
+			plugin.getConfig.mockImplementation(() => config);
+			plugin.getDefinitions.mockImplementation(() => definitions);
+			plugin.compileAlertTopics.mockImplementation(() => alertTopics);
 
 			plugin.compileCloudWatchAlarms();
 
@@ -561,31 +552,31 @@ describe('#index', function () {
 		});
 
 		it('should not compile alarms without config', () => {
-			getConfigStub.returns(null);
+			plugin.getConfig.mockImplementation(() => null);
 
 			plugin.compileCloudWatchAlarms();
 
-			expect(getConfigStub.calledOnce).to.equal(true);
+			expect(plugin.getConfig.mock.calls.length).toEqual(1);
 
-			expect(getDefinitionsStub.calledOnce).to.equal(false);
-			expect(compileAlertTopicsStub.calledOnce).to.equal(false);
-			expect(compileGlobalAlarmsStub.calledOnce).to.equal(false);
-			expect(compileFunctionAlarmsStub.calledOnce).to.equal(false);
+			expect(plugin.getDefinitions.mock.calls.length).toEqual(0);
+			expect(plugin.compileAlertTopics.mock.calls.length).toEqual(0);
+			expect(plugin.compileGlobalAlarms.mock.calls.length).toEqual(0);
+			expect(plugin.compileFunctionAlarms.mock.calls.length).toEqual(0);
 		});
 
 		it('should not compile alarms on invalid stage', () => {
-			getConfigStub.returns({
+			plugin.getConfig.mockImplementation(() => ({
 				stages: ['blah']
-			});
+			}));
 
 			plugin.compileCloudWatchAlarms();
 
-			expect(getConfigStub.calledOnce).to.equal(true);
+			expect(plugin.getConfig.mock.calls.length).toEqual(1);
 
-			expect(getDefinitionsStub.calledOnce).to.equal(false);
-			expect(compileAlertTopicsStub.calledOnce).to.equal(false);
-			expect(compileGlobalAlarmsStub.calledOnce).to.equal(false);
-			expect(compileFunctionAlarmsStub.calledOnce).to.equal(false);
+			expect(plugin.getDefinitions.mock.calls.length).toEqual(0);
+			expect(plugin.compileAlertTopics.mock.calls.length).toEqual(0);
+			expect(plugin.compileGlobalAlarms.mock.calls.length).toEqual(0);
+			expect(plugin.compileFunctionAlarms.mock.calls.length).toEqual(0);
 		});
 	});
 });

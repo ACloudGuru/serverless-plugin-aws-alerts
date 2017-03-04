@@ -1,8 +1,6 @@
 'use strict';
 
-const expect = require('chai').expect;
-
-const Naming = require('../src/naming');
+const Naming = require('./naming');
 
 describe('#naming', function () {
     describe('#getNormalisedName', () => {
@@ -12,19 +10,19 @@ describe('#naming', function () {
         it('should normalise name', () => {
             const expected = 'FuncName';
             const actual = naming.getNormalisedName('funcName');
-            expect(actual).to.equal(expected);
+            expect(actual).toBe(expected);
         });
 
         it('should normalise name with dash', () => {
             const expected = 'FuncDashname';
             const actual = naming.getNormalisedName('func-name');
-            expect(actual).to.equal(expected);
+            expect(actual).toBe(expected);
         });
 
         it('should normalise name with underscore', () => {
             const expected = 'FuncUnderscorename';
             const actual = naming.getNormalisedName('func_name');
-            expect(actual).to.equal(expected);
+            expect(actual).toBe(expected);
         });
     });
 
@@ -35,7 +33,7 @@ describe('#naming', function () {
         it('should get lambda function name', () => {
             const expected = 'FuncNameLambdaFunction';
             const actual = naming.getLambdaFunctionCFRef('FuncName');
-            expect(actual).to.equal(expected);
+            expect(actual).toBe(expected);
         });
     });
 
@@ -46,7 +44,7 @@ describe('#naming', function () {
         it('should get alarm name', () => {
             const expected = 'GlobalFunctionErrorsAlarm';
             const actual = naming.getAlarmCFRef('functionErrors', 'Global');
-            expect(actual).to.equal(expected);
+            expect(actual).toBe(expected);
         });
     });
 
@@ -57,7 +55,7 @@ describe('#naming', function () {
         it('should get the pattern metric name', () => {
             const expected = 'MetricNamefoo';
             const actual = naming.getPatternMetricName('MetricName', 'foo');
-            expect(actual).to.equal(expected);
+            expect(actual).toBe(expected);
         });
     });
 });
