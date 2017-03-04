@@ -4,7 +4,14 @@ node_js:
 - '5.11'
 - '6.2'
 
-script: npm run lint && npm test
+before_install:
+- npm install -g yarn
+install:
+- yarn
+
+script:
+- yarn run lint
+- yarn run test -- --coverage
 
 after_success:
   - cat ./coverage/lcov.info | ./node_modules/.bin/coveralls && rm -rf ./coverage
