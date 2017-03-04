@@ -30,8 +30,10 @@ custom:
         namespace: 'AWS/Lambda'
         metric: duration
         threshold: 200
-        statistic: average
+        statistic: Average
         period: 300
+        evaluationPeriods: 1
+        comparisonOperator: GreaterThanThreshold
     global:
       - functionThrottles
       - functionErrors
@@ -48,11 +50,13 @@ functions:
     alarms: # merged with function alarms
       - customAlarm
       - name: fooAlarm
+        namespace: 'AWS/Lambda'
         metric: errors # define custom metrics here
         threshold: 1
-        statistic: minimum
+        statistic: Minimum
         period: 60
         evaluationPeriods: 1
+        comparisonOperator: GreaterThanThreshold
 ```
 
 ## SNS Topics
@@ -77,6 +81,14 @@ custom:
         evaluationPeriods: 1
         comparisonOperator: GreaterThanThreshold
         pattern: 'exception Bar'
+      - name: bunyanErrors
+        metric: BunyanErrors
+        threshold: 0
+        statistic: Sum
+        period: 60
+        evaluationPeriods: 1
+        comparisonOperator: GreaterThanThreshold
+        pattern: '{$.level > 40}'
 ```
 
 > Note: For custom log metrics, namespace property will automatically be set to stack name (e.g. `fooservice-dev`).
@@ -140,22 +152,6 @@ definitions:
     period: 60
     evaluationPeriods: 1
     comparisonOperator: GreaterThanThreshold
-  bunyanWarnings:
-    metric: BunyanWarnings
-    threshold: 0
-    statistic: Sum
-    period: 60
-    evaluationPeriods: 1
-    comparisonOperator: GreaterThanThreshold
-    pattern: '{$.level = 40}'
-  bunyanErrors:
-    metric: BunyanErrors
-    threshold: 0
-    statistic: Sum
-    period: 60
-    evaluationPeriods: 1
-    comparisonOperator: GreaterThanThreshold
-    pattern: '{$.level > 40}'
 ```
 
 ## License
