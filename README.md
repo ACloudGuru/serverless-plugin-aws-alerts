@@ -42,7 +42,6 @@ custom:
 plugins:
   - serverless-plugin-aws-alerts
 
-
 functions:
   foo:
     handler: foo.handler
@@ -56,17 +55,43 @@ functions:
         evaluationPeriods: 1
 ```
 
-## Default definitions
+## SNS Topics
+
+If topic name is specified, plugin assumes that topic does not exist and will create it. To use existing topics, specify ARNs instead.
+
+## Metric Log Filters
+You can monitor a log group for a function for a specific pattern. Do this by adding the pattern key.
+You can learn about custom patterns at: http://docs.aws.amazon.com/AmazonCloudWatch/latest/logs/FilterAndPatternSyntax.html
+
+The following would create a custom metric log filter based alarm named `barAlarm`. Any function that included this alarm would have its logs scanned for the pattern `exception Bar` and if found would trigger an alarm.
+
+```yaml
+custom:
+  alerts:
+    function:
+      - name: barAlarm
+        metric: barExceptions
+        threshold: 0
+        statistic: Minimum
+        period: 60
+        evaluationPeriods: 1
+        comparisonOperator: GreaterThanThreshold
+        pattern: 'exception Bar'
+```
+
+> Note: For custom log metrics, namespace property will automatically be set to stack name (e.g. `fooservice-dev`).
+
+## Default Definitions
 The plugin provides some default definitions that you can simply drop into your application. For example:
 
 ```yaml
-  alerts:
-    global:
-      - functionThrottles
-      - functionErrors
-    function:
-      - functionInvocations
-      - functionDuration
+alerts:
+  global:
+    - functionThrottles
+    - functionErrors
+  function:
+    - functionInvocations
+    - functionDuration
 ```
 
 If these definitions do not quite suit i.e. the threshold is too high, you can override a setting without
@@ -115,6 +140,22 @@ definitions:
     period: 60
     evaluationPeriods: 1
     comparisonOperator: GreaterThanThreshold
+  bunyanWarnings:
+    metric: BunyanWarnings
+    threshold: 0
+    statistic: Sum
+    period: 60
+    evaluationPeriods: 1
+    comparisonOperator: GreaterThanThreshold
+    pattern: '{$.level = 40}'
+  bunyanErrors:
+    metric: BunyanErrors
+    threshold: 0
+    statistic: Sum
+    period: 60
+    evaluationPeriods: 1
+    comparisonOperator: GreaterThanThreshold
+    pattern: '{$.level > 40}'
 ```
 
 ## License

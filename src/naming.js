@@ -1,4 +1,4 @@
-'use strict'
+'use strict';
 
 const _ = require('lodash');
 
@@ -15,6 +15,15 @@ class Naming {
 		const normalizedName = this.getNormalisedName(alarmName);
 		return `${prefix}${normalizedName}Alarm`;
 	}
+
+	getLogMetricCFRef(normalizedName, alarmName){
+		return `${normalizedName}${_.upperFirst(alarmName)}LogMetricFilter`;
+	}
+
+	getPatternMetricName(metricName, functionName){
+		return `${_.upperFirst(metricName)}${functionName}`;
+	}
+
 }
 
 module.exports = Naming;

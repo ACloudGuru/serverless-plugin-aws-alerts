@@ -11,8 +11,10 @@ const testServicePath = path.join(__dirname, '.tmp');
 
 const pluginFactory = (alarmsConfig, stage) => {
 	const functions = {
-		foo: {}
-	}
+		foo: {
+			name: 'foo'
+		}
+	};
 
 	const serverless = {
 		cli: {
@@ -32,13 +34,22 @@ const pluginFactory = (alarmsConfig, stage) => {
 					Resources: {},
 				},
 			},
+			service: 'fooservice',
 		},
+		getProvider: () => {
+			return {
+				naming: {
+					getLogGroupLogicalId: (name) => name,
+					getLogGroupName: (name) => `/aws/lambda/${name}`,
+					getStackName: () => 'fooservice-dev'
+				}
+			};
+		}
 	};
-
 	return new Plugin(serverless, {
 		stage,
 	});
-}
+};
 
 describe('#index', function () {
 	describe('#getConfig', () => {
@@ -261,6 +272,51 @@ describe('#index', function () {
 		});
 	});
 
+	describe('#compileAlertTopics', () => {
+		it('should not create SNS topic when ARN is passed', () => {
+			const topicArn = 'arn:aws:sns:us-east-1:123456789012:ok-topic';
+			const plugin = pluginFactory({
+				topics: {
+					ok: topicArn
+				}
+			});
+
+			const config = plugin.getConfig();
+			const topics = plugin.compileAlertTopics(config);
+
+			expect(topics).to.be.deep.equal({
+				ok: topicArn
+			});
+
+			expect(plugin.serverless.service.provider.compiledCloudFormationTemplate.Resources).to.deep.equal({});
+		});
+
+		it('should create SNS topic when name is passed', () => {
+			const topicName = 'ok-topic';
+			const plugin = pluginFactory({
+				topics: {
+					ok: topicName
+				}
+			});
+
+			const config = plugin.getConfig();
+			const topics = plugin.compileAlertTopics(config);
+
+			expect(topics).to.be.deep.equal({
+				ok: { Ref: `AwsAlertsOk` }
+			});
+
+			expect(plugin.serverless.service.provider.compiledCloudFormationTemplate.Resources).to.deep.equal({
+				'AwsAlertsOk': {
+					Type: 'AWS::SNS::Topic',
+					Properties: {
+						TopicName: topicName
+					}
+				}
+			});
+		});
+	});
+
 	describe('#compileGlobalAlarms', () => {
 		it('should compile global alarms', () => {
 			const plugin = pluginFactory({
@@ -295,6 +351,31 @@ describe('#index', function () {
 				}
 			});
 		});
+		it('should not add any global log metrics', () => {
+			const plugin = pluginFactory({
+				definitions: {
+					bunyanErrors: {
+						metric: 'BunyanErrors',
+						threshold: 0,
+						statistic: 'Sum',
+						period: 60,
+						evaluationPeriods: 1,
+						comparisonOperator: 'GreaterThanThreshold',
+						pattern: '{$.level > 40}'
+					}
+				},
+				global: ['bunyanErrors'],
+			});
+
+			const config = plugin.getConfig();
+			const definitions = plugin.getDefinitions(config);
+			const alertTopics = plugin.compileAlertTopics(config);
+
+			plugin.compileGlobalAlarms(config, definitions, alertTopics);
+
+			expect(plugin.serverless.service.provider.compiledCloudFormationTemplate.Resources).to.deep.equal({});
+		});
+
 	});
 
 	describe('#compileFunctionAlarms', () => {
@@ -333,9 +414,83 @@ describe('#index', function () {
 				}
 			});
 		});
+		it('should compile log metric function alarms', () => {
+			let config = {
+				definitions: {
+					bunyanErrors: {
+						metric: 'BunyanErrors',
+						threshold: 0,
+						statistic: 'Sum',
+						period: 60,
+						evaluationPeriods: 1,
+						comparisonOperator: 'GreaterThanThreshold',
+						pattern: '{$.level > 40}'
+					}
+				},
+				'function':['bunyanErrors']
+			};
+
+			const plugin = pluginFactory(config);
+
+			config = plugin.getConfig();
+			const definitions = plugin.getDefinitions(config);
+			const alertTopics = plugin.compileAlertTopics(config);
+
+			plugin.compileFunctionAlarms(config, definitions, alertTopics);
+			expect(plugin.serverless.service.provider.compiledCloudFormationTemplate.Resources).to.deep.equal(
+				{
+					"FooBunyanErrorsAlarm": {
+						"Type": "AWS::CloudWatch::Alarm",
+						"Properties": {
+							"Namespace": "fooservice-dev",
+							"MetricName": "BunyanErrorsFooLambdaFunction",
+							"Threshold": 0,
+							"Statistic": "Sum",
+							"Period": 60,
+							"EvaluationPeriods": 1,
+							"ComparisonOperator": "GreaterThanThreshold",
+							"OKActions": [],
+							"AlarmActions": [],
+							"InsufficientDataActions": []
+						}
+					},
+					"FooLambdaFunctionBunyanErrorsLogMetricFilterALERT": {
+						"Type": "AWS::Logs::MetricFilter",
+						"DependsOn": "foo",
+						"Properties": {
+							"FilterPattern": "{$.level > 40}",
+							"LogGroupName": "/aws/lambda/foo",
+							"MetricTransformations": [
+								{
+									"MetricValue": 1,
+									"MetricNamespace": "fooservice-dev",
+									"MetricName": "BunyanErrorsFooLambdaFunction"
+								}
+							]
+						}
+					},
+					"FooLambdaFunctionBunyanErrorsLogMetricFilterOK": {
+						"Type": "AWS::Logs::MetricFilter",
+						"DependsOn": "foo",
+						"Properties": {
+							"FilterPattern": "",
+							"LogGroupName": "/aws/lambda/foo",
+							"MetricTransformations": [
+								{
+									"MetricValue": 0,
+									"MetricNamespace": "fooservice-dev",
+									"MetricName": "BunyanErrorsFooLambdaFunction"
+								}
+							]
+						}
+					}
+				}
+			);
+		});
+
 	});
 
-	describe('#compileCloudWatchAlamrs', () => {
+	describe('#compileCloudWatchAlarms', () => {
 		const stage = 'production';
 		let plugin = null;
 
@@ -363,7 +518,6 @@ describe('#index', function () {
 			expect(compileFunctionAlarmsStub.args[0][0]).to.equal(config);
 			expect(compileFunctionAlarmsStub.args[0][1]).to.equal(definitions);
 			expect(compileFunctionAlarmsStub.args[0][2]).to.equal(alertTopics);
-
 		};
 
 		beforeEach(() => {
@@ -385,9 +539,9 @@ describe('#index', function () {
 			getDefinitionsStub.returns(definitions);
 			compileAlertTopicsStub.returns(alertTopics);
 
-			plugin.compileCloudWatchAlamrs();
+			plugin.compileCloudWatchAlarms();
 
-			expectCompiled(config, definitions, alertTopics);			
+			expectCompiled(config, definitions, alertTopics);
 		});
 
 		it('should compile alarms - for stage', () => {
@@ -401,15 +555,15 @@ describe('#index', function () {
 			getDefinitionsStub.returns(definitions);
 			compileAlertTopicsStub.returns(alertTopics);
 
-			plugin.compileCloudWatchAlamrs();
+			plugin.compileCloudWatchAlarms();
 
-			expectCompiled(config, definitions, alertTopics);			
+			expectCompiled(config, definitions, alertTopics);
 		});
 
 		it('should not compile alarms without config', () => {
 			getConfigStub.returns(null);
 
-			plugin.compileCloudWatchAlamrs();
+			plugin.compileCloudWatchAlarms();
 
 			expect(getConfigStub.calledOnce).to.equal(true);
 
@@ -424,7 +578,7 @@ describe('#index', function () {
 				stages: ['blah']
 			});
 
-			plugin.compileCloudWatchAlamrs();
+			plugin.compileCloudWatchAlarms();
 
 			expect(getConfigStub.calledOnce).to.equal(true);
 

@@ -12,7 +12,7 @@ class Plugin {
 		this.naming = new Naming();
 
 		this.hooks = {
-			'deploy:compileEvents': this.compileCloudWatchAlamrs.bind(this),
+			'deploy:compileEvents': this.compileCloudWatchAlarms.bind(this),
 		};
 	}
 
@@ -21,7 +21,7 @@ class Plugin {
 	}
 
 	getDefinitions(config) {
-		return _.merge({}, defaultDefinitions, config.definitions)
+		return _.merge({}, defaultDefinitions, config.definitions);
 	}
 
 	getAlarms(alarms, definitions) {
@@ -69,27 +69,18 @@ class Plugin {
 		const insufficientDataActions = [];
 
 		if(alertTopics.ok) {
-			okActions.push({ Ref: alertTopics.ok })
+			okActions.push(alertTopics.ok);
 		}
 
 		if(alertTopics.alarm) {
-			alarmActions.push({ Ref: alertTopics.alarm })
+			alarmActions.push(alertTopics.alarm);
 		}
 
 		if(alertTopics.insufficientData) {
-			insufficientDataActions.push({ Ref: alertTopics.insufficientData })
+			insufficientDataActions.push(alertTopics.insufficientData);
 		}
 
-		const dimensions = _.map(functionRefs, (ref) => {
-			return {
-				Name: `${ref}Name`,
-				Value: {
-					Ref: ref,
-				},
-			};
-		});
-
-		const properties = {
+		var properties = {
 			Namespace: definition.namespace,
 			MetricName: definition.metric,
 			Threshold: definition.threshold,
@@ -100,8 +91,23 @@ class Plugin {
 			OKActions: okActions,
 			AlarmActions: alarmActions,
 			InsufficientDataActions: insufficientDataActions,
-			Dimensions: dimensions,
 		};
+
+		if (definition.pattern) {
+			properties.Namespace = this.serverless.getProvider('aws').naming.getStackName();
+			properties.MetricName =  this.naming.getPatternMetricName(properties.MetricName, functionRefs[0]);
+		} else {
+			const dimensions = _.map(functionRefs, (ref) => {
+				return {
+					Name: `${ref}Name`,
+					Value: {
+						Ref: ref,
+					},
+				};
+			});
+
+			properties.Dimensions = dimensions;
+		}
 
 		return {
 			Type: 'AWS::CloudWatch::Alarm',
@@ -123,14 +129,18 @@ class Plugin {
 
 		if(config.topics) {
 			Object.keys(config.topics).forEach((key) => {
-				const topicName = config.topics[key];
-				if(topicName) {
-					const cfRef = `AwsAlerts${_.upperFirst(key)}`
-					alertTopics[key] = cfRef;
-					
-					this.addCfResources({
-						[cfRef]: this.getCfSnsTopic(topicName),
-					});
+				const topic = config.topics[key];
+				if (topic) {
+					if (topic.indexOf('arn:') === 0) {
+						alertTopics[key] = topic;
+					} else {
+						const cfRef = `AwsAlerts${_.upperFirst(key)}`;
+						alertTopics[key] = { Ref: cfRef };
+
+						this.addCfResources({
+							[cfRef]: this.getCfSnsTopic(topic),
+						});
+					}
 				}
 			});
 		}
@@ -138,19 +148,70 @@ class Plugin {
 		return alertTopics;
 	}
 
+	getLogMetricCF(alarm, functionName, normalizedFunctionName){
+		var output = {};
+		if (alarm.pattern) {
+			const logMetricCFRefBase = this.naming.getLogMetricCFRef(normalizedFunctionName, alarm.name);
+			const logMetricCFRefALERT = `${logMetricCFRefBase}ALERT`;
+			const logMetricCFRefOK = `${logMetricCFRefBase}OK`;
+			const providerNaming = this.serverless.getProvider('aws').naming;
+			const CFLogName = providerNaming.getLogGroupLogicalId(functionName);
+			const metricNamespace = providerNaming.getStackName();
+			const logGroupName =  providerNaming.getLogGroupName(this.serverless.service.getFunction(functionName).name);
+			const metricName = this.naming.getPatternMetricName(alarm.metric, normalizedFunctionName);
+
+			// add custom log metric for alert state
+			output[logMetricCFRefALERT] = {
+				Type: "AWS::Logs::MetricFilter",
+				DependsOn: CFLogName,
+				Properties: {
+					FilterPattern: alarm.pattern,
+					LogGroupName: logGroupName,
+					MetricTransformations: [{
+						MetricValue: 1,
+						MetricNamespace: metricNamespace,
+						MetricName: metricName
+					}]
+				}
+			};
+			//add custom log metric for ok state
+						//NOTE: empty filter pattern matches all log lines
+			output[logMetricCFRefOK] = {
+				Type: "AWS::Logs::MetricFilter",
+				DependsOn: CFLogName,
+				Properties: {
+					FilterPattern: "",
+					LogGroupName: logGroupName,
+					MetricTransformations: [{
+						MetricValue: 0,
+						MetricNamespace: metricNamespace,
+						MetricName: metricName
+					}]
+				}
+			};
+
+		}
+
+		return output;
+	}
+
 	compileGlobalAlarms(config, definitions, alertTopics) {
 		const globalAlarms = this.getGlobalAlarms(config, definitions);
 		const functionRefs = this.serverless.service
 			.getAllFunctions()
 			.map(functionName => {
-				const normalizedName = this.naming.getNormalisedName(functionName)
+				const normalizedName = this.naming.getNormalisedName(functionName);
 				return this.naming.getLambdaFunctionCFRef(normalizedName);
 			});
 
 		const alarmStatements = _.reduce(globalAlarms, (statements, alarm) => {
 			const key = this.naming.getAlarmCFRef(alarm.name, 'Global');
 			const cf = this.getAlarmCloudFormation(alertTopics, alarm, functionRefs);
-			statements[key] = cf;
+			if (alarm.pattern){
+				this.serverless.cli.log('Warning: global log metric filters are not supported');
+			} else {
+				statements[key] = cf;
+			}
 			return statements;
 		}, {});
 
@@ -161,7 +222,7 @@ class Plugin {
 		this.serverless.service.getAllFunctions().forEach((functionName) => {
 			const functionObj = this.serverless.service.getFunction(functionName);
 
-			const normalizedName = this.naming.getNormalisedName(functionName)
+			const normalizedName = this.naming.getNormalisedName(functionName);
 			const normalizedFunctionName = this.naming.getLambdaFunctionCFRef(normalizedName);
 
 			const alarms = this.getFunctionAlarms(functionObj, config, definitions);
@@ -172,6 +233,9 @@ class Plugin {
 					normalizedFunctionName
 				]);
 				statements[key] = cf;
+				const logMetricCF = this.getLogMetricCF(alarm, functionName, normalizedFunctionName);
+				_.merge(statements, logMetricCF);
+
 				return statements;
 			}, {});
 
@@ -179,7 +243,7 @@ class Plugin {
 		});
 	}
 
-	compileCloudWatchAlamrs() {
+	compileCloudWatchAlarms() {
 		const config = this.getConfig();
 		if(!config) {
 			// TODO warn no config
