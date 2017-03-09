@@ -99,7 +99,7 @@ class Plugin {
 		} else {
 			const dimensions = _.map(functionRefs, (ref) => {
 				return {
-					Name: `${ref}Name`,
+					Name: 'FunctionName',
 					Value: {
 						Ref: ref,
 					},
