@@ -135,17 +135,15 @@ class Plugin {
 			Object.keys(config.topics).forEach((key) => {
 				const topic = config.topics[key];
 
-				if (topic) {
-					if (topic.indexOf('arn:') === 0) {
-						alertTopics[key] = topic;
-					} else {
-						const cfRef = `AwsAlerts${_.upperFirst(key)}`;
-						alertTopics[key] = { Ref: cfRef };
+				if (topic.indexOf('arn:') === 0) {
+					alertTopics[key] = topic;
+				} else {
+					const cfRef = `AwsAlerts${_.upperFirst(key)}`;
+					alertTopics[key] = { Ref: cfRef };
 
-						this.addCfResources({
-							[cfRef]: this.getSnsTopicCloudFormation(topic),
-						});
-					}
+					this.addCfResources({
+						[cfRef]: this.getSnsTopicCloudFormation(topic),
+					});
 				}
 			});
 		}

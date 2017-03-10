@@ -61,6 +61,93 @@ describe('#index', function () {
 		});
 	});
 
+	describe('#getAlarms', () => {
+		let plugin = null;
+
+		beforeEach(() => {
+			plugin = pluginFactory({});
+		});
+
+		it('should return empty if no alarms', () => {
+			const alarms = [];
+			const definitions = null;
+
+			const alarmsConfig = plugin.getAlarms(alarms, definitions);
+			expect(alarmsConfig).toEqual([]);
+		});
+
+		it('should get alarms config by string', () => {
+			const testAlarm = {};
+			const alarms = [ 'test' ];
+			const definitions = {
+				'test': testAlarm,
+			};
+
+			const alarmsConfig = plugin.getAlarms(alarms, definitions);
+			expect(alarmsConfig).toEqual([{
+				name: 'test',
+			}]);
+		});
+
+		it('should get alarms config by object', () => {
+			const testAlarm = {};
+			const alarms = [ testAlarm ];
+			const definitions = {};
+
+			const alarmsConfig = plugin.getAlarms(alarms, definitions);
+			expect(alarmsConfig).toEqual([testAlarm]);
+		});
+
+		it('should throw if missing alarm', () => {
+			const alarms = ['missing'];
+			const definitions = {};
+
+			expect(() => {
+				plugin.getAlarms(alarms, definitions);
+			}).toThrow();
+		});
+	});
+
+	describe('#getGlobalAlarms', () => {
+		let plugin = null;
+
+		beforeEach(() => {
+			plugin = pluginFactory({});
+		});
+
+		it('should throw if no config argument', () => {
+			expect(() => {
+				plugin.getGlobalAlarms();
+			}).toThrow();
+		});
+
+		it('should throw if no definitions argument', () => {
+			expect(() => {
+				plugin.getGlobalAlarms({});
+			}).toThrow();
+		});
+	});
+
+	describe('#getFunctionAlarms', () => {
+		let plugin = null;
+
+		beforeEach(() => {
+			plugin = pluginFactory({});
+		});
+
+		it('should throw if no config argument', () => {
+			expect(() => {
+				plugin.getFunctionAlarms({});
+			}).toThrow();
+		});
+
+		it('should throw if no definitions argument', () => {
+			expect(() => {
+				plugin.getFunctionAlarms({}, {});
+			}).toThrow();
+		});
+	});
+
 	describe('#getDefinitions', () => {
 		it('should merge definitions', () => {
 			const config = {
@@ -508,4 +595,60 @@ describe('#index', function () {
 			expect(plugin.compileAlarms.mock.calls.length).toEqual(0);
 		});
 	});
+
+	describe('#getAlarmCloudFormation', () => {
+		let plugin = null;
+
+		beforeEach(() => {
+			plugin = pluginFactory({});
+		});
+
+		it('should return undefined if no function ref', () => {
+			expect(plugin.getAlarmCloudFormation({}, {})).toBe(undefined);
+		});
+
+		it('should add actions - create topic', () => {
+			const alertTopics = {
+				ok: 'ok-topic',
+				alarm: 'alarm-topic',
+				insufficientData: 'insufficientData-topic',
+			};
+
+			const definition = {
+				namespace: 'AWS/Lambda',
+				metric: 'Errors',
+				threshold: 10,
+				statistic: 'Maximum',
+				period: 300,
+				evaluationPeriods: 1,
+				comparisonOperator: 'GreaterThanThreshold',
+			};
+
+			const functionRef = 'func-ref';
+
+			const cf = plugin.getAlarmCloudFormation(alertTopics, definition, functionRef);
+
+			expect(cf).toEqual({
+				Type: 'AWS::CloudWatch::Alarm',
+				Properties: {
+					Namespace: definition.namespace,
+					MetricName: definition.metric,
+					Threshold: definition.threshold,
+					Statistic: definition.statistic,
+					Period: definition.period,
+					EvaluationPeriods: definition.evaluationPeriods,
+					ComparisonOperator: definition.comparisonOperator,
+					OKActions: ['ok-topic'],
+					AlarmActions: ['alarm-topic'],
+					InsufficientDataActions: ['insufficientData-topic'],
+					Dimensions: [{
+						Name: 'FunctionName',
+						Value: {
+							Ref: functionRef,
+						}
+					}],
+				}
+			});
+		});
+	})
 });
