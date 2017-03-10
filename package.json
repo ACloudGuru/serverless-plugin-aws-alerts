@@ -14,7 +14,7 @@
     "url": "https://github.com/ACloudGuru/serverless-plugin-aws-alerts.git",
     "type": "git"
   },
-  "author": "John McKim <johncmckim@gmail.com>",
+  "author": "John McKim <john@acloud.guru>",
   "license": "MIT",
   "dependencies": {
     "lodash": "^4.16.6"
