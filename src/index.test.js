@@ -397,7 +397,43 @@ describe('#index', function () {
 				'AwsAlertsOk': {
 					Type: 'AWS::SNS::Topic',
 					Properties: {
-						TopicName: topicName
+						TopicName: topicName,
+						Subscription: [],
+					}
+				}
+			});
+		});
+
+		it('should create SNS topic with notificaitons', () => {
+			const topicName = 'ok-topic';
+			const plugin = pluginFactory({
+				topics: {
+					ok: {
+						topic: topicName,
+						notifications: [{
+							protocol: 'email',
+							endpoint: 'test@email.com',
+						}]
+					}
+				}
+			});
+
+			const config = plugin.getConfig();
+			const topics = plugin.compileAlertTopics(config);
+
+			expect(topics).toEqual({
+				ok: { Ref: `AwsAlertsOk` }
+			});
+
+			expect(plugin.serverless.service.provider.compiledCloudFormationTemplate.Resources).toEqual({
+				'AwsAlertsOk': {
+					Type: 'AWS::SNS::Topic',
+					Properties: {
+						TopicName: topicName,
+						Subscription: [{
+							Protocol: 'email',
+							Endpoint: 'test@email.com',
+						}],
 					}
 				}
 			});

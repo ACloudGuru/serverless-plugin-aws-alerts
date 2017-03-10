@@ -119,11 +119,17 @@ class Plugin {
 		};
 	}
 
-	getSnsTopicCloudFormation(topicName) {
+	getSnsTopicCloudFormation(topicName, notifications) {
+		const subscription = (notifications || []).map((n) => ({
+			Protocol: n.protocol,
+			Endpoint: n.endpoint
+		}));
+
 		return {
 			Type: 'AWS::SNS::Topic',
 			Properties: {
 				TopicName: topicName,
+				Subscription: subscription,
 			}
 		};
 	}
@@ -133,17 +139,23 @@ class Plugin {
 
 		if(config.topics) {
 			Object.keys(config.topics).forEach((key) => {
-				const topic = config.topics[key];
+				const topicConfig = config.topics[key];
+				const isTopicConfigAnObject = _.isObject(topicConfig);
 
-				if (topic.indexOf('arn:') === 0) {
-					alertTopics[key] = topic;
-				} else {
-					const cfRef = `AwsAlerts${_.upperFirst(key)}`;
-					alertTopics[key] = { Ref: cfRef };
+				const topic = isTopicConfigAnObject ? topicConfig.topic : topicConfig;
+				const notifications = isTopicConfigAnObject ? topicConfig.notifications : [];
 
-					this.addCfResources({
-						[cfRef]: this.getSnsTopicCloudFormation(topic),
-					});
+				if(topic) {
+					if (topic.indexOf('arn:') === 0) {
+						alertTopics[key] = topic;
+					} else {
+						const cfRef = `AwsAlerts${_.upperFirst(key)}`;
+						alertTopics[key] = { Ref: cfRef };
+
+						this.addCfResources({
+							[cfRef]: this.getSnsTopicCloudFormation(topic, notifications),
+						});
+					}
 				}
 			});
 		}
