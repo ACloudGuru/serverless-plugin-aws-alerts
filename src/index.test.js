@@ -108,7 +108,7 @@ describe('#index', function () {
 					namespace: 'AWS/Lambda',
 					metric: 'Duration',
 					threshold: 500,
-					statistic: 'Maximum',
+					statistic: 'Average',
 					period: 60,
 					evaluationPeriods: 1,
 					comparisonOperator: 'GreaterThanThreshold',

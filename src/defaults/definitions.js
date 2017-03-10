@@ -25,7 +25,7 @@ module.exports = {
     namespace: lambdaNamespace,
     metric: 'Duration',
     threshold: 500,
-    statistic: 'p50',
+    statistic: 'Average',
     period: 60,
     evaluationPeriods: 1,
     comparisonOperator: 'GreaterThanThreshold',
