@@ -341,7 +341,7 @@ describe('#index', function () {
 						OKActions: [],
 						InsufficientDataActions: [],
 						Dimensions: [{
-							Name: 'FooLambdaFunctionName',
+							Name: 'FunctionName',
 							Value: { Ref: 'FooLambdaFunction' },
 						}]
 					}
@@ -404,7 +404,7 @@ describe('#index', function () {
 						OKActions: [],
 						InsufficientDataActions: [],
 						Dimensions: [{
-							Name: 'FooLambdaFunctionName',
+							Name: 'FunctionName',
 							Value: { Ref: 'FooLambdaFunction' },
 						}]
 					}
