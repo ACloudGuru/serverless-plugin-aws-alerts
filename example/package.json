@@ -8,6 +8,6 @@
   },
   "devDependencies": {
     "serverless": "^1.8.0",
-    "serverless-plugin-aws-alerts": "^0.0.7"
+    "serverless-plugin-aws-alerts": "^1.0.0"
   }
 }
