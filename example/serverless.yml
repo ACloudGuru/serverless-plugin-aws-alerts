@@ -50,3 +50,13 @@ functions:
         period: 60
         evaluationPeriods: 1
         comparisonOperator: GreaterThanThreshold
+
+  error:
+    handler: error.handler
+    alarms:
+      - customAlarm
+
+  slow:
+    handler: slow.handler
+    alarms:
+      - customAlarm
