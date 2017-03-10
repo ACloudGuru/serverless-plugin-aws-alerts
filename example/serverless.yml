@@ -6,6 +6,7 @@ provider:
 package:
   exclude:
     - node_modules/**
+    - yarn.lock
 
 custom:
   alerts:
@@ -16,9 +17,16 @@ custom:
       ok: ${self:service}-${opt:stage}-alerts-ok
       alarm: ${self:service}-${opt:stage}-alerts-alarm
       insufficientData: ${self:service}-${opt:stage}-alerts-insufficientData
+    # notifications:
+    #   - protocol: email
+    #     endpoint: contact@johncmckim.me
+    #   - protocol: 
     definitions:  # these defaults are merged with your definitions
       functionErrors:
-        period: 300 # override period
+        period: 600
+      functionInvocations:
+        threshold: 10
+        period: 600
       customAlarm:
         namespace: 'AWS/Lambda'
         metric: duration
@@ -55,6 +63,15 @@ functions:
     handler: error.handler
     alarms:
       - customAlarm
+      - name: bunyanErrors
+        namespace: 'AWS/Lambda'
+        metric: BunyanErrors
+        threshold: 0
+        statistic: Sum
+        period: 60
+        evaluationPeriods: 1
+        comparisonOperator: GreaterThanThreshold
+        pattern: '{$.level > 40}'
 
   slow:
     handler: slow.handler

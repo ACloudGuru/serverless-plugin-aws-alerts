@@ -2,21 +2,20 @@
 
 const _ = require('lodash');
 
+const getNormalisedName = (name) => {
+	return `${_.upperFirst(name.replace(/-/g, 'Dash').replace(/_/g, 'Underscore'))}`;
+}
+
 class Naming {
-	getNormalisedName(name) {
-		return `${_.upperFirst(name.replace(/-/g, 'Dash').replace(/_/g, 'Underscore'))}`;
+
+	getAlarmCloudFormationRef(alarmName, prefix) {
+		const normalizePrefix = getNormalisedName(prefix);
+		const normalizedName = getNormalisedName(alarmName);
+
+		return `${normalizePrefix}${normalizedName}Alarm`;
 	}
 
-	getLambdaFunctionCFRef(normalizedName) {
-		return `${normalizedName}LambdaFunction`;
-	}
-
-	getAlarmCFRef(alarmName, prefix) {
-		const normalizedName = this.getNormalisedName(alarmName);
-		return `${prefix}${normalizedName}Alarm`;
-	}
-
-	getLogMetricCFRef(normalizedName, alarmName){
+	getLogMetricCloudFormationRef(normalizedName, alarmName){
 		return `${normalizedName}${_.upperFirst(alarmName)}LogMetricFilter`;
 	}
 

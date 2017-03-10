@@ -1,5 +1,6 @@
 'use strict';
 
+// Try to remove this. Such a large package
 const _ = require('lodash');
 
 const Naming = require('./naming');
@@ -9,6 +10,9 @@ class Plugin {
 	constructor(serverless, options) {
 		this.serverless = serverless;
 		this.options = options;
+
+		this.awsProvider = this.serverless.getProvider('aws');
+		this.providerNaming = this.awsProvider.naming;
 		this.naming = new Naming();
 
 		this.hooks = {
@@ -25,7 +29,9 @@ class Plugin {
 	}
 
 	getAlarms(alarms, definitions) {
-		return _.reduce(alarms, (result, alarm) => {
+		if(!alarms) return [];
+		
+		return alarms.reduce((result, alarm) => {
 			if (_.isString(alarm)) {
 				const definition = definitions[alarm];
 
@@ -33,7 +39,7 @@ class Plugin {
 					throw new Error(`Alarm definition ${alarm} does not exist!`);
 				}
 
-				result.push(_.assign({}, definition, {
+				result.push(Object.assign({}, definition, {
 					name: alarm
 				}));
 			} else if (_.isObject(alarm)) {
@@ -59,8 +65,8 @@ class Plugin {
 		return this.getAlarms(alarms, definitions);
 	}
 
-	getAlarmCloudFormation(alertTopics, definition, functionRefs) {
-		if(!functionRefs || !functionRefs.length) {
+	getAlarmCloudFormation(alertTopics, definition, functionRef) {
+		if(!functionRef) {
 			return;
 		}
 
@@ -80,44 +86,42 @@ class Plugin {
 			insufficientDataActions.push(alertTopics.insufficientData);
 		}
 
-		var properties = {
-			Namespace: definition.namespace,
-			MetricName: definition.metric,
-			Threshold: definition.threshold,
-			Statistic: definition.statistic,
-			Period: definition.period,
-			EvaluationPeriods: definition.evaluationPeriods,
-			ComparisonOperator: definition.comparisonOperator,
-			OKActions: okActions,
-			AlarmActions: alarmActions,
-			InsufficientDataActions: insufficientDataActions,
-		};
+		const namespace = definition.pattern ? 
+			this.awsProvider.naming.getStackName() :
+			definition.namespace;
 
-		if (definition.pattern) {
-			properties.Namespace = this.serverless.getProvider('aws').naming.getStackName();
-			properties.MetricName =  this.naming.getPatternMetricName(properties.MetricName, functionRefs[0]);
-		} else {
-			const dimensions = _.map(functionRefs, (ref) => {
-				return {
-					Name: 'FunctionName',
-					Value: {
-						Ref: ref,
-					},
-				};
-			});
+		const metricName = definition.pattern ?
+			this.naming.getPatternMetricName(definition.metric, functionRef) :
+			definition.metric;
 
-			properties.Dimensions = dimensions;
-		}
+		const dimensions = definition.pattern ? [] : [{
+			Name: 'FunctionName',
+			Value: {
+				Ref: functionRef,
+			}
+		}];
 
 		return {
 			Type: 'AWS::CloudWatch::Alarm',
-			Properties: properties
+			Properties: {
+				Namespace: namespace,
+				MetricName: metricName,
+				Threshold: definition.threshold,
+				Statistic: definition.statistic,
+				Period: definition.period,
+				EvaluationPeriods: definition.evaluationPeriods,
+				ComparisonOperator: definition.comparisonOperator,
+				OKActions: okActions,
+				AlarmActions: alarmActions,
+				InsufficientDataActions: insufficientDataActions,
+				Dimensions: dimensions,
+			}
 		};
 	}
 
-	getCfSnsTopic(topicName) {
+	getSnsTopicCloudFormation(topicName) {
 		return {
-			Type: "AWS::SNS::Topic",
+			Type: 'AWS::SNS::Topic',
 			Properties: {
 				TopicName: topicName,
 			}
@@ -130,6 +134,7 @@ class Plugin {
 		if(config.topics) {
 			Object.keys(config.topics).forEach((key) => {
 				const topic = config.topics[key];
+
 				if (topic) {
 					if (topic.indexOf('arn:') === 0) {
 						alertTopics[key] = topic;
@@ -138,7 +143,7 @@ class Plugin {
 						alertTopics[key] = { Ref: cfRef };
 
 						this.addCfResources({
-							[cfRef]: this.getCfSnsTopic(topic),
+							[cfRef]: this.getSnsTopicCloudFormation(topic),
 						});
 					}
 				}
@@ -148,22 +153,22 @@ class Plugin {
 		return alertTopics;
 	}
 
-	getLogMetricCF(alarm, functionName, normalizedFunctionName){
-		var output = {};
-		if (alarm.pattern) {
-			const logMetricCFRefBase = this.naming.getLogMetricCFRef(normalizedFunctionName, alarm.name);
-			const logMetricCFRefALERT = `${logMetricCFRefBase}ALERT`;
-			const logMetricCFRefOK = `${logMetricCFRefBase}OK`;
-			const providerNaming = this.serverless.getProvider('aws').naming;
-			const CFLogName = providerNaming.getLogGroupLogicalId(functionName);
-			const metricNamespace = providerNaming.getStackName();
-			const logGroupName =  providerNaming.getLogGroupName(this.serverless.service.getFunction(functionName).name);
-			const metricName = this.naming.getPatternMetricName(alarm.metric, normalizedFunctionName);
+	getLogMetricCloudFormation(alarm, functionName, normalizedFunctionName, functionObj) {
+		if(!alarm.pattern) return {};
+		
+		const logMetricCFRefBase = this.naming.getLogMetricCloudFormationRef(normalizedFunctionName, alarm.name);
+		const logMetricCFRefALERT = `${logMetricCFRefBase}ALERT`;
+		const logMetricCFRefOK = `${logMetricCFRefBase}OK`;
 
-			// add custom log metric for alert state
-			output[logMetricCFRefALERT] = {
-				Type: "AWS::Logs::MetricFilter",
-				DependsOn: CFLogName,
+		const cfLogName = this.providerNaming.getLogGroupLogicalId(functionName);
+		const metricNamespace = this.providerNaming.getStackName();
+		const logGroupName =  this.providerNaming.getLogGroupName(functionObj.name);
+		const metricName = this.naming.getPatternMetricName(alarm.metric, normalizedFunctionName);
+		
+		return {
+			[logMetricCFRefALERT]: {
+				Type: 'AWS::Logs::MetricFilter',
+				DependsOn: cfLogName,
 				Properties: {
 					FilterPattern: alarm.pattern,
 					LogGroupName: logGroupName,
@@ -173,14 +178,12 @@ class Plugin {
 						MetricName: metricName
 					}]
 				}
-			};
-			//add custom log metric for ok state
-						//NOTE: empty filter pattern matches all log lines
-			output[logMetricCFRefOK] = {
-				Type: "AWS::Logs::MetricFilter",
-				DependsOn: CFLogName,
+			},			
+			[logMetricCFRefOK]: {
+				Type: 'AWS::Logs::MetricFilter',
+				DependsOn: cfLogName,
 				Properties: {
-					FilterPattern: "",
+					FilterPattern: '',
 					LogGroupName: logGroupName,
 					MetricTransformations: [{
 						MetricValue: 0,
@@ -188,52 +191,28 @@ class Plugin {
 						MetricName: metricName
 					}]
 				}
-			};
-
-		}
-
-		return output;
-	}
-
-	compileGlobalAlarms(config, definitions, alertTopics) {
-		const globalAlarms = this.getGlobalAlarms(config, definitions);
-		const functionRefs = this.serverless.service
-			.getAllFunctions()
-			.map(functionName => {
-				const normalizedName = this.naming.getNormalisedName(functionName);
-				return this.naming.getLambdaFunctionCFRef(normalizedName);
-			});
-
-		const alarmStatements = _.reduce(globalAlarms, (statements, alarm) => {
-			const key = this.naming.getAlarmCFRef(alarm.name, 'Global');
-			const cf = this.getAlarmCloudFormation(alertTopics, alarm, functionRefs);
-			if (alarm.pattern){
-				this.serverless.cli.log('Warning: global log metric filters are not supported');
-			} else {
-				statements[key] = cf;
 			}
-			return statements;
-		}, {});
-
-		this.addCfResources(alarmStatements);
+		};
 	}
 
-	compileFunctionAlarms(config, definitions, alertTopics) {
+	compileAlarms(config, definitions, alertTopics) {
+		const globalAlarms = this.getGlobalAlarms(config, definitions);
+
 		this.serverless.service.getAllFunctions().forEach((functionName) => {
 			const functionObj = this.serverless.service.getFunction(functionName);
 
-			const normalizedName = this.naming.getNormalisedName(functionName);
-			const normalizedFunctionName = this.naming.getLambdaFunctionCFRef(normalizedName);
+			const normalizedFunctionName = this.providerNaming.getLambdaLogicalId(functionName);
 
-			const alarms = this.getFunctionAlarms(functionObj, config, definitions);
+			const functionAlarms = this.getFunctionAlarms(functionObj, config, definitions);
+			const alarms = globalAlarms.concat(functionAlarms);
 
-			const alarmStatements = _.reduce(alarms, (statements, alarm) => {
-				const key = this.naming.getAlarmCFRef(alarm.name, normalizedName);
-				const cf = this.getAlarmCloudFormation(alertTopics, alarm, [
-					normalizedFunctionName
-				]);
+			const alarmStatements = alarms.reduce((statements, alarm) => {
+				const key = this.naming.getAlarmCloudFormationRef(alarm.name, functionName);
+				const cf = this.getAlarmCloudFormation(alertTopics, alarm, normalizedFunctionName);
+
 				statements[key] = cf;
-				const logMetricCF = this.getLogMetricCF(alarm, functionName, normalizedFunctionName);
+
+				const logMetricCF = this.getLogMetricCloudFormation(alarm, functionName, normalizedFunctionName, functionObj);
 				_.merge(statements, logMetricCF);
 
 				return statements;
@@ -258,8 +237,7 @@ class Plugin {
 		const definitions = this.getDefinitions(config);
 		const alertTopics = this.compileAlertTopics(config);
 
-		this.compileGlobalAlarms(config, definitions, alertTopics);
-		this.compileFunctionAlarms(config, definitions, alertTopics);
+		this.compileAlarms(config, definitions, alertTopics);
 	}
 
 	addCfResources(resources) {

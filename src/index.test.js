@@ -1,12 +1,14 @@
 'use strict';
 
+const _ = require('lodash');
 const path = require('path');
 
 const Plugin = require('./index');
 
 const testServicePath = path.join(__dirname, '.tmp');
 
-const pluginFactory = (alarmsConfig, stage) => {
+const pluginFactory = (alarmsConfig, s) => {
+	const stage = s || 'dev';
 	const functions = {
 		foo: {
 			name: 'foo'
@@ -36,9 +38,10 @@ const pluginFactory = (alarmsConfig, stage) => {
 		getProvider: () => {
 			return {
 				naming: {
+					getLambdaLogicalId: (name) => `${_.upperFirst(name)}LambdaFunction`,
 					getLogGroupLogicalId: (name) => name,
 					getLogGroupName: (name) => `/aws/lambda/${name}`,
-					getStackName: () => 'fooservice-dev'
+					getStackName: () => `fooservice-${stage}`,
 				}
 			};
 		}
@@ -314,68 +317,7 @@ describe('#index', function () {
 		});
 	});
 
-	describe('#compileGlobalAlarms', () => {
-		it('should compile global alarms', () => {
-			const plugin = pluginFactory({
-				global: ['functionThrottles'],
-			});
-
-			const config = plugin.getConfig();
-			const definitions = plugin.getDefinitions(config);
-			const alertTopics = plugin.compileAlertTopics(config);
-
-			plugin.compileGlobalAlarms(config, definitions, alertTopics);
-
-			expect(plugin.serverless.service.provider.compiledCloudFormationTemplate.Resources).toEqual({
-				'GlobalFunctionThrottlesAlarm': {
-					Type: 'AWS::CloudWatch::Alarm',
-					Properties: {
-						Namespace: 'AWS/Lambda',
-						MetricName: 'Throttles',
-						Threshold: 50,
-						Statistic: 'Sum',
-						Period: 60,
-						EvaluationPeriods: 1,
-						ComparisonOperator: 'GreaterThanThreshold',
-						AlarmActions: [],
-						OKActions: [],
-						InsufficientDataActions: [],
-						Dimensions: [{
-							Name: 'FunctionName',
-							Value: { Ref: 'FooLambdaFunction' },
-						}]
-					}
-				}
-			});
-		});
-		it('should not add any global log metrics', () => {
-			const plugin = pluginFactory({
-				definitions: {
-					bunyanErrors: {
-						metric: 'BunyanErrors',
-						threshold: 0,
-						statistic: 'Sum',
-						period: 60,
-						evaluationPeriods: 1,
-						comparisonOperator: 'GreaterThanThreshold',
-						pattern: '{$.level > 40}'
-					}
-				},
-				global: ['bunyanErrors'],
-			});
-
-			const config = plugin.getConfig();
-			const definitions = plugin.getDefinitions(config);
-			const alertTopics = plugin.compileAlertTopics(config);
-
-			plugin.compileGlobalAlarms(config, definitions, alertTopics);
-
-			expect(plugin.serverless.service.provider.compiledCloudFormationTemplate.Resources).toEqual({});
-		});
-
-	});
-
-	describe('#compileFunctionAlarms', () => {
+	describe('#compileAlarms', () => {
 		it('should compile default function alarms', () => {
 			const plugin = pluginFactory({
 				'function': [
@@ -387,10 +329,10 @@ describe('#index', function () {
 			const definitions = plugin.getDefinitions(config);
 			const alertTopics = plugin.compileAlertTopics(config);
 
-			plugin.compileFunctionAlarms(config, definitions, alertTopics);
+			plugin.compileAlarms(config, definitions, alertTopics);
 
 			expect(plugin.serverless.service.provider.compiledCloudFormationTemplate.Resources).toEqual({
-				'FooFunctionInvocationsAlarm': {
+				FooFunctionInvocationsAlarm: {
 					Type: 'AWS::CloudWatch::Alarm',
 					Properties: {
 						Namespace: 'AWS/Lambda',
@@ -433,56 +375,51 @@ describe('#index', function () {
 			const definitions = plugin.getDefinitions(config);
 			const alertTopics = plugin.compileAlertTopics(config);
 
-			plugin.compileFunctionAlarms(config, definitions, alertTopics);
-			expect(plugin.serverless.service.provider.compiledCloudFormationTemplate.Resources).toEqual(
-				{
-					"FooBunyanErrorsAlarm": {
-						"Type": "AWS::CloudWatch::Alarm",
-						"Properties": {
-							"Namespace": "fooservice-dev",
-							"MetricName": "BunyanErrorsFooLambdaFunction",
-							"Threshold": 0,
-							"Statistic": "Sum",
-							"Period": 60,
-							"EvaluationPeriods": 1,
-							"ComparisonOperator": "GreaterThanThreshold",
-							"OKActions": [],
-							"AlarmActions": [],
-							"InsufficientDataActions": []
-						}
+			plugin.compileAlarms(config, definitions, alertTopics);
+			expect(plugin.serverless.service.provider.compiledCloudFormationTemplate.Resources).toEqual({
+				FooBunyanErrorsAlarm: {
+					Type: 'AWS::CloudWatch::Alarm',
+					Properties: {
+						Namespace: 'fooservice-dev',
+						MetricName: 'BunyanErrorsFooLambdaFunction',
+						Threshold: 0,
+						Statistic: 'Sum',
+						Period: 60,
+						EvaluationPeriods: 1,
+						ComparisonOperator: 'GreaterThanThreshold',
+						OKActions: [],
+						AlarmActions: [],
+						InsufficientDataActions: [],
+						Dimensions: [],
 					},
-					"FooLambdaFunctionBunyanErrorsLogMetricFilterALERT": {
-						"Type": "AWS::Logs::MetricFilter",
-						"DependsOn": "foo",
-						"Properties": {
-							"FilterPattern": "{$.level > 40}",
-							"LogGroupName": "/aws/lambda/foo",
-							"MetricTransformations": [
-								{
-									"MetricValue": 1,
-									"MetricNamespace": "fooservice-dev",
-									"MetricName": "BunyanErrorsFooLambdaFunction"
-								}
-							]
-						}
-					},
-					"FooLambdaFunctionBunyanErrorsLogMetricFilterOK": {
-						"Type": "AWS::Logs::MetricFilter",
-						"DependsOn": "foo",
-						"Properties": {
-							"FilterPattern": "",
-							"LogGroupName": "/aws/lambda/foo",
-							"MetricTransformations": [
-								{
-									"MetricValue": 0,
-									"MetricNamespace": "fooservice-dev",
-									"MetricName": "BunyanErrorsFooLambdaFunction"
-								}
-							]
-						}
+				},
+				FooLambdaFunctionBunyanErrorsLogMetricFilterALERT: {
+					Type: 'AWS::Logs::MetricFilter',
+					DependsOn: 'foo',
+					Properties: {
+						FilterPattern: '{$.level > 40}',
+						LogGroupName: '/aws/lambda/foo',
+						MetricTransformations: [{
+							MetricValue: 1,
+							MetricNamespace: 'fooservice-dev',
+							MetricName: 'BunyanErrorsFooLambdaFunction'
+						}],
 					}
-				}
-			);
+				},
+				FooLambdaFunctionBunyanErrorsLogMetricFilterOK: {
+					Type: 'AWS::Logs::MetricFilter',
+					DependsOn: 'foo',
+					Properties: {
+						FilterPattern: '',
+						LogGroupName: '/aws/lambda/foo',
+						MetricTransformations: [{
+							MetricValue: 0,
+							MetricNamespace: 'fooservice-dev',
+							MetricName: 'BunyanErrorsFooLambdaFunction'
+						}],
+					},
+				},
+			});
 		});
 
 	});
@@ -500,15 +437,10 @@ describe('#index', function () {
 			expect(plugin.compileAlertTopics.mock.calls.length).toEqual(1);
 			expect(plugin.compileAlertTopics.mock.calls[0][0]).toEqual(config);
 
-			expect(plugin.compileGlobalAlarms.mock.calls.length).toEqual(1);
-			expect(plugin.compileGlobalAlarms.mock.calls[0][0]).toEqual(config);
-			expect(plugin.compileGlobalAlarms.mock.calls[0][1]).toEqual(definitions);
-			expect(plugin.compileGlobalAlarms.mock.calls[0][2]).toEqual(alertTopics);
-
-			expect(plugin.compileFunctionAlarms.mock.calls.length).toEqual(1);
-			expect(plugin.compileFunctionAlarms.mock.calls[0][0]).toEqual(config);
-			expect(plugin.compileFunctionAlarms.mock.calls[0][1]).toEqual(definitions);
-			expect(plugin.compileFunctionAlarms.mock.calls[0][2]).toEqual(alertTopics);
+			expect(plugin.compileAlarms.mock.calls.length).toEqual(1);
+			expect(plugin.compileAlarms.mock.calls[0][0]).toEqual(config);
+			expect(plugin.compileAlarms.mock.calls[0][1]).toEqual(definitions);
+			expect(plugin.compileAlarms.mock.calls[0][2]).toEqual(alertTopics);
 		};
 
 		beforeEach(() => {
@@ -517,8 +449,7 @@ describe('#index', function () {
 			plugin.getConfig = jest.fn();
 			plugin.getDefinitions = jest.fn();
 			plugin.compileAlertTopics = jest.fn();
-			plugin.compileGlobalAlarms = jest.fn();
-			plugin.compileFunctionAlarms = jest.fn();
+			plugin.compileAlarms = jest.fn();
 		});
 
 		it('should compile alarms - by default', () => {
@@ -560,8 +491,7 @@ describe('#index', function () {
 
 			expect(plugin.getDefinitions.mock.calls.length).toEqual(0);
 			expect(plugin.compileAlertTopics.mock.calls.length).toEqual(0);
-			expect(plugin.compileGlobalAlarms.mock.calls.length).toEqual(0);
-			expect(plugin.compileFunctionAlarms.mock.calls.length).toEqual(0);
+			expect(plugin.compileAlarms.mock.calls.length).toEqual(0);
 		});
 
 		it('should not compile alarms on invalid stage', () => {
@@ -575,8 +505,7 @@ describe('#index', function () {
 
 			expect(plugin.getDefinitions.mock.calls.length).toEqual(0);
 			expect(plugin.compileAlertTopics.mock.calls.length).toEqual(0);
-			expect(plugin.compileGlobalAlarms.mock.calls.length).toEqual(0);
-			expect(plugin.compileFunctionAlarms.mock.calls.length).toEqual(0);
+			expect(plugin.compileAlarms.mock.calls.length).toEqual(0);
 		});
 	});
 });
