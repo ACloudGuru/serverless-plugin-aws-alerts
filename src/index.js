@@ -78,8 +78,12 @@ class Plugin {
 			okActions.push(alertTopics.ok);
 		}
 
-		if(alertTopics.alarm) {
-			alarmActions.push(alertTopics.alarm);
+		if (definition.topic && alertTopics[definition.topic]) {
+			alarmActions.push(alertTopics[definition.topic]);
+		} else {
+			if(alertTopics.alarm) {
+				alarmActions.push(alertTopics.alarm);
+			}
 		}
 
 		if(alertTopics.insufficientData) {
