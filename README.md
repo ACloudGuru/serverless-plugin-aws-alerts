@@ -1,5 +1,8 @@
-# generator-serverless-service [![NPM version][npm-image]][npm-url] [![Build Status][travis-image]][travis-url] [![Dependency Status][daviddm-image]][daviddm-url] [![Coverage percentage][coveralls-image]][coveralls-url]
-> Serverless AWS Alerts Plugin
+# Serverless AWS Alerts Plugin
+  [![NPM version][npm-image]][npm-url]
+  [![Build Status][travis-image]][travis-url]
+  [![Dependency Status][daviddm-image]][daviddm-url]
+  [![Coverage percentage][coveralls-image]][coveralls-url]
 
 A Serverless plugin to easily add CloudWatch alarms to functions
 
