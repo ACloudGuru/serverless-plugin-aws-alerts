@@ -686,5 +686,56 @@ describe('#index', function () {
 				}
 			});
 		});
+
+
+        it('should add actions - with custom topics', () => {
+			const alertTopics = {
+				customOk: 'custom-Ok-topic',
+				customAlarm: 'custom-Alarm-topic',
+				customInsufficientData: 'custom-InsufficientData-topic',
+			};
+
+			const definition = {
+				namespace: 'AWS/Lambda',
+				metric: 'Errors',
+				threshold: 10,
+				statistic: 'Maximum',
+				period: 300,
+				evaluationPeriods: 1,
+				comparisonOperator: 'GreaterThanThreshold',
+				topics: {
+					ok: 'customOk',
+					alarm: 'customAlarm',
+					insufficientData: 'customInsufficientData'
+				}
+
+			};
+
+			const functionRef = 'func-ref';
+
+			const cf = plugin.getAlarmCloudFormation(alertTopics, definition, functionRef);
+
+			expect(cf).toEqual({
+				Type: 'AWS::CloudWatch::Alarm',
+				Properties: {
+					Namespace: definition.namespace,
+					MetricName: definition.metric,
+					Threshold: definition.threshold,
+					Statistic: definition.statistic,
+					Period: definition.period,
+					EvaluationPeriods: definition.evaluationPeriods,
+					ComparisonOperator: definition.comparisonOperator,
+					OKActions: ['custom-Ok-topic'],
+					AlarmActions: ['custom-Alarm-topic'],
+					InsufficientDataActions: ['custom-InsufficientData-topic'],
+					Dimensions: [{
+						Name: 'FunctionName',
+						Value: {
+							Ref: functionRef,
+						}
+					}],
+				}
+			});
+		});
 	})
 });
