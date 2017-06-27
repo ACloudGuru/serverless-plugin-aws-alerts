@@ -30,7 +30,7 @@ class Plugin {
 
 	getAlarms(alarms, definitions) {
 		if(!alarms) return [];
-		
+
 		return alarms.reduce((result, alarm) => {
 			if (_.isString(alarm)) {
 				const definition = definitions[alarm];
@@ -86,7 +86,7 @@ class Plugin {
 			insufficientDataActions.push(alertTopics.insufficientData);
 		}
 
-		const namespace = definition.pattern ? 
+		const namespace = definition.pattern ?
 			this.awsProvider.naming.getStackName() :
 			definition.namespace;
 
@@ -100,6 +100,8 @@ class Plugin {
 				Ref: functionRef,
 			}
 		}];
+
+		const treatMissingData = definition.treatMissingData ? definition.treatMissingData : 'missing';
 
 		return {
 			Type: 'AWS::CloudWatch::Alarm',
@@ -115,6 +117,7 @@ class Plugin {
 				AlarmActions: alarmActions,
 				InsufficientDataActions: insufficientDataActions,
 				Dimensions: dimensions,
+				TreatMissingData: treatMissingData,
 			}
 		};
 	}
@@ -165,7 +168,7 @@ class Plugin {
 
 	getLogMetricCloudFormation(alarm, functionName, normalizedFunctionName, functionObj) {
 		if(!alarm.pattern) return {};
-		
+
 		const logMetricCFRefBase = this.naming.getLogMetricCloudFormationRef(normalizedFunctionName, alarm.name);
 		const logMetricCFRefALERT = `${logMetricCFRefBase}ALERT`;
 		const logMetricCFRefOK = `${logMetricCFRefBase}OK`;
@@ -174,7 +177,7 @@ class Plugin {
 		const metricNamespace = this.providerNaming.getStackName();
 		const logGroupName =  this.providerNaming.getLogGroupName(functionObj.name);
 		const metricName = this.naming.getPatternMetricName(alarm.metric, normalizedFunctionName);
-		
+
 		return {
 			[logMetricCFRefALERT]: {
 				Type: 'AWS::Logs::MetricFilter',
@@ -188,7 +191,7 @@ class Plugin {
 						MetricName: metricName
 					}]
 				}
-			},			
+			},
 			[logMetricCFRefOK]: {
 				Type: 'AWS::Logs::MetricFilter',
 				DependsOn: cfLogName,

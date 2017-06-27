@@ -471,7 +471,8 @@ describe('#index', function () {
 						Dimensions: [{
 							Name: 'FunctionName',
 							Value: { Ref: 'FooLambdaFunction' },
-						}]
+						}],
+            TreatMissingData: 'missing',
 					}
 				}
 			});
@@ -514,6 +515,7 @@ describe('#index', function () {
 						AlarmActions: [],
 						InsufficientDataActions: [],
 						Dimensions: [],
+						TreatMissingData: 'missing',
 					},
 				},
 				FooLambdaFunctionBunyanErrorsLogMetricFilterALERT: {
@@ -658,6 +660,7 @@ describe('#index', function () {
 				period: 300,
 				evaluationPeriods: 1,
 				comparisonOperator: 'GreaterThanThreshold',
+				treatMissingData: 'breaching',
 			};
 
 			const functionRef = 'func-ref';
@@ -683,6 +686,7 @@ describe('#index', function () {
 							Ref: functionRef,
 						}
 					}],
+					TreatMissingData: 'breaching',
 				}
 			});
 		});
