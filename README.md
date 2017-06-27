@@ -117,6 +117,7 @@ alerts:
   definitions:  # these defaults are merged with your definitions
     functionErrors:
       period: 300 # override period
+      treatMissingData: notBreaching # override treatMissingData
 ```
 
 The default definitions are below.
@@ -131,6 +132,7 @@ definitions:
     period: 60
     evaluationPeriods: 1
     comparisonOperator: GreaterThanThreshold
+    treatMissingData: missing
   functionErrors:
     namespace: 'AWS/Lambda'
     metric: Errors
@@ -139,6 +141,7 @@ definitions:
     period: 60
     evaluationPeriods: 1
     comparisonOperator: GreaterThanThreshold
+    treatMissingData: missing
   functionDuration:
     namespace: 'AWS/Lambda'
     metric: Duration
@@ -147,6 +150,7 @@ definitions:
     period: 60
     evaluationPeriods: 1
     comparisonOperator: GreaterThanThreshold
+    treatMissingData: missing
   functionThrottles:
     namespace: 'AWS/Lambda'
     metric: Throttles
@@ -155,6 +159,7 @@ definitions:
     period: 60
     evaluationPeriods: 1
     comparisonOperator: GreaterThanThreshold
+    treatMissingData: missing
 ```
 
 ## License
