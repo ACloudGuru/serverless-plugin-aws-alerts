@@ -1,7 +1,8 @@
-service: your-service
+service: service-test-alerts-plugin
 provider:
   name: aws
   runtime: nodejs4.3
+  profile: ${opt:profile}
 
 package:
   exclude:
