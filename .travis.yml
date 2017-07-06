@@ -1,17 +1,17 @@
 language: node_js
 node_js:
-- '4.4'
-- '5.11'
-- '6.2'
+  - '4.4'
+  - '5.11'
+  - '6.2'
 
 before_install:
-- npm install -g yarn
+  - npm install -g yarn
 install:
-- yarn
+  - yarn
 
 script:
-- yarn run lint
-- yarn run test -- --coverage
+  - yarn run lint
+  - yarn run test
 
 after_success:
   - cat ./coverage/lcov.info | ./node_modules/.bin/coveralls && rm -rf ./coverage

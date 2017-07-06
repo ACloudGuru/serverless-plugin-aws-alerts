@@ -154,7 +154,7 @@ describe('#index', function () {
         definitions: {
           functionErrors: {
             metric: 'Errors',
-            threshold: 10,
+            threshold: 1,
             statistic: 'Maximum',
             period: 300,
             evaluationPeriods: 1,
@@ -188,7 +188,7 @@ describe('#index', function () {
         functionErrors: {
           namespace: 'AWS/Lambda',
           metric: 'Errors',
-          threshold: 10,
+          threshold: 1,
           statistic: 'Maximum',
           period: 300,
           evaluationPeriods: 1,
@@ -206,7 +206,7 @@ describe('#index', function () {
         functionThrottles: {
           namespace: 'AWS/Lambda',
           metric: 'Throttles',
-          threshold: 50,
+          threshold: 1,
           statistic: 'Sum',
           period: 60,
           evaluationPeriods: 1,
@@ -244,40 +244,22 @@ describe('#index', function () {
       ]
     };
 
-    it('should get default function alarms - no alarms', () => {
+    it('should get no alarms', () => {
       const plugin = pluginFactory(config);
       const definitions = plugin.getDefinitions(config);
       const actual = plugin.getFunctionAlarms({}, config, definitions);
 
-      expect(actual).toEqual([{
-        name: 'functionInvocations',
-        namespace: 'AWS/Lambda',
-        metric: 'Invocations',
-        threshold: 100,
-        statistic: 'Sum',
-        period: 60,
-        evaluationPeriods: 1,
-        comparisonOperator: 'GreaterThanThreshold',
-      }]);
+      expect(actual).toEqual([]);
     });
 
-    it('should get default function alarms - empty alarms', () => {
+    it('should get empty alarms', () => {
       const plugin = pluginFactory(config);
       const definitions = plugin.getDefinitions(config);
       const actual = plugin.getFunctionAlarms({
         alarms: []
       }, config, definitions);
 
-      expect(actual).toEqual([{
-        name: 'functionInvocations',
-        namespace: 'AWS/Lambda',
-        metric: 'Invocations',
-        threshold: 100,
-        statistic: 'Sum',
-        period: 60,
-        evaluationPeriods: 1,
-        comparisonOperator: 'GreaterThanThreshold',
-      }]);
+      expect(actual).toEqual([]);
     });
 
     it('should get defined function alarms', () => {
@@ -290,15 +272,6 @@ describe('#index', function () {
       }, config, definitions);
 
       expect(actual).toEqual([{
-        name: 'functionInvocations',
-        namespace: 'AWS/Lambda',
-        metric: 'Invocations',
-        threshold: 100,
-        statistic: 'Sum',
-        period: 60,
-        evaluationPeriods: 1,
-        comparisonOperator: 'GreaterThanThreshold',
-      }, {
         name: 'customAlarm',
         namespace: 'AWS/Lambda',
         metric: 'Invocations',
@@ -327,15 +300,6 @@ describe('#index', function () {
       }, config, definitions);
 
       expect(actual).toEqual([{
-        name: 'functionInvocations',
-        namespace: 'AWS/Lambda',
-        metric: 'Invocations',
-        threshold: 100,
-        statistic: 'Sum',
-        period: 60,
-        evaluationPeriods: 1,
-        comparisonOperator: 'GreaterThanThreshold',
-      }, {
         name: 'fooAlarm',
         namespace: 'AWS/Lambda',
         metric: 'Invocations',
@@ -661,7 +625,7 @@ describe('#index', function () {
       const definition = {
         namespace: 'AWS/Lambda',
         metric: 'Errors',
-        threshold: 10,
+        threshold: 1,
         statistic: 'Maximum',
         period: 300,
         evaluationPeriods: 1,

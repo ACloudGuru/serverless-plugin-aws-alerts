@@ -6,9 +6,8 @@
   "scripts": {
     "lint": "eslint .",
     "lint-fix": "eslint . --fix",
-    "test": "jest",
-    "test:watch": "jest --watch",
-    "test:cover": "jest --coverage"
+    "test": "jest --coverage",
+    "test:watch": "jest --watch"
   },
   "repository": {
     "url": "https://github.com/ACloudGuru/serverless-plugin-aws-alerts.git",
