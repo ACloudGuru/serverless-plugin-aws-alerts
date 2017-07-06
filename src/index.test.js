@@ -623,6 +623,7 @@ describe('#index', function () {
       };
 
       const definition = {
+        description: 'An error alarm',
         namespace: 'AWS/Lambda',
         metric: 'Errors',
         threshold: 1,
@@ -640,6 +641,7 @@ describe('#index', function () {
       expect(cf).toEqual({
         Type: 'AWS::CloudWatch::Alarm',
         Properties: {
+          AlarmDescription: definition.description,
           Namespace: definition.namespace,
           MetricName: definition.metric,
           Threshold: definition.threshold,
