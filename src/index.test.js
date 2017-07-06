@@ -556,7 +556,7 @@ describe('#index', function () {
       plugin.getDefinitions.mockImplementation(() => definitions);
       plugin.compileAlertTopics.mockImplementation(() => alertTopics);
 
-      plugin.compileCloudWatchAlarms();
+      plugin.compile();
 
       expectCompiled(config, definitions, alertTopics);
     });
@@ -572,7 +572,7 @@ describe('#index', function () {
       plugin.getDefinitions.mockImplementation(() => definitions);
       plugin.compileAlertTopics.mockImplementation(() => alertTopics);
 
-      plugin.compileCloudWatchAlarms();
+      plugin.compile();
 
       expectCompiled(config, definitions, alertTopics);
     });
@@ -580,7 +580,7 @@ describe('#index', function () {
     it('should not compile alarms without config', () => {
       plugin.getConfig.mockImplementation(() => null);
 
-      plugin.compileCloudWatchAlarms();
+      plugin.compile();
 
       expect(plugin.getConfig.mock.calls.length).toEqual(1);
 
@@ -594,7 +594,7 @@ describe('#index', function () {
         stages: ['blah']
       }));
 
-      plugin.compileCloudWatchAlarms();
+      plugin.compile();
 
       expect(plugin.getConfig.mock.calls.length).toEqual(1);
 
