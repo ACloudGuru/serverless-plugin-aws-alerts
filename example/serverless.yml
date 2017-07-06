@@ -2,6 +2,7 @@ service: service-test-alerts-plugin
 provider:
   name: aws
   runtime: nodejs4.3
+  region: us-east-1
   profile: ${opt:profile}
 
 package:
@@ -36,6 +37,7 @@ custom:
         threshold: 10
         period: 600
       customAlarm:
+        description: 'My custom alarm'
         namespace: 'AWS/Lambda'
         metric: duration
         threshold: 200

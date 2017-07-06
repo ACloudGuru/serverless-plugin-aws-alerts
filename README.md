@@ -30,6 +30,7 @@ custom:
       functionErrors:
         period: 300 # override period
       customAlarm:
+        description: 'My custom alarm'
         namespace: 'AWS/Lambda'
         metric: duration
         threshold: 200
@@ -135,7 +136,7 @@ definitions:
   functionErrors:
     namespace: 'AWS/Lambda'
     metric: Errors
-    threshold: 10
+    threshold: 1
     statistic: Maximum
     period: 60
     evaluationPeriods: 1
@@ -153,7 +154,7 @@ definitions:
   functionThrottles:
     namespace: 'AWS/Lambda'
     metric: Throttles
-    threshold: 50
+    threshold: 1
     statistic: Sum
     period: 60
     evaluationPeriods: 1
