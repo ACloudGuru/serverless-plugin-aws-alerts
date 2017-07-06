@@ -16,7 +16,7 @@ class Plugin {
 		this.naming = new Naming();
 
 		this.hooks = {
-			'deploy:compileEvents': this.compileCloudWatchAlarms.bind(this),
+			'package:compileEvents': this.compileCloudWatchAlarms.bind(this),
 		};
 	}
 
