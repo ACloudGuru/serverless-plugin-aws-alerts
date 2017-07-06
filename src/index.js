@@ -110,6 +110,7 @@ class Plugin {
       Properties: {
         Namespace: namespace,
         MetricName: metricName,
+        AlarmDescription: definition.description,
         Threshold: definition.threshold,
         Statistic: definition.statistic,
         Period: definition.period,

@@ -31,5 +31,4 @@ Examples:
 - [ ] Write documentation
 - [ ] Fix linting errors
 - [ ] Provide verification config/commands/resources
-- [ ] Change ready for review message below
 
