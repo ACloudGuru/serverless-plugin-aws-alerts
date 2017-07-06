@@ -54,14 +54,16 @@ class Plugin {
 		if (!config) throw new Error('Missing config argument');
 		if (!definitions) throw new Error('Missing definitions argument');
 
-		return this.getAlarms(config.global, definitions);
+    const alarms = [].concat(config.alarms, config.global, config.function);
+
+		return this.getAlarms(alarms, definitions);
 	}
 
 	getFunctionAlarms(functionObj, config, definitions) {
 		if (!config) throw new Error('Missing config argument');
 		if (!definitions) throw new Error('Missing definitions argument');
 
-		const alarms = _.union(config.function, functionObj.alarms);
+		const alarms = _.union(functionObj.alarms);
 		return this.getAlarms(alarms, definitions);
 	}
 

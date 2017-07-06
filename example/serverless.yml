@@ -9,16 +9,16 @@ package:
     - yarn.lock
 
 custom:
-  notifications:
-    - protocol: email
-      endpoint: john@acloud.guru
+  # notifications:
+  #   - protocol: email
+  #     endpoint: your_email_here
 
   alerts:
     stages: # Optionally - select which stages to deploy alarms to
       - producton
       - staging
     topics:
-      ok: 
+      ok:
         topic: ${self:service}-${opt:stage}-alerts-ok
         notifications: ${self:custom.notifications}
       alarm:
