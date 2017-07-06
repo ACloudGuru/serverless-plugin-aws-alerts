@@ -15,7 +15,7 @@ module.exports = {
   functionErrors: {
     namespace: lambdaNamespace,
     metric: 'Errors',
-    threshold: 10,
+    threshold: 1,
     statistic: 'Sum',
     period: 60,
     evaluationPeriods: 1,
@@ -33,7 +33,7 @@ module.exports = {
   functionThrottles: {
     namespace: lambdaNamespace,
     metric: 'Throttles',
-    threshold: 50,
+    threshold: 1,
     statistic: 'Sum',
     period: 60,
     evaluationPeriods: 1,

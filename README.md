@@ -37,10 +37,9 @@ custom:
         period: 300
         evaluationPeriods: 1
         comparisonOperator: GreaterThanThreshold
-    global:
+    alarms:
       - functionThrottles
       - functionErrors
-    function:
       - functionInvocations
       - functionDuration
 
