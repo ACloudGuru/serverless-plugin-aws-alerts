@@ -14,10 +14,14 @@ custom:
   #   - protocol: email
   #     endpoint: your_email_here
 
+
   alerts:
     stages: # Optionally - select which stages to deploy alarms to
       - producton
       - staging
+
+    dashboards: true
+
     topics:
       ok:
         topic: ${self:service}-${opt:stage}-alerts-ok
