@@ -101,10 +101,9 @@ The plugin provides some default definitions that you can simply drop into your 
 
 ```yaml
 alerts:
-  global:
-    - functionThrottles
+  alerts:
     - functionErrors
-  function:
+    - functionThrottles
     - functionInvocations
     - functionDuration
 ```
