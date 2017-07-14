@@ -6,6 +6,8 @@ const _ = require('lodash');
 const Naming = require('./naming');
 const defaultDefinitions = require('./defaults/definitions');
 
+const dashboards = require('./dashboards')
+
 class Plugin {
   constructor(serverless, options) {
     this.serverless = serverless;
@@ -16,7 +18,7 @@ class Plugin {
     this.naming = new Naming();
 
     this.hooks = {
-      'package:compileEvents': this.compileCloudWatchAlarms.bind(this),
+      'package:compileEvents': this.compile.bind(this),
     };
   }
 
@@ -240,7 +242,31 @@ class Plugin {
     });
   }
 
-  compileCloudWatchAlarms() {
+  compileDashboards() {
+    const service = this.serverless.service;
+    const provider = service.provider;
+    const stage = this.options.stage;
+
+    const functions = this.serverless.service
+                          .getAllFunctions()
+                          .map(functionName => ({ name: functionName }));
+
+    const dashboard = dashboards.createDashboard(service.service, stage, provider.region, functions, 'default');
+
+    const cf = {
+      AlertsDashboard: {
+        Type: 'AWS::CloudWatch::Dashboard',
+        Properties: {
+          DashboardName: `${service.service}-${stage}`,
+          DashboardBody: JSON.stringify(dashboard),
+        }
+      }
+    };
+
+    this.addCfResources(cf);
+  }
+
+  compile() {
     const config = this.getConfig();
     if (!config) {
       // TODO warn no config
@@ -256,6 +282,10 @@ class Plugin {
     const alertTopics = this.compileAlertTopics(config);
 
     this.compileAlarms(config, definitions, alertTopics);
+
+    if (config.dashboards) {
+      this.compileDashboards()
+    }
   }
 
   addCfResources(resources) {

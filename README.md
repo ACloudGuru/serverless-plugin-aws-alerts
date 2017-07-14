@@ -22,6 +22,9 @@ custom:
     stages: # Optionally - select which stages to deploy alarms to
       - producton
       - staging
+
+    dashboards: true # Experimental
+
     topics:
       ok: ${self:service}-${opt:stage}-alerts-ok
       alarm: ${self:service}-${opt:stage}-alerts-alarm

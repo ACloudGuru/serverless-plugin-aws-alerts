@@ -3,8 +3,8 @@
   "version": "0.0.1",
   "main": "index.js",
   "scripts": {
-      "package:staging": "./node_modules/.bin/sls package --stage staging --verbose",
-    "deploy:staging": "./node_modules/.bin/sls deploy --stage staging --verbose",
+    "package:staging": "./node_modules/.bin/sls package --stage staging --verbose",
+    "deploy:staging": "./node_modules/.bin/sls deploy --stage staging --verbose --force",
     "remove:staging": "./node_modules/.bin/sls remove --stage staging --verbose"
   },
   "devDependencies": {
