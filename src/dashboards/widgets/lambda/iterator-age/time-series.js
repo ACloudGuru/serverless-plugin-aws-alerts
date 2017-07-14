@@ -9,7 +9,8 @@ const createWidget = (config) => {
     height: config.coordinates.height,
     properties: {
       title: config.title,
-      view: 'singleValue',
+      view: 'timeSeries',
+      stacked: false,
       metrics: [ ],
       region: config.region,
       period: 300
@@ -18,12 +19,12 @@ const createWidget = (config) => {
 
   widget.properties.metrics = config.functions.map(f => ([
     'AWS/Lambda',
-    'Errors',
+    'IteratorAge',
     'FunctionName',
     `${config.service}-${config.stage}-${f.name}`,
     {
       stat: 'Sum',
-      period: 2592000,
+      period: 900,
       region: config.region,
       label: f.name
     }

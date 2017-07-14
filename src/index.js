@@ -251,7 +251,7 @@ class Plugin {
                           .getAllFunctions()
                           .map(functionName => ({ name: functionName }));
 
-    const dashboard = dashboards.createDashboard(service.service, stage, provider.region, functions);
+    const dashboard = dashboards.createDashboard(service.service, stage, provider.region, functions, 'default');
 
     const cf = {
       AlertsDashboard: {

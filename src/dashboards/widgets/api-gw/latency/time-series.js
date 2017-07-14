@@ -1,16 +1,16 @@
 'use strict';
 
-const createWidget = (service, stage, region, coordinates) => {
-  const apiName = `${stage}-${service}`;
+const createWidget = (config) => {
+  const apiName = `${config.stage}-${config.service}`;
 
   const widget = {
     type: 'metric',
-    x: coordinates.x,
-    y: coordinates.y,
-    width: coordinates.width,
-    height: coordinates.height,
+    x: config.coordinates.x,
+    y: config.coordinates.y,
+    width: config.coordinates.width,
+    height: config.coordinates.height,
     properties: {
-      title: 'API Requests',
+      title: config.title,
       view: 'timeSeries',
       stacked: false,
       metrics: [
@@ -18,7 +18,7 @@ const createWidget = (service, stage, region, coordinates) => {
           [ 'AWS/ApiGateway', '4XXError', 'ApiName', apiName, { stat: 'Sum', period: 900 } ],
           [ 'AWS/ApiGateway', 'Count', 'ApiName', apiName, { stat: 'Sum', period: 900 } ]
       ],
-      region: region,
+      region: config.region,
     }
   };
 

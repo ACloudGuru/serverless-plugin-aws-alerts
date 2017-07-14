@@ -1,45 +1,45 @@
 'use strict';
 
-const createWidget = (service, stage, region, functions, coordinates) => {
+const createWidget = (config) => {
   const widget = {
     type: 'metric',
-    x: coordinates.x,
-    y: coordinates.y,
-    width: coordinates.width,
-    height: coordinates.height,
+    x: config.coordinates.x,
+    y: config.coordinates.y,
+    width: config.coordinates.width,
+    height: config.coordinates.height,
     properties: {
-      title: 'Duration',
+      title: config.title,
       view: 'timeSeries',
       stacked: false,
       metrics: [ ],
-      region: region,
+      region: config.region,
       period: 300
     }
   };
 
-  widget.properties.metrics = functions.reduce((accum, f) => {
+  widget.properties.metrics = config.functions.reduce((accum, f) => {
     return accum.concat([
       [
         'AWS/Lambda',
         'Duration',
         'FunctionName',
-        `${service}-${stage}-${f.name}`,
+        `${config.service}-${config.stage}-${f.name}`,
         {
           stat: 'p50',
           period: 900,
-          region: region,
-          label: `f.name p50`,
+          region: config.region,
+          label: `${f.name} p50`,
         }
       ],[
         'AWS/Lambda',
         'Duration',
         'FunctionName',
-        `${service}-${stage}-${f.name}`,
+        `${config.service}-${config.stage}-${f.name}`,
         {
           stat: 'p90',
           period: 900,
-          region: region,
-          label: `f.name p90`,
+          region: config.region,
+          label: `${f.name} p90`,
         }
       ]
     ]);

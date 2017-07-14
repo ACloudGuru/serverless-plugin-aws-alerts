@@ -72,6 +72,10 @@ functions:
         period: 60
         evaluationPeriods: 1
         comparisonOperator: GreaterThanThreshold
+    events:
+      - http:
+          path: success
+          method: get
 
   error:
     handler: error.handler
@@ -86,8 +90,16 @@ functions:
         evaluationPeriods: 1
         comparisonOperator: GreaterThanThreshold
         pattern: '{$.level > 40}'
+    events:
+      - http:
+          path: error
+          method: get
 
   slow:
     handler: slow.handler
     alarms:
       - customAlarm
+    events:
+      - http:
+          path: slow
+          method: get
