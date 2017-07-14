@@ -1,6 +1,6 @@
 'use strict';
 
-const createWidget = (config.) => {
+const createWidget = (config) => {
   const widget = {
     type: 'metric',
     x: config.coordinates.x,
@@ -12,7 +12,7 @@ const createWidget = (config.) => {
       view: 'timeSeries',
       stacked: false,
       metrics: [ ],
-      region: region,
+      region: config.region,
       period: 300
     }
   };
