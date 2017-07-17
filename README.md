@@ -40,7 +40,7 @@ custom:
         statistic: Average
         period: 300
         evaluationPeriods: 1
-        comparisonOperator: GreaterThanThreshold
+        comparisonOperator: GreaterThanOrEqualToThreshold
     alarms:
       - functionThrottles
       - functionErrors
@@ -62,7 +62,7 @@ functions:
         statistic: Minimum
         period: 60
         evaluationPeriods: 1
-        comparisonOperator: GreaterThanThreshold
+        comparisonOperator: GreaterThanOrEqualToThreshold
 ```
 
 ## SNS Topics
@@ -133,7 +133,7 @@ definitions:
     statistic: Sum
     period: 60
     evaluationPeriods: 1
-    comparisonOperator: GreaterThanThreshold
+    comparisonOperator: GreaterThanOrEqualToThreshold
     treatMissingData: missing
   functionErrors:
     namespace: 'AWS/Lambda'
@@ -142,7 +142,7 @@ definitions:
     statistic: Maximum
     period: 60
     evaluationPeriods: 1
-    comparisonOperator: GreaterThanThreshold
+    comparisonOperator: GreaterThanOrEqualToThreshold
     treatMissingData: missing
   functionDuration:
     namespace: 'AWS/Lambda'
@@ -151,7 +151,7 @@ definitions:
     statistic: Maximum
     period: 60
     evaluationPeriods: 1
-    comparisonOperator: GreaterThanThreshold
+    comparisonOperator: GreaterThanOrEqualToThreshold
     treatMissingData: missing
   functionThrottles:
     namespace: 'AWS/Lambda'
@@ -160,7 +160,7 @@ definitions:
     statistic: Sum
     period: 60
     evaluationPeriods: 1
-    comparisonOperator: GreaterThanThreshold
+    comparisonOperator: GreaterThanOrEqualToThreshold
     treatMissingData: missing
 ```
 
