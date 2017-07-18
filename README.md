@@ -164,6 +164,23 @@ definitions:
     treatMissingData: missing
 ```
 
+## Using Percentile Statistic for a Metric
+
+Statistic not only supports SampleCount, Average, Sum, Minimum or Maximum as defined in CloudFormation [here](http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-properties-cw-alarm.html#cfn-cloudwatch-alarms-statistic), but also percentiles. This is possible by leveraging  [ExtendedStatistic](http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-properties-cw-alarm.html#cfn-cloudwatch-alarms-extendedstatistic) under the hood. This plugin will automatically choose the correct key for you. See an example below:
+
+```yaml
+definitions:
+  functionDuration:
+    namespace: 'AWS/Lambda'
+    metric: Duration
+    threshold: 100
+    statistic: 'p95'
+    period: 60
+    evaluationPeriods: 1
+    comparisonOperator: GreaterThanThreshold
+    treatMissingData: missing
+```
+
 ## License
 
 MIT © [A Cloud Guru](https://acloud.guru/)
