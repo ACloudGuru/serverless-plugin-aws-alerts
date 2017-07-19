@@ -662,5 +662,53 @@ describe('#index', function () {
         }
       });
     });
+
+    it('should user the CloudFormation value ExtendedStatistic for p values', () => {
+      const alertTopics = {
+        ok: 'ok-topic',
+        alarm: 'alarm-topic',
+        insufficientData: 'insufficientData-topic',
+      };
+
+      const definition = {
+        description: 'An error alarm',
+        namespace: 'AWS/Lambda',
+        metric: 'Errors',
+        threshold: 1,
+        statistic: 'p95',
+        period: 300,
+        evaluationPeriods: 1,
+        comparisonOperator: 'GreaterThanThreshold',
+        treatMissingData: 'breaching',
+      };
+
+      const functionRef = 'func-ref';
+
+      const cf = plugin.getAlarmCloudFormation(alertTopics, definition, functionRef);
+
+      expect(cf).toEqual({
+        Type: 'AWS::CloudWatch::Alarm',
+        Properties: {
+          AlarmDescription: definition.description,
+          Namespace: definition.namespace,
+          MetricName: definition.metric,
+          Threshold: definition.threshold,
+          ExtendedStatistic: definition.statistic,
+          Period: definition.period,
+          EvaluationPeriods: definition.evaluationPeriods,
+          ComparisonOperator: definition.comparisonOperator,
+          OKActions: ['ok-topic'],
+          AlarmActions: ['alarm-topic'],
+          InsufficientDataActions: ['insufficientData-topic'],
+          Dimensions: [{
+            Name: 'FunctionName',
+            Value: {
+              Ref: functionRef,
+            }
+          }],
+          TreatMissingData: 'breaching',
+        }
+      });
+    });
   })
 });

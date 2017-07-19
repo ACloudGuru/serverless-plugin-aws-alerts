@@ -107,14 +107,13 @@ class Plugin {
 
     const treatMissingData = definition.treatMissingData ? definition.treatMissingData : 'missing';
 
-    return {
+    const alarm = {
       Type: 'AWS::CloudWatch::Alarm',
       Properties: {
         Namespace: namespace,
         MetricName: metricName,
         AlarmDescription: definition.description,
         Threshold: definition.threshold,
-        Statistic: definition.statistic,
         Period: definition.period,
         EvaluationPeriods: definition.evaluationPeriods,
         ComparisonOperator: definition.comparisonOperator,
@@ -125,6 +124,14 @@ class Plugin {
         TreatMissingData: treatMissingData,
       }
     };
+
+    const statisticValues = [ 'SampleCount', 'Average', 'Sum', 'Minimum', 'Maximum'];
+    if (_.includes(statisticValues, definition.statistic)) {
+      alarm.Properties.Statistic = definition.statistic
+    } else {
+      alarm.Properties.ExtendedStatistic = definition.statistic
+    }
+    return alarm;
   }
 
   getSnsTopicCloudFormation(topicName, notifications) {
