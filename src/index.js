@@ -249,28 +249,40 @@ class Plugin {
     });
   }
 
-  compileDashboards() {
+  compileDashboards(configDashboards) {
     const service = this.serverless.service;
     const provider = service.provider;
     const stage = this.options.stage;
     const region = this.options.region || provider.region;
+    const dashboardTemplates = typeof configDashboards === 'boolean' || configDashboards === 'default'
+      ? ['default']
+      : [].concat(configDashboards);
 
     const functions = this.serverless.service
                           .getAllFunctions()
                           .map(functionName => ({ name: functionName }));
 
-    const dashboard = dashboards.createDashboard(service.service, stage, region, functions, 'default');
+    const cf = _.chain(dashboardTemplates)
+      .uniq()
+      .reduce( (acc, d) => {
+        const dashboard = dashboards.createDashboard(service.service, stage, region, functions, d);
 
-    const cf = {
-      AlertsDashboard: {
-        Type: 'AWS::CloudWatch::Dashboard',
-        Properties: {
-          DashboardName: `${service.service}-${stage}-${region}`,
-          DashboardBody: JSON.stringify(dashboard),
-        },
-      },
-    };
-
+        const cfResource = d === 'default'
+          ? 'AlertsDashboard'
+          : `AlertsDashboard${d}`;
+        const dashboardName = d === 'default'
+          ? `${service.service}-${stage}-${region}`
+          : `${service.service}-${stage}-${region}-${d}`;
+        acc[cfResource] = {
+          Type: 'AWS::CloudWatch::Dashboard',
+          Properties: {
+            DashboardName: dashboardName,
+            DashboardBody: JSON.stringify(dashboard),
+          }
+        };
+        return acc;
+      }, {})
+      .value();
     this.addCfResources(cf);
   }
 
@@ -292,7 +304,7 @@ class Plugin {
     this.compileAlarms(config, definitions, alertTopics);
 
     if (config.dashboards) {
-      this.compileDashboards()
+      this.compileDashboards(config.dashboards)
     }
   }
 
