@@ -10,7 +10,7 @@ module.exports = {
     statistic: 'Sum',
     period: 60,
     evaluationPeriods: 1,
-    comparisonOperator: 'GreaterThanThreshold',
+    comparisonOperator: 'GreaterThanOrEqualToThreshold',
   },
   functionErrors: {
     namespace: lambdaNamespace,
@@ -19,7 +19,7 @@ module.exports = {
     statistic: 'Sum',
     period: 60,
     evaluationPeriods: 1,
-    comparisonOperator: 'GreaterThanThreshold',
+    comparisonOperator: 'GreaterThanOrEqualToThreshold',
   },
   functionDuration: {
     namespace: lambdaNamespace,
@@ -28,7 +28,7 @@ module.exports = {
     statistic: 'Average',
     period: 60,
     evaluationPeriods: 1,
-    comparisonOperator: 'GreaterThanThreshold',
+    comparisonOperator: 'GreaterThanOrEqualToThreshold',
   },
   functionThrottles: {
     namespace: lambdaNamespace,
@@ -37,6 +37,6 @@ module.exports = {
     statistic: 'Sum',
     period: 60,
     evaluationPeriods: 1,
-    comparisonOperator: 'GreaterThanThreshold',
+    comparisonOperator: 'GreaterThanOrEqualToThreshold',
   }
 };
