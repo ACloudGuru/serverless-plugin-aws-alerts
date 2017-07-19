@@ -69,6 +69,25 @@ functions:
 
 If topic name is specified, plugin assumes that topic does not exist and will create it. To use existing topics, specify ARNs instead.
 
+## SNS Notifications
+
+You can configure subscriptions to your SNS topics within your `serverless.yml`. For each subscription, you'll need to specify a `protocol` and an `endpoint`.
+
+The following example will send email notifications to `me@example.com` for all messages to the Alarm topic:
+
+```yaml
+custom:
+  alerts:
+    topics:
+      alarm:
+        topic: ${self:service}-${opt:stage}-alerts-alarm
+        notifications:
+          - protocol: email
+            endpoint: me@example.com
+```
+
+You can configure notifications to send to webhook URLs, to SMS devices, to other Lambda functions, and more. Check out the AWS docs [here](http://docs.aws.amazon.com/sns/latest/api/API_Subscribe.html) for configuration options.
+
 ## Metric Log Filters
 You can monitor a log group for a function for a specific pattern. Do this by adding the pattern key.
 You can learn about custom patterns at: http://docs.aws.amazon.com/AmazonCloudWatch/latest/logs/FilterAndPatternSyntax.html
