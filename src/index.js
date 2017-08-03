@@ -253,21 +253,22 @@ class Plugin {
     const service = this.serverless.service;
     const provider = service.provider;
     const stage = this.options.stage;
+    const region = provider.region;
 
     const functions = this.serverless.service
                           .getAllFunctions()
                           .map(functionName => ({ name: functionName }));
 
-    const dashboard = dashboards.createDashboard(service.service, stage, provider.region, functions, 'default');
+    const dashboard = dashboards.createDashboard(service.service, stage, region, functions, 'default');
 
     const cf = {
       AlertsDashboard: {
         Type: 'AWS::CloudWatch::Dashboard',
         Properties: {
-          DashboardName: `${service.service}-${stage}`,
+          DashboardName: `${service.service}-${stage}-${region}`,
           DashboardBody: JSON.stringify(dashboard),
-        }
-      }
+        },
+      },
     };
 
     this.addCfResources(cf);
