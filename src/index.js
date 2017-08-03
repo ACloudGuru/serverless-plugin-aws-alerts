@@ -253,7 +253,7 @@ class Plugin {
     const service = this.serverless.service;
     const provider = service.provider;
     const stage = this.options.stage;
-    const region = provider.region;
+    const region = this.options.region || provider.region;
 
     const functions = this.serverless.service
                           .getAllFunctions()
