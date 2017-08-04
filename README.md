@@ -25,6 +25,8 @@ custom:
 
     dashboards: true # Experimental
 
+    nameTemplate: $[functionName]-$[metricName]-Alarm # Optionally - naming template for alarms, can be overwritten in definitions
+
     topics:
       ok: ${self:service}-${opt:stage}-alerts-ok
       alarm: ${self:service}-${opt:stage}-alerts-alarm
@@ -35,6 +37,7 @@ custom:
       customAlarm:
         description: 'My custom alarm'
         namespace: 'AWS/Lambda'
+        nameTemplate: $[functionName]-Duration-IMPORTANT-Alarm # Optionally - naming template for the alarms, overwrites globally defined one
         metric: duration
         threshold: 200
         statistic: Average
@@ -117,6 +120,15 @@ custom:
 ```
 
 > Note: For custom log metrics, namespace property will automatically be set to stack name (e.g. `fooservice-dev`).
+
+## Custom Naming
+You can define custom naming template for the alarms. `nameTemplate` property under `alerts` configures naming template for all the alarms, while placing `nameTemplate` under alarm definition configures (overwrites) it for that specific alarm only. Naming template provides interpolation capabilities, where supported placeholders are:
+  - `$[functionName]` - function name (e.g. `helloWorld`)
+  - `$[functionId]` - function logical id (e.g. `HelloWorldLambdaFunction`)
+  - `$[metricName]` - metric name (e.g. `Duration`)
+  - `$[metricId]` - metric id (e.g. `BunyanErrorsHelloWorldLambdaFunction` for the log based alarms, `$[metricName]` otherwise)
+
+> Note: All the alarm names are prefixed with stack name (e.g. `fooservice-dev`).
 
 ## Default Definitions
 The plugin provides some default definitions that you can simply drop into your application. For example:

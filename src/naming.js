@@ -23,6 +23,15 @@ class Naming {
     return `${_.upperFirst(metricName)}${functionName}`;
   }
 
+  getAlarmName(options) {
+    const interpolatedTemplate = options.template
+      .replace('$[functionName]', options.functionName)
+      .replace('$[functionId]', options.functionLogicalId)
+      .replace('$[metricName]', options.metricName)
+      .replace('$[metricId]', options.metricId);
+
+    return `${options.stackName}-${interpolatedTemplate}`;
+  }
 }
 
 module.exports = Naming;
