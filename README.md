@@ -55,7 +55,7 @@ functions:
     handler: foo.handler
     alarms: # merged with function alarms
       - customAlarm
-      - name: fooAlarm
+      - name: fooAlarm # creates new alarm or overwrites some properties of the alarm (with the same name) from definitions
         namespace: 'AWS/Lambda'
         metric: errors # define custom metrics here
         threshold: 1
