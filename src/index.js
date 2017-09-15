@@ -8,7 +8,7 @@ const defaultDefinitions = require('./defaults/definitions');
 
 const dashboards = require('./dashboards')
 
-class Plugin {
+class AlertsPlugin {
   constructor(serverless, options) {
     this.serverless = serverless;
     this.options = options;
@@ -301,4 +301,4 @@ class Plugin {
   }
 }
 
-module.exports = Plugin;
+module.exports = AlertsPlugin;
