@@ -106,6 +106,27 @@ describe('#index', function () {
         plugin.getAlarms(alarms, definitions);
       }).toThrow();
     });
+
+    it('should merge alarm with definition', () => {
+      const testAlarm = {
+        name: 'testAlarm',
+        threshold: 100
+      };
+      const alarms = [testAlarm];
+      const definitions = {
+        testAlarm: {
+          threshold: 1,
+          statistic: 'Sum'
+        }
+      };
+
+      const alarmsConfig = plugin.getAlarms(alarms, definitions);
+      expect(alarmsConfig).toEqual([{
+        name: 'testAlarm',
+        threshold: 100,
+        statistic: 'Sum'
+      }]);
+    });
   });
 
   describe('#getGlobalAlarms', () => {
