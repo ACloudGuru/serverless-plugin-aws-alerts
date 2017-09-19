@@ -4,6 +4,7 @@ const widgetFactory = require('./widgets/factory');
 
 const dashboards = {
   'default': require('./configs/default'),
+  'vertical': require('./configs/vertical'),
 };
 
 const createDashboard = (service, stage, region, functions, name) => {

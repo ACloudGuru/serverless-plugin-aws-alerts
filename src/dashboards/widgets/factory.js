@@ -3,14 +3,17 @@
 const widgets = {
   'api-gw': {
     latency: {
+      'numbers': require('./api-gw/latency/numbers'),
       'time-series': require('./api-gw/latency/time-series'),
     },
     requests: {
+      'numbers': require('./api-gw/requests/numbers'),
       'time-series': require('./api-gw/requests/time-series'),
     },
   },
   lambda: {
     duration: {
+      'numbers': require('./lambda/duration/numbers'),
       'time-series': require('./lambda/duration/time-series'),
     },
     errors: {
@@ -24,6 +27,10 @@ const widgets = {
     throttles: {
       'numbers': require('./lambda/throttles/numbers'),
       'time-series': require('./lambda/throttles/time-series'),
+    },
+    iteratorage: {
+      'numbers': require('./lambda/iterator-age/numbers'),
+      'time-series': require('./lambda/iterator-age/time-series'),
     },
   },
 };
