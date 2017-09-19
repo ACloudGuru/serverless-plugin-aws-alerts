@@ -4,10 +4,8 @@ node_js:
   - '5.11'
   - '6.2'
 
-before_install:
-  - npm install -g yarn
 install:
-  - yarn
+  - yarn install
 
 script:
   - yarn run lint
