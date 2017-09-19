@@ -45,7 +45,7 @@ class Plugin {
           name: alarm
         }));
       } else if (_.isObject(alarm)) {
-        result.push(alarm);
+        result.push(_.merge({}, definitions[alarm.name], alarm));
       }
 
       return result;
