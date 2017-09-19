@@ -45,7 +45,7 @@ class AlertsPlugin {
           name: alarm
         }));
       } else if (_.isObject(alarm)) {
-        result.push(alarm);
+        result.push(_.merge({}, definitions[alarm.name], alarm));
       }
 
       return result;
@@ -253,7 +253,7 @@ class AlertsPlugin {
     const service = this.serverless.service;
     const provider = service.provider;
     const stage = this.options.stage;
-    const region = provider.region;
+    const region = this.options.region || provider.region;
 
     const functions = this.serverless.service
                           .getAllFunctions()
