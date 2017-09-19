@@ -249,14 +249,24 @@ class AlertsPlugin {
     });
   }
 
+  getDashboardTemplates(configDashboards) {
+    const configType = typeof configDashboards;
+
+    if (configType === 'boolean') {
+      return ['default']
+    } else if (configType === 'string') {
+      return [configDashboards]
+    } else {
+      return [].concat(configDashboards);
+    }
+  }
+
   compileDashboards(configDashboards) {
     const service = this.serverless.service;
     const provider = service.provider;
     const stage = this.options.stage;
     const region = this.options.region || provider.region;
-    const dashboardTemplates = typeof configDashboards === 'boolean' || configDashboards === 'default'
-      ? ['default']
-      : [].concat(configDashboards);
+    const dashboardTemplates = this.getDashboardTemplates(configDashboards);
 
     const functions = this.serverless.service
                           .getAllFunctions()
@@ -273,6 +283,7 @@ class AlertsPlugin {
         const dashboardName = d === 'default'
           ? `${service.service}-${stage}-${region}`
           : `${service.service}-${stage}-${region}-${d}`;
+
         acc[cfResource] = {
           Type: 'AWS::CloudWatch::Dashboard',
           Properties: {

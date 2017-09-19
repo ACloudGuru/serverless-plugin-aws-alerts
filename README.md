@@ -23,7 +23,7 @@ custom:
       - producton
       - staging
 
-    dashboards: true # Experimental
+    dashboards: true
 
     topics:
       ok: ${self:service}-${opt:stage}-alerts-ok

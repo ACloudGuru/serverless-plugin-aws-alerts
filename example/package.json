@@ -8,10 +8,7 @@
     "remove:staging": "./node_modules/.bin/sls remove --stage staging --verbose"
   },
   "devDependencies": {
-    "serverless": "^1.14.0",
+    "serverless": "^1.22.0",
     "serverless-plugin-aws-alerts": "^1.0.0"
-  },
-  "dependencies": {
-    "serverless": "^1.8.0"
   }
 }

@@ -21,7 +21,9 @@ custom:
       - producton
       - staging
 
-    dashboards: true
+    dashboards:
+      - default
+      - vertical
 
     topics:
       ok:
