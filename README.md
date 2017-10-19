@@ -20,7 +20,7 @@ provider:
 custom:
   alerts:
     stages: # Optionally - select which stages to deploy alarms to
-      - producton
+      - production
       - staging
 
     dashboards: true
