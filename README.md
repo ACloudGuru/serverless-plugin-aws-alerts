@@ -158,7 +158,7 @@ definitions:
     namespace: 'AWS/Lambda'
     metric: Errors
     threshold: 1
-    statistic: Maximum
+    statistic: Sum
     period: 60
     evaluationPeriods: 1
     comparisonOperator: GreaterThanOrEqualToThreshold
