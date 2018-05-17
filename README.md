@@ -92,13 +92,13 @@ You can configure notifications to send to webhook URLs, to SMS devices, to othe
 You can monitor a log group for a function for a specific pattern. Do this by adding the pattern key.
 You can learn about custom patterns at: http://docs.aws.amazon.com/AmazonCloudWatch/latest/logs/FilterAndPatternSyntax.html
 
-The following would create a custom metric log filter based alarm named `barAlarm`. Any function that included this alarm would have its logs scanned for the pattern `exception Bar` and if found would trigger an alarm.
+The following would create a custom metric log filter based alarm named `barExceptions`. Any function that included this alarm would have its logs scanned for the pattern `exception Bar` and if found would trigger an alarm.
 
 ```yaml
 custom:
   alerts:
-    function:
-      - name: barAlarm
+    definitions:
+      barExceptions:
         metric: barExceptions
         threshold: 0
         statistic: Minimum
@@ -106,8 +106,8 @@ custom:
         evaluationPeriods: 1
         comparisonOperator: GreaterThanThreshold
         pattern: 'exception Bar'
-      - name: bunyanErrors
-        metric: BunyanErrors
+      bunyanErrors:
+        metric: bunyanErrors
         threshold: 0
         statistic: Sum
         period: 60
