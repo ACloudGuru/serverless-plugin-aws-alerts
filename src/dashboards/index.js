@@ -1,4 +1,5 @@
 'use strict';
+const _ = require('lodash');
 
 const widgetFactory = require('./widgets/factory');
 
@@ -9,18 +10,18 @@ const dashboards = {
 
 const defaultProperties = require('./configs/properties');
 
+const getProperties = (config) => {
+  return _.merge({}, defaultProperties, config);
+}
 
 const createDashboard = (service, stage, region, functions, name, properties) => {
   const dashboard = dashboards[name];
-
 
   if (!dashboard) {
     throw new Error(`Cannot find dashboard by name ${name}`);
   }
 
-  if (!(properties && properties.period)) {
-    properties = defaultProperties;
-  }
+  properties = getProperties(properties);
 
   const widgets = dashboard.widgets.map((w) => {
     const widget = widgetFactory.getWidget(w.service, w.metric, w.display);
