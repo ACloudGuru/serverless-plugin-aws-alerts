@@ -18,7 +18,7 @@ const createWidget = (config) => {
         [ 'AWS/ApiGateway', 'Count', 'ApiName', apiName, { stat: 'Sum', period: 2592000, region: config.region, label: 'Count' } ]
       ],
       region: config.region,
-      period: config.properties.period
+      period: config.properties.metricsPeriod
     }
   };
 

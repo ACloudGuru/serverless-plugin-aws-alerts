@@ -26,7 +26,7 @@ const createWidget = (config) => {
         `${config.service}-${config.stage}-${f.name}`,
         {
           stat: 'p50',
-          period: config.properties.period,
+          period: config.properties.metricsPeriod,
           region: config.region,
           label: `${f.name} p50`,
         }
