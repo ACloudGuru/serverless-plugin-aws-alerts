@@ -14,9 +14,9 @@ const createWidget = (config) => {
       view: 'timeSeries',
       stacked: false,
       metrics: [
-          [ 'AWS/ApiGateway', '5XXError', 'ApiName', apiName, { stat: 'Sum', period: 900 } ],
-          [ 'AWS/ApiGateway', '4XXError', 'ApiName', apiName, { stat: 'Sum', period: 900 } ],
-          [ 'AWS/ApiGateway', 'Count', 'ApiName', apiName, { stat: 'Sum', period: 900 } ]
+          [ 'AWS/ApiGateway', '5XXError', 'ApiName', apiName, { stat: 'Sum', period: config.properties.metricsPeriod } ],
+          [ 'AWS/ApiGateway', '4XXError', 'ApiName', apiName, { stat: 'Sum', period: config.properties.metricsPeriod } ],
+          [ 'AWS/ApiGateway', 'Count', 'ApiName', apiName, { stat: 'Sum', period: config.properties.metricsPeriod } ]
       ],
       region: config.region,
     }

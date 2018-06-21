@@ -7,11 +7,19 @@ const dashboards = {
   'vertical': require('./configs/vertical'),
 };
 
-const createDashboard = (service, stage, region, functions, name) => {
+const defaultProperties = require('./configs/properties');
+
+
+const createDashboard = (service, stage, region, functions, name, properties) => {
   const dashboard = dashboards[name];
+
 
   if (!dashboard) {
     throw new Error(`Cannot find dashboard by name ${name}`);
+  }
+
+  if (!(properties && properties.period)) {
+    properties = defaultProperties;
   }
 
   const widgets = dashboard.widgets.map((w) => {
@@ -22,7 +30,8 @@ const createDashboard = (service, stage, region, functions, name) => {
       region,
       coordinates: w.coordinates,
       title: w.title,
-      functions
+      functions,
+      properties
     };
 
     return widget.createWidget(config);
