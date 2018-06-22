@@ -23,7 +23,11 @@ custom:
       - production
       - staging
 
-    dashboards: true
+    dashboards: 
+      type: 
+        - default
+      properties: # Optionally - by default each metric has period 300 seconds
+        - metricsPeriod: 3600
 
     topics:
       ok: ${self:service}-${opt:stage}-alerts-ok
