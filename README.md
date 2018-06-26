@@ -123,7 +123,7 @@ The plugin provides some default definitions that you can simply drop into your 
 
 ```yaml
 alerts:
-  alerts:
+  alarms:
     - functionErrors
     - functionThrottles
     - functionInvocations
