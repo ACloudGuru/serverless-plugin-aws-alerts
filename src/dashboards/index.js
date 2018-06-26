@@ -21,7 +21,7 @@ const createDashboard = (service, stage, region, functions, name, properties) =>
     throw new Error(`Cannot find dashboard by name ${name}`);
   }
 
-  properties = getProperties(properties);
+  const mergedProperties = getProperties(properties)
 
   const widgets = dashboard.widgets.map((w) => {
     const widget = widgetFactory.getWidget(w.service, w.metric, w.display);
@@ -32,7 +32,7 @@ const createDashboard = (service, stage, region, functions, name, properties) =>
       coordinates: w.coordinates,
       title: w.title,
       functions,
-      properties
+      mergedProperties
     };
 
     return widget.createWidget(config);
