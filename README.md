@@ -23,6 +23,10 @@ custom:
       - production
       - staging
 
+    dashboards: true
+
+    # or if tou want to add custom metrics for dashboard
+
     dashboards: 
       type: 
         - default
