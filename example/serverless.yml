@@ -24,6 +24,12 @@ custom:
     dashboards:
       - default
       - vertical
+    # Optionally period for widgets can be selected (Version 1.2.5 and up)
+    # dashboards: 
+    #   type: 
+    #      default
+    #   properties: # by default each metric has period 300 seconds
+    #      metricsPeriod: 3600
 
     topics:
       ok:

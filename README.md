@@ -29,9 +29,9 @@ custom:
 
     dashboards: 
       type: 
-        - default
+        default
       properties: # Optionally - by default each metric has period 300 seconds
-        - metricsPeriod: 3600
+        metricsPeriod: 3600
 
     topics:
       ok: ${self:service}-${opt:stage}-alerts-ok
