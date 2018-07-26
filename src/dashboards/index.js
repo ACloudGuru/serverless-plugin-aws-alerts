@@ -10,8 +10,8 @@ const dashboards = {
 
 const defaultProperties = require('./configs/properties');
 
-const getProperties = (config) => {
-  return _.merge({}, defaultProperties, config);
+const getProperties = (configProperties) => {
+  return _.merge(defaultProperties,configProperties);
 }
 
 const createDashboard = (service, stage, region, functions, name, properties) => {
@@ -20,10 +20,9 @@ const createDashboard = (service, stage, region, functions, name, properties) =>
   if (!dashboard) {
     throw new Error(`Cannot find dashboard by name ${name}`);
   }
-
   const mergedProperties = getProperties(properties)
 
-  console.log("MERGED PROPERTIES",mergedProperties);
+  console.log("MERGED PROPERTIES", mergedProperties);
 
   const widgets = dashboard.widgets.map((w) => {
     const widget = widgetFactory.getWidget(w.service, w.metric, w.display);
@@ -34,7 +33,7 @@ const createDashboard = (service, stage, region, functions, name, properties) =>
       coordinates: w.coordinates,
       title: w.title,
       functions,
-      properties:mergedProperties
+      properties: mergedProperties
     };
 
     return widget.createWidget(config);
