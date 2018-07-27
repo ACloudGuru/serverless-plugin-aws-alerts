@@ -89,6 +89,46 @@
           "x": 14, "y": 12,
           "width": 10, "height": 6
         }
+      },
+      {
+        "title": "Concurrent Executions",
+        "service": "lambda",
+        "metric": "concurrentexecutions",
+        "display": "time-series",
+        "coordinates": {
+          "x": 0, "y": 18,
+          "width": 14, "height": 6
+        }
+      },
+      {
+        "title": "Concurrent Executions",
+        "service": "lambda",
+        "metric": "concurrentexecutions",
+        "display": "numbers",
+        "coordinates": {
+          "x": 18, "y": 18,
+          "width": 10, "height": 6
+        }
+      },
+      {
+        "title": "Unreserved Concurrent Executions",
+        "service": "lambda",
+        "metric": "unreservedconcurrentexecutions",
+        "display": "time-series",
+        "coordinates": {
+          "x": 0, "y": 18,
+          "width": 14, "height": 6
+        }
+      },
+      {
+        "title": "Unreserved Concurrent Executions",
+        "service": "lambda",
+        "metric": "unreservedconcurrentexecutions",
+        "display": "numbers",
+        "coordinates": {
+          "x": 18, "y": 18,
+          "width": 10, "height": 6
+        }
       }
     ]
 }

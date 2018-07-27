@@ -32,6 +32,14 @@ const widgets = {
       'numbers': require('./lambda/iterator-age/numbers'),
       'time-series': require('./lambda/iterator-age/time-series'),
     },
+    concurrentexecutions: {
+      'numbers': require('./lambda/concurrent-executions/numbers'),
+      'time-series': require('./lambda/concurrent-executions/time-series'),
+    },
+    unreservedconcurrentexecutions: {
+      'numbers': require('./lambda/unreserved-concurrent-executions/numbers'),
+      'time-series': require('./lambda/unreserved-concurrent-executions/time-series'),
+    },
   },
 };
 

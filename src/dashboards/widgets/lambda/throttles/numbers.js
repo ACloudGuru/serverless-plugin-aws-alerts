@@ -12,7 +12,7 @@ const createWidget = (config) => {
       view: 'singleValue',
       metrics: [ ],
       region: config.region,
-      period: 300
+      period: config.properties.metricsPeriod
     }
   };
 
@@ -23,7 +23,7 @@ const createWidget = (config) => {
     `${config.service}-${config.stage}-${f.name}`,
     {
       stat: 'Sum',
-      period: 2592000,
+      period: config.properties.metricsPeriod,
       region: config.region,
       label: f.name
     }

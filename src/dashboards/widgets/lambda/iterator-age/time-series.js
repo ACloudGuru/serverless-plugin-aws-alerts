@@ -13,7 +13,7 @@ const createWidget = (config) => {
       stacked: false,
       metrics: [ ],
       region: config.region,
-      period: 300
+      period: config.properties.metricsPeriod
     }
   };
 
@@ -26,7 +26,7 @@ const createWidget = (config) => {
         `${config.service}-${config.stage}-${f.name}`,
         {
           stat: 'p50',
-          period: 900,
+          period: config.properties.metricsPeriod,
           region: config.region,
           label: `${f.name} p50`,
         }
@@ -37,7 +37,7 @@ const createWidget = (config) => {
         `${config.service}-${config.stage}-${f.name}`,
         {
           stat: 'p90',
-          period: 900,
+          period: config.properties.metricsPeriod,
           region: config.region,
           label: `${f.name} p90`,
         }

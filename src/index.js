@@ -125,7 +125,7 @@ class AlertsPlugin {
       }
     };
 
-    const statisticValues = [ 'SampleCount', 'Average', 'Sum', 'Minimum', 'Maximum'];
+    const statisticValues = ['SampleCount', 'Average', 'Sum', 'Minimum', 'Maximum'];
     if (_.includes(statisticValues, definition.statistic)) {
       alarm.Properties.Statistic = definition.statistic
     } else {
@@ -252,7 +252,17 @@ class AlertsPlugin {
   getDashboardTemplates(configDashboards) {
     const configType = typeof configDashboards;
 
-    if (configType === 'boolean') {
+    if (configType === 'object' && _.has(configDashboards, 'type')) {
+
+      const typeType = typeof configDashboards.type;
+
+      if (typeType === 'string') {
+        return [configDashboards.type]
+      } else {
+        return [].concat(configDashboards.type);
+      }
+
+    } else if (configType === 'boolean') {
       return ['default']
     } else if (configType === 'string') {
       return [configDashboards]
@@ -269,13 +279,13 @@ class AlertsPlugin {
     const dashboardTemplates = this.getDashboardTemplates(configDashboards);
 
     const functions = this.serverless.service
-                          .getAllFunctions()
-                          .map(functionName => ({ name: functionName }));
+      .getAllFunctions()
+      .map(functionName => ({ name: functionName }));
 
     const cf = _.chain(dashboardTemplates)
       .uniq()
-      .reduce( (acc, d) => {
-        const dashboard = dashboards.createDashboard(service.service, stage, region, functions, d);
+      .reduce((acc, d) => {
+        const dashboard = dashboards.createDashboard(service.service, stage, region, functions, d, configDashboards.properties);
 
         const cfResource = d === 'default'
           ? 'AlertsDashboard'

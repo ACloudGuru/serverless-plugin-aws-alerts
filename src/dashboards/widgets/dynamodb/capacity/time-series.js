@@ -13,7 +13,7 @@ const createWidget = (config) => {
       stacked: false,
       metrics: [ ],
       region: config.region,
-      period: 300
+      period: config.properties.metricsPeriod
     }
   };
 

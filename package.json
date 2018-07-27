@@ -1,6 +1,6 @@
 {
-  "name": "serverless-plugin-aws-alerts",
-  "version": "1.2.4",
+  "name": "@perform/serverless-plugin-aws-alerts",
+  "version": "1.0.0",
   "description": "",
   "main": "src/index.js",
   "scripts": {

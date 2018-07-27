@@ -1,4 +1,5 @@
 'use strict';
+const _ = require('lodash');
 
 const widgetFactory = require('./widgets/factory');
 
@@ -7,12 +8,21 @@ const dashboards = {
   'vertical': require('./configs/vertical'),
 };
 
-const createDashboard = (service, stage, region, functions, name) => {
+const defaultProperties = require('./configs/properties');
+
+const getProperties = (configProperties) => {
+  return _.merge(defaultProperties,configProperties);
+}
+
+const createDashboard = (service, stage, region, functions, name, properties) => {
   const dashboard = dashboards[name];
 
   if (!dashboard) {
     throw new Error(`Cannot find dashboard by name ${name}`);
   }
+  const mergedProperties = getProperties(properties)
+
+  console.log("MERGED PROPERTIES", mergedProperties);
 
   const widgets = dashboard.widgets.map((w) => {
     const widget = widgetFactory.getWidget(w.service, w.metric, w.display);
@@ -22,7 +32,8 @@ const createDashboard = (service, stage, region, functions, name) => {
       region,
       coordinates: w.coordinates,
       title: w.title,
-      functions
+      functions,
+      properties: mergedProperties
     };
 
     return widget.createWidget(config);

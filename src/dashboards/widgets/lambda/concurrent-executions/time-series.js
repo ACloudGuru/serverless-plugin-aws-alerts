@@ -19,16 +19,16 @@ const createWidget = (config) => {
 
   widget.properties.metrics = config.functions.map(f => ([
     'AWS/Lambda',
-    'Invocations',
+    'ConcurrentExecutions',
     'FunctionName',
     `${config.service}-${config.stage}-${f.name}`,
     {
-      stat: 'Sum',
-      period: config.properties.metricsPeriod,
-      region: config.region,
-      label: f.name
+        stat: 'Sum',
+        period: config.properties.metricsPeriod,
+        region: config.region,
+        label: f.name
     }
-  ]));
+]));
 
   return widget;
 };

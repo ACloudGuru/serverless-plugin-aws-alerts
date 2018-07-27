@@ -7,8 +7,9 @@ const Plugin = require('./index');
 
 const testServicePath = path.join(__dirname, '.tmp');
 
-const pluginFactory = (alarmsConfig, s) => {
+const pluginFactory = (alarmsConfig, s, d) => {
   const stage = s || 'dev';
+  const dashboards = d || false;
   const functions = {
     foo: {
       name: 'foo'
@@ -48,6 +49,7 @@ const pluginFactory = (alarmsConfig, s) => {
   };
   return new Plugin(serverless, {
     stage,
+    dashboards,
   });
 };
 
@@ -570,6 +572,61 @@ describe('#index', function () {
 
     it('should compile alarms - by default', () => {
       const config = {};
+      const definitions = {};
+      const alertTopics = {};
+
+      plugin.getConfig.mockImplementation(() => config);
+      plugin.getDefinitions.mockImplementation(() => definitions);
+      plugin.compileAlertTopics.mockImplementation(() => alertTopics);
+
+      plugin.compile();
+
+      expectCompiled(config, definitions, alertTopics);
+    });
+
+    it('should compile alarms - with default dashboards', () => {
+      const config = {
+        dashboards: true
+      };
+      const definitions = {};
+      const alertTopics = {};
+
+      plugin.getConfig.mockImplementation(() => config);
+      plugin.getDefinitions.mockImplementation(() => definitions);
+      plugin.compileAlertTopics.mockImplementation(() => alertTopics);
+
+      plugin.compile();
+
+      expectCompiled(config, definitions, alertTopics);
+    });
+
+    it('should compile alarms - with array default dashboards', () => {
+      const config = {
+        dashboards: {
+          type: ['default']
+        }
+      };
+      const definitions = {};
+      const alertTopics = {};
+
+      plugin.getConfig.mockImplementation(() => config);
+      plugin.getDefinitions.mockImplementation(() => definitions);
+      plugin.compileAlertTopics.mockImplementation(() => alertTopics);
+
+      plugin.compile();
+
+      expectCompiled(config, definitions, alertTopics);
+    });
+
+    it('should compile alarms - with dashboards and custom period', () => {
+      const config = {
+        dashboards: {
+          type: 'default',
+          properties: {
+            metricsPeriod: 3600
+          }
+        }
+      };
       const definitions = {};
       const alertTopics = {};
 
