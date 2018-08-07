@@ -156,22 +156,29 @@ class AlertsPlugin {
       Object.keys(config.topics).forEach((key) => {
         const topicConfig = config.topics[key];
         const isTopicConfigAnObject = _.isObject(topicConfig);
+        const isTopConfigARef = isTopicConfigAnObject && topicConfig.Ref;
 
-        const topic = isTopicConfigAnObject ? topicConfig.topic : topicConfig;
-        const notifications = isTopicConfigAnObject ? topicConfig.notifications : [];
+        if (isTopConfigARef) {
+          alertTopics[key] = {
+            Ref: topicConfig.Ref
+          };
+        } else {
+          const topic = isTopicConfigAnObject ? topicConfig.topic : topicConfig;
+          const notifications = isTopicConfigAnObject ? topicConfig.notifications : [];
 
-        if (topic) {
-          if (topic.indexOf('arn:') === 0) {
-            alertTopics[key] = topic;
-          } else {
-            const cfRef = `AwsAlerts${_.upperFirst(key)}`;
-            alertTopics[key] = {
-              Ref: cfRef
-            };
+          if (topic) {
+            if (topic.indexOf('arn:') === 0) {
+              alertTopics[key] = topic;
+            } else {
+              const cfRef = `AwsAlerts${_.upperFirst(key)}`;
+              alertTopics[key] = {
+                Ref: cfRef
+              };
 
-            this.addCfResources({
-              [cfRef]: this.getSnsTopicCloudFormation(topic, notifications),
-            });
+              this.addCfResources({
+                [cfRef]: this.getSnsTopicCloudFormation(topic, notifications),
+              });
+            }
           }
         }
       });
