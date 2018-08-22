@@ -7,7 +7,7 @@ const dashboards = {
   'vertical': require('./configs/vertical'),
 };
 
-const createDashboard = (service, stage, region, functions, name) => {
+const createDashboard = (service, stage, region, functions, name, apiName) => {
   const dashboard = dashboards[name];
 
   if (!dashboard) {
@@ -22,7 +22,8 @@ const createDashboard = (service, stage, region, functions, name) => {
       region,
       coordinates: w.coordinates,
       title: w.title,
-      functions
+      functions,
+      apiName
     };
 
     return widget.createWidget(config);
