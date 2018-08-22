@@ -1,7 +1,8 @@
 'use strict';
 
 const createWidget = (config) => {
-  const apiName = `${config.stage}-${config.service}`;
+  // const apiName = `${config.stage}-${config.service}`;
+  const apiName = config.apiName;
 
   const widget = {
     type: 'metric',

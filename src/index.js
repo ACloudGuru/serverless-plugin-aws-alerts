@@ -266,6 +266,7 @@ class AlertsPlugin {
     const provider = service.provider;
     const stage = this.options.stage;
     const region = this.options.region || provider.region;
+    const apiName = service.provider.apiName || `${stage}-${service.service}`
     const dashboardTemplates = this.getDashboardTemplates(configDashboards);
 
     const functions = this.serverless.service
@@ -275,7 +276,7 @@ class AlertsPlugin {
     const cf = _.chain(dashboardTemplates)
       .uniq()
       .reduce( (acc, d) => {
-        const dashboard = dashboards.createDashboard(service.service, stage, region, functions, d);
+        const dashboard = dashboards.createDashboard(service.service, stage, region, functions, d, apiName);
 
         const cfResource = d === 'default'
           ? 'AlertsDashboard'
