@@ -127,6 +127,15 @@ describe('#index', function () {
         statistic: 'Sum'
       }]);
     });
+
+    it('should import alarms from CloudFormation', () => {
+      const testAlarm = { 'Fn::ImportValue': "ServiceMonitoring:monitoring-${opt:stage, 'dev'}" };
+      const alarms = [testAlarm];
+      const definitions = {};
+
+      const alarmsConfig = plugin.getAlarms(alarms, definitions);
+      expect(alarmsConfig).toEqual([testAlarm]);
+    });
   });
 
   describe('#getGlobalAlarms', () => {

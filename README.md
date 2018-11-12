@@ -67,7 +67,28 @@ functions:
 
 ## SNS Topics
 
-If topic name is specified, plugin assumes that topic does not exist and will create it. To use existing topics, specify ARNs instead.
+If topic name is specified, plugin assumes that topic does not exist and will create it. To use existing topics, specify ARNs or use Fn::ImportValue to use a topic exported with CloudFormation.
+
+#### ARN support
+
+```yaml
+custom:
+  alerts:
+    topics:
+      alarm:
+        topic: arn:aws:sns:${self:region}:${self::accountId}:monitoring-${opt:stage}
+```
+
+#### Import support
+
+```yaml
+custom:
+  alerts:
+    topics:
+      alarm:
+        topic:
+          Fn::ImportValue: ServiceMonitoring:monitoring-${opt:stage, 'dev'}
+```
 
 ## SNS Notifications
 

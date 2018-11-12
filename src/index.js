@@ -156,12 +156,13 @@ class AlertsPlugin {
       Object.keys(config.topics).forEach((key) => {
         const topicConfig = config.topics[key];
         const isTopicConfigAnObject = _.isObject(topicConfig);
+        const isTopicConfigAnImport = isTopicConfigAnObject && topicConfig['Fn::ImportValue'];
 
-        const topic = isTopicConfigAnObject ? topicConfig.topic : topicConfig;
-        const notifications = isTopicConfigAnObject ? topicConfig.notifications : [];
+        const topic = isTopicConfigAnObject && !isTopicConfigAnImport ? topicConfig.topic : topicConfig;
+        const notifications = isTopicConfigAnObject && !isTopicConfigAnImport ? topicConfig.notifications : [];
 
         if (topic) {
-          if (topic.indexOf('arn:') === 0) {
+          if (isTopicConfigAnImport || topic.indexOf('arn:') === 0) {
             alertTopics[key] = topic;
           } else {
             const cfRef = `AwsAlerts${_.upperFirst(key)}`;
