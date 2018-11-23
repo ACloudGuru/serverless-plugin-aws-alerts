@@ -447,6 +447,74 @@ describe('#index', function () {
         }
       });
     });
+
+    it('should create SNS topic with nested definitions', () => {
+      const plugin = pluginFactory({
+        topics: {
+          critical: {
+            ok: 'critical-ok-topic',
+            alert: 'critical-alert-topic',
+            insufficientData: 'critical-insufficientData-topic'
+          },
+          nonCritical: {
+            alarm: 'nonCritical-alarm-topic'
+          }
+        }
+      });
+
+      const config = plugin.getConfig();
+      const topics = plugin.compileAlertTopics(config);
+
+      expect(topics).toEqual({
+        critical: {
+          ok: {
+            Ref: `AwsAlertsCriticalOk`
+          },
+      alert: {
+        Ref: `AwsAlertsCriticalAlert`
+      },
+      insufficientData: {
+        Ref: `AwsAlertsCriticalInsufficientData`
+      }
+        },
+        nonCritical: {
+          alarm: {
+            Ref: `AwsAlertsNonCriticalAlarm`
+          }
+        }
+      });
+
+      expect(plugin.serverless.service.provider.compiledCloudFormationTemplate.Resources).toEqual({
+        'AwsAlertsCriticalOk': {
+          Type: 'AWS::SNS::Topic',
+          Properties: {
+            TopicName: 'critical-ok-topic',
+            Subscription: [],
+          }
+        },
+        'AwsAlertsCriticalAlert': {
+          Type: 'AWS::SNS::Topic',
+          Properties: {
+            TopicName: 'critical-alert-topic',
+            Subscription: [],
+          }
+        },
+        'AwsAlertsCriticalInsufficientData': {
+          Type: 'AWS::SNS::Topic',
+          Properties: {
+            TopicName: 'critical-insufficientData-topic',
+            Subscription: [],
+          }
+        },
+        'AwsAlertsNonCriticalAlarm': {
+          Type: 'AWS::SNS::Topic',
+          Properties: {
+            TopicName: 'nonCritical-alarm-topic',
+            Subscription: [],
+          }
+        }
+      });
+    });
   });
 
   describe('#compileAlarms', () => {

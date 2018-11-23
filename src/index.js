@@ -160,31 +160,50 @@ class AlertsPlugin {
     };
   }
 
+  _addAlertTopic(key, topics, alertTopics, customAlarmName) {
+    const topicConfig = topics[key];
+    const isTopicConfigAnObject = _.isObject(topicConfig);
+    const isTopicConfigAnImport = isTopicConfigAnObject && topicConfig['Fn::ImportValue'];
+
+    const topic = isTopicConfigAnObject ? topicConfig.topic : topicConfig;
+    const notifications = isTopicConfigAnObject ? topicConfig.notifications : [];
+
+    if (topic) {
+      if (isTopicConfigAnImport || topic.indexOf('arn:') === 0) {
+        alertTopics[key] = topic;
+      } else {
+        const cfRef = `AwsAlerts${customAlarmName ? _.upperFirst(customAlarmName) : ''}${_.upperFirst(key)}`;
+        if (customAlarmName) {
+          if (!alertTopics[customAlarmName]) {
+          alertTopics[customAlarmName] = {}
+                }
+          alertTopics[customAlarmName][key] = {
+            Ref: cfRef
+          };
+              } else {
+          alertTopics[key] = {
+            Ref: cfRef
+          };
+              }
+
+        this.addCfResources({
+          [cfRef]: this.getSnsTopicCloudFormation(topic, notifications),
+        });
+      }
+    }
+  }
+
   compileAlertTopics(config) {
     const alertTopics = {};
 
     if (config.topics) {
       Object.keys(config.topics).forEach((key) => {
-        const topicConfig = config.topics[key];
-        const isTopicConfigAnObject = _.isObject(topicConfig);
-        const isTopicConfigAnImport = isTopicConfigAnObject && topicConfig['Fn::ImportValue'];
-
-        const topic = isTopicConfigAnObject && !isTopicConfigAnImport ? topicConfig.topic : topicConfig;
-        const notifications = isTopicConfigAnObject && !isTopicConfigAnImport ? topicConfig.notifications : [];
-
-        if (topic) {
-          if (isTopicConfigAnImport || topic.indexOf('arn:') === 0) {
-            alertTopics[key] = topic;
-          } else {
-            const cfRef = `AwsAlerts${_.upperFirst(key)}`;
-            alertTopics[key] = {
-              Ref: cfRef
-            };
-
-            this.addCfResources({
-              [cfRef]: this.getSnsTopicCloudFormation(topic, notifications),
-            });
-          }
+        if (['ok', 'alarm', 'insufficientData'].indexOf(key) !== -1) {
+      this._addAlertTopic(key, config.topics, alertTopics)
+        } else {
+      Object.keys(config.topics[key]).forEach((subkey) => {
+        this._addAlertTopic(subkey, config.topics[key], alertTopics, key)
+      })
         }
       });
     }
