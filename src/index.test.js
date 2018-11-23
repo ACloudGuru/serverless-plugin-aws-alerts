@@ -707,6 +707,64 @@ describe('#index', function () {
       });
     });
 
+    it('should add nested actions - create topics', () => {
+      const alertTopics = {
+        critical: {
+          ok: 'critical-ok-topic',
+          alarm: 'critical-alarm-topic',
+          insufficientData: 'critical-insufficientData-topic',
+        },
+        nonCritical: {
+          ok: 'nonCritical-ok-topic',
+          alarm: 'nonCritical-alarm-topic',
+          insufficientData: 'nonCritical-insufficientData-topic',
+        }
+      };
+
+      const definition = {
+        description: 'An error alarm',
+        namespace: 'AWS/Lambda',
+        metric: 'Errors',
+        threshold: 1,
+        statistic: 'Maximum',
+        period: 300,
+        evaluationPeriods: 1,
+        comparisonOperator: 'GreaterThanOrEqualToThreshold',
+        treatMissingData: 'breaching',
+        okActions: ['critical', 'nonCritical'],
+        alarmActions: ['critical', 'nonCritical'],
+        insufficientDataActions: ['critical', 'nonCritical']
+      };
+
+      const functionRef = 'func-ref';
+
+      const cf = plugin.getAlarmCloudFormation(alertTopics, definition, functionRef);
+
+      expect(cf).toEqual({
+        Type: 'AWS::CloudWatch::Alarm',
+        Properties: {
+          AlarmDescription: definition.description,
+          Namespace: definition.namespace,
+          MetricName: definition.metric,
+          Threshold: definition.threshold,
+          Statistic: definition.statistic,
+          Period: definition.period,
+          EvaluationPeriods: definition.evaluationPeriods,
+          ComparisonOperator: definition.comparisonOperator,
+          OKActions: ['critical-ok-topic', 'nonCritical-ok-topic'],
+          AlarmActions: ['critical-alarm-topic', 'nonCritical-alarm-topic'],
+          InsufficientDataActions: ['critical-insufficientData-topic', 'nonCritical-insufficientData-topic'],
+          Dimensions: [{
+            Name: 'FunctionName',
+            Value: {
+              Ref: functionRef,
+            }
+          }],
+          TreatMissingData: 'breaching',
+        }
+      });
+    });
+
     it('should user the CloudFormation value ExtendedStatistic for p values', () => {
       const alertTopics = {
         ok: 'ok-topic',

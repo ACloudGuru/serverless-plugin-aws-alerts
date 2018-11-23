@@ -90,6 +90,21 @@ class AlertsPlugin {
       insufficientDataActions.push(alertTopics.insufficientData);
     }
 
+    if (definition.okActions) {
+    _.flatten(definition.okActions)
+            .map( alertTopic => {okActions.push(alertTopics[alertTopic].ok)});
+    }
+
+    if (definition.alarmActions) {
+      _.flatten(definition.alarmActions)
+              .map( alertTopic => {alarmActions.push(alertTopics[alertTopic].alarm)});
+    }
+
+    if (definition.insufficientDataActions) {
+      _.flatten(definition.insufficientDataActions)
+              .map( alertTopic => {insufficientDataActions.push(alertTopics[alertTopic].insufficientData)});
+    }
+
     const namespace = definition.pattern ?
       this.awsProvider.naming.getStackName() :
       definition.namespace;
