@@ -35,4 +35,21 @@ describe('#naming', function () {
       expect(actual).toEqual(expected);
     });
   });
+
+  describe('#getDimensionsMap', () => {
+    let naming = null;
+    beforeEach( () => naming = new Naming());
+
+    it('should use function name derived from funcref', () => {
+      const expected = [{"Name":"Duck", "Value":"QUACK"}, {"Name":"FunctionName", "Value": {'Ref': 'funcName'}}]
+      const actual = naming.getDimensionsList({'FunctionName':'overridden', 'Duck':'QUACK'}, 'funcName')
+      expect(actual).toEqual(expected);
+    });
+
+    it('should get a mapped dimensions object when FunctionName is missing', () => {
+      const expected = [{"Name":"Duck", "Value":"QUACK"}, {"Name":"FunctionName", "Value":{'Ref': 'funcName'}}]
+      const actual = naming.getDimensionsList({'Duck':'QUACK'}, 'funcName');
+      expect(actual).toEqual(expected);
+    });
+  });
 });
