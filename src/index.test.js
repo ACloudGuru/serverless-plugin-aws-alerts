@@ -748,7 +748,7 @@ describe('#index', function () {
         evaluationPeriods: 1,
         comparisonOperator: 'GreaterThanThreshold',
         treatMissingData: 'breaching',
-        dimensions: {'Cow': 'MOO', 'Duck':'QUACK'}
+        dimensions: [{'Cow': 'MOO', 'Duck':'QUACK'}]
       };
 
       const functionRef = 'func-ref';

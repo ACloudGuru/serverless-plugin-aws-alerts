@@ -25,26 +25,30 @@ class Naming {
     return `${_.upperFirst(metricName)}${functionName}`;
   }
 
-  getDimensionsList(dimensionsMap, funcRef) {
-    let dimensionsList = new Array();
+  getDimensionsList(dimensionsList, funcRef) {
+    let dimensionsOut = new Array();
     let funcNameDimension =  {
       'Name': 'FunctionName',
       'Value': {
         Ref: funcRef
       }
     };
-    if(dimensionsMap == null)
+    if(dimensionsList == null) {
       return [funcNameDimension];
-    Object.keys(dimensionsMap).forEach((key) => {
-      if(key != FUNCTION_NAME_KEY) {
-        dimensionsList.push({
-          'Name': key,
-          'Value': dimensionsMap[key]
-        });
-      }
-    });
+    }
+    dimensionsList.forEach( (dim) => {
+      Object.keys(dim).forEach((key) => {
+        if(key != FUNCTION_NAME_KEY) {
+          dimensionsOut.push({
+            'Name': key,
+            'Value': dim[key]
+          });
+        }
+      });      
+    })
 
-    return [...dimensionsList, funcNameDimension]
+
+    return [...dimensionsOut, funcNameDimension]
   }
 
 }
