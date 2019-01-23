@@ -6,8 +6,6 @@ const getNormalisedName = (name) => {
   return `${_.upperFirst(name.replace(/-/g, 'Dash').replace(/_/g, 'Underscore'))}`;
 }
 
-const FUNCTION_NAME_KEY = 'FunctionName';
-
 class Naming {
 
   getAlarmCloudFormationRef(alarmName, prefix) {
@@ -26,7 +24,6 @@ class Naming {
   }
 
   getDimensionsList(dimensionsList, funcRef) {
-    let dimensionsOut = new Array();
     let funcNameDimension =  {
       'Name': 'FunctionName',
       'Value': {
