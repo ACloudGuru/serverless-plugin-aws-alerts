@@ -36,19 +36,10 @@ class Naming {
     if(dimensionsList == null) {
       return [funcNameDimension];
     }
-    dimensionsList.forEach( (dim) => {
-      Object.keys(dim).forEach((key) => {
-        if(key != FUNCTION_NAME_KEY) {
-          dimensionsOut.push({
-            'Name': key,
-            'Value': dim[key]
-          });
-        }
-      });      
+    let filteredDimensions = dimensionsList.filter( (dim) => {
+      return dim.Name != 'FunctionName'
     })
-
-
-    return [...dimensionsOut, funcNameDimension]
+    return [...filteredDimensions, funcNameDimension]
   }
 
 }
