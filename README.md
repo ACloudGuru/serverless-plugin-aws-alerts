@@ -203,6 +203,15 @@ The plugin will always apply dimension of {Name: FunctionName, Value: ((Function
              Value: bar
 ```
 
+```json
+'Dimensions': [
+                {
+                    'Name': 'foo',
+                    'Value': 'bar'
+                },
+            ]
+```
+
 ## Using Percentile Statistic for a Metric
 
 Statistic not only supports SampleCount, Average, Sum, Minimum or Maximum as defined in CloudFormation [here](http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-properties-cw-alarm.html#cfn-cloudwatch-alarms-statistic), but also percentiles. This is possible by leveraging  [ExtendedStatistic](http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-properties-cw-alarm.html#cfn-cloudwatch-alarms-extendedstatistic) under the hood. This plugin will automatically choose the correct key for you. See an example below:
