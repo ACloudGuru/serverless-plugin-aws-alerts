@@ -36,7 +36,9 @@ class Naming {
     let filteredDimensions = dimensionsList.filter( (dim) => {
       return dim.Name != 'FunctionName'
     })
-    return [...filteredDimensions, funcNameDimension]
+    filteredDimensions.push(funcNameDimension);
+    console.log(filteredDimensions)
+    return filteredDimensions
   }
 
 }
