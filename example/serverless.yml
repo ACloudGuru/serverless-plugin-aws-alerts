@@ -50,6 +50,7 @@ custom:
         statistic: Average
         period: 300
         evaluationPeriods: 1
+        datapointsToAlarm: 1
         comparisonOperator: GreaterThanThreshold
     global:
       - functionThrottles
@@ -73,6 +74,7 @@ functions:
         statistic: Minimum
         period: 60
         evaluationPeriods: 1
+        datapointsToAlarm: 1
         comparisonOperator: GreaterThanThreshold
     events:
       - http:
@@ -90,6 +92,7 @@ functions:
         statistic: Sum
         period: 60
         evaluationPeriods: 1
+        datapointsToAlarm: 1
         comparisonOperator: GreaterThanThreshold
         pattern: '{$.level > 40}'
     events:
