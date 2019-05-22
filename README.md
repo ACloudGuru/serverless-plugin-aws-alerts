@@ -1,12 +1,14 @@
 # Serverless AWS Alerts Plugin
-  [![NPM version][npm-image]][npm-url]
-  [![Build Status][travis-image]][travis-url]
-  [![Dependency Status][daviddm-image]][daviddm-url]
-  [![Coverage percentage][coveralls-image]][coveralls-url]
+
+[![NPM version][npm-image]][npm-url]
+[![Build Status][travis-image]][travis-url]
+[![Dependency Status][daviddm-image]][daviddm-url]
+[![Coverage percentage][coveralls-image]][coveralls-url]
 
 A Serverless plugin to easily add CloudWatch alarms to functions
 
 ## Installation
+
 `npm i serverless-plugin-aws-alerts`
 
 ## Usage
@@ -14,55 +16,68 @@ A Serverless plugin to easily add CloudWatch alarms to functions
 ```yaml
 service: your-service
 provider:
-  name: aws
-  runtime: nodejs4.3
+    name: aws
+    runtime: nodejs4.3
 
 custom:
-  alerts:
-    stages: # Optionally - select which stages to deploy alarms to
-      - production
-      - staging
+    alerts:
+        stages: # Optionally - select which stages to deploy alarms to
+            - production
+            - staging
 
-    dashboards: true
+        dashboards: true
 
-    topics:
-      ok: ${self:service}-${opt:stage}-alerts-ok
-      alarm: ${self:service}-${opt:stage}-alerts-alarm
-      insufficientData: ${self:service}-${opt:stage}-alerts-insufficientData
-    definitions:  # these defaults are merged with your definitions
-      functionErrors:
-        period: 300 # override period
-      customAlarm:
-        description: 'My custom alarm'
-        namespace: 'AWS/Lambda'
-        metric: duration
-        threshold: 200
-        statistic: Average
-        period: 300
-        evaluationPeriods: 1
-        comparisonOperator: GreaterThanOrEqualToThreshold
-    alarms:
-      - functionThrottles
-      - functionErrors
-      - functionInvocations
-      - functionDuration
+        topics:
+            ok: ${self:service}-${opt:stage}-alerts-ok
+            alarm: ${self:service}-${opt:stage}-alerts-alarm
+            insufficientData: ${self:service}-${opt:stage}-alerts-insufficientData
+        definitions: # these defaults are merged with your definitions
+            functionErrors:
+                period: 300 # override period
+            customAlarm:
+                description: 'My custom alarm'
+                namespace: 'AWS/Lambda'
+                metric: duration
+                threshold: 200
+                statistic: Average
+                period: 300
+                evaluationPeriods: 1
+                comparisonOperator: GreaterThanOrEqualToThreshold
+            # the 'cloudFormation' property will be merged into the resulting AWS::CloudWatch::Alarm CloudFormation
+            # resource. This is useful if this plugin is not up to date with the latest alarm features, or as an escape hatch
+            customAlarmWithCloudformationEscapeHatch:
+                description: 'My custom alarm with a custm name'
+                namespace: 'AWS/Lambda'
+                metric: duration
+                threshold: 200
+                statistic: Average
+                period: 300
+                evaluationPeriods: 1
+                comparisonOperator: GreaterThanOrEqualToThreshold
+                cloudFormation:
+                    AlarmName: 'My Custom Alarm Name'
+        alarms:
+            - functionThrottles
+            - functionErrors
+            - functionInvocations
+            - functionDuration
 
 plugins:
-  - serverless-plugin-aws-alerts
+    - serverless-plugin-aws-alerts
 
 functions:
-  foo:
-    handler: foo.handler
-    alarms: # merged with function alarms
-      - customAlarm
-      - name: fooAlarm # creates new alarm or overwrites some properties of the alarm (with the same name) from definitions
-        namespace: 'AWS/Lambda'
-        metric: errors # define custom metrics here
-        threshold: 1
-        statistic: Minimum
-        period: 60
-        evaluationPeriods: 1
-        comparisonOperator: GreaterThanOrEqualToThreshold
+    foo:
+        handler: foo.handler
+        alarms: # merged with function alarms
+            - customAlarm
+            - name: fooAlarm # creates new alarm or overwrites some properties of the alarm (with the same name) from definitions
+              namespace: 'AWS/Lambda'
+              metric: errors # define custom metrics here
+              threshold: 1
+              statistic: Minimum
+              period: 60
+              evaluationPeriods: 1
+              comparisonOperator: GreaterThanOrEqualToThreshold
 ```
 
 ## SNS Topics
@@ -77,18 +92,19 @@ The following example will send email notifications to `me@example.com` for all 
 
 ```yaml
 custom:
-  alerts:
-    topics:
-      alarm:
-        topic: ${self:service}-${opt:stage}-alerts-alarm
-        notifications:
-          - protocol: email
-            endpoint: me@example.com
+    alerts:
+        topics:
+            alarm:
+                topic: ${self:service}-${opt:stage}-alerts-alarm
+                notifications:
+                    - protocol: email
+                      endpoint: me@example.com
 ```
 
 You can configure notifications to send to webhook URLs, to SMS devices, to other Lambda functions, and more. Check out the AWS docs [here](http://docs.aws.amazon.com/sns/latest/api/API_Subscribe.html) for configuration options.
 
 ## Metric Log Filters
+
 You can monitor a log group for a function for a specific pattern. Do this by adding the pattern key.
 You can learn about custom patterns at: http://docs.aws.amazon.com/AmazonCloudWatch/latest/logs/FilterAndPatternSyntax.html
 
@@ -96,38 +112,39 @@ The following would create a custom metric log filter based alarm named `barExce
 
 ```yaml
 custom:
-  alerts:
-    definitions:
-      barExceptions:
-        metric: barExceptions
-        threshold: 0
-        statistic: Minimum
-        period: 60
-        evaluationPeriods: 1
-        comparisonOperator: GreaterThanThreshold
-        pattern: 'exception Bar'
-      bunyanErrors:
-        metric: bunyanErrors
-        threshold: 0
-        statistic: Sum
-        period: 60
-        evaluationPeriods: 1
-        comparisonOperator: GreaterThanThreshold
-        pattern: '{$.level > 40}'
+    alerts:
+        definitions:
+            barExceptions:
+                metric: barExceptions
+                threshold: 0
+                statistic: Minimum
+                period: 60
+                evaluationPeriods: 1
+                comparisonOperator: GreaterThanThreshold
+                pattern: 'exception Bar'
+            bunyanErrors:
+                metric: bunyanErrors
+                threshold: 0
+                statistic: Sum
+                period: 60
+                evaluationPeriods: 1
+                comparisonOperator: GreaterThanThreshold
+                pattern: '{$.level > 40}'
 ```
 
 > Note: For custom log metrics, namespace property will automatically be set to stack name (e.g. `fooservice-dev`).
 
 ## Default Definitions
+
 The plugin provides some default definitions that you can simply drop into your application. For example:
 
 ```yaml
 alerts:
-  alarms:
-    - functionErrors
-    - functionThrottles
-    - functionInvocations
-    - functionDuration
+    alarms:
+        - functionErrors
+        - functionThrottles
+        - functionInvocations
+        - functionDuration
 ```
 
 If these definitions do not quite suit i.e. the threshold is too high, you can override a setting without
@@ -135,75 +152,74 @@ creating a completely new definition.
 
 ```yaml
 alerts:
-  definitions:  # these defaults are merged with your definitions
-    functionErrors:
-      period: 300 # override period
-      treatMissingData: notBreaching # override treatMissingData
+    definitions: # these defaults are merged with your definitions
+        functionErrors:
+            period: 300 # override period
+            treatMissingData: notBreaching # override treatMissingData
 ```
 
 The default definitions are below.
 
 ```yaml
 definitions:
-  functionInvocations:
-    namespace: 'AWS/Lambda'
-    metric: Invocations
-    threshold: 100
-    statistic: Sum
-    period: 60
-    evaluationPeriods: 1
-    comparisonOperator: GreaterThanOrEqualToThreshold
-    treatMissingData: missing
-  functionErrors:
-    namespace: 'AWS/Lambda'
-    metric: Errors
-    threshold: 1
-    statistic: Sum
-    period: 60
-    evaluationPeriods: 1
-    comparisonOperator: GreaterThanOrEqualToThreshold
-    treatMissingData: missing
-  functionDuration:
-    namespace: 'AWS/Lambda'
-    metric: Duration
-    threshold: 500
-    statistic: Average
-    period: 60
-    evaluationPeriods: 1
-    comparisonOperator: GreaterThanOrEqualToThreshold
-    treatMissingData: missing
-  functionThrottles:
-    namespace: 'AWS/Lambda'
-    metric: Throttles
-    threshold: 1
-    statistic: Sum
-    period: 60
-    evaluationPeriods: 1
-    comparisonOperator: GreaterThanOrEqualToThreshold
-    treatMissingData: missing
+    functionInvocations:
+        namespace: 'AWS/Lambda'
+        metric: Invocations
+        threshold: 100
+        statistic: Sum
+        period: 60
+        evaluationPeriods: 1
+        comparisonOperator: GreaterThanOrEqualToThreshold
+        treatMissingData: missing
+    functionErrors:
+        namespace: 'AWS/Lambda'
+        metric: Errors
+        threshold: 1
+        statistic: Sum
+        period: 60
+        evaluationPeriods: 1
+        comparisonOperator: GreaterThanOrEqualToThreshold
+        treatMissingData: missing
+    functionDuration:
+        namespace: 'AWS/Lambda'
+        metric: Duration
+        threshold: 500
+        statistic: Average
+        period: 60
+        evaluationPeriods: 1
+        comparisonOperator: GreaterThanOrEqualToThreshold
+        treatMissingData: missing
+    functionThrottles:
+        namespace: 'AWS/Lambda'
+        metric: Throttles
+        threshold: 1
+        statistic: Sum
+        period: 60
+        evaluationPeriods: 1
+        comparisonOperator: GreaterThanOrEqualToThreshold
+        treatMissingData: missing
 ```
 
 ## Using Percentile Statistic for a Metric
 
-Statistic not only supports SampleCount, Average, Sum, Minimum or Maximum as defined in CloudFormation [here](http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-properties-cw-alarm.html#cfn-cloudwatch-alarms-statistic), but also percentiles. This is possible by leveraging  [ExtendedStatistic](http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-properties-cw-alarm.html#cfn-cloudwatch-alarms-extendedstatistic) under the hood. This plugin will automatically choose the correct key for you. See an example below:
+Statistic not only supports SampleCount, Average, Sum, Minimum or Maximum as defined in CloudFormation [here](http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-properties-cw-alarm.html#cfn-cloudwatch-alarms-statistic), but also percentiles. This is possible by leveraging [ExtendedStatistic](http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-properties-cw-alarm.html#cfn-cloudwatch-alarms-extendedstatistic) under the hood. This plugin will automatically choose the correct key for you. See an example below:
 
 ```yaml
 definitions:
-  functionDuration:
-    namespace: 'AWS/Lambda'
-    metric: Duration
-    threshold: 100
-    statistic: 'p95'
-    period: 60
-    evaluationPeriods: 1
-    comparisonOperator: GreaterThanThreshold
-    treatMissingData: missing
+    functionDuration:
+        namespace: 'AWS/Lambda'
+        metric: Duration
+        threshold: 100
+        statistic: 'p95'
+        period: 60
+        evaluationPeriods: 1
+        comparisonOperator: GreaterThanThreshold
+        treatMissingData: missing
 ```
 
 ## License
 
 MIT © [A Cloud Guru](https://acloud.guru/)
-
 
 [npm-image]: https://badge.fury.io/js/serverless-plugin-aws-alerts.svg
 [npm-url]: https://npmjs.org/package/serverless-plugin-aws-alerts

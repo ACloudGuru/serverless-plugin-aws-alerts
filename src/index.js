@@ -131,6 +131,7 @@ class AlertsPlugin {
     } else {
       alarm.Properties.ExtendedStatistic = definition.statistic
     }
+    alarm.Properties = Object.assign(alarm.Properties, (definition.cloudFormation || {}));
     return alarm;
   }
 
