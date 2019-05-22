@@ -67,6 +67,67 @@ functions:
         comparisonOperator: GreaterThanOrEqualToThreshold
 ```
 
+## Multiple topic definitions
+
+You can define several topics for alarms. For example you want to have topics for critical alarms
+reaching your pagerduty, and different topics for noncritical alarms, which just send you emails.
+
+In each alarm definition you have to specify which topics you want to use. In following example
+you get an email for each function error, pagerduty gets alarm only if there are more than 20
+errors in 60s
+
+```yaml
+custom:
+  alerts:
+
+    topics:
+      critical:
+        ok:
+          topic: ${self:service}-${self:custom.stage}-critical-alerts-ok
+          notifications:
+          - protocol: https
+            endpoint: https://events.pagerduty.com/integration/.../enqueue
+        alarm:
+          topic: ${self:service}-${self:custom.stage}-critical-alerts-alarm
+          notifications:
+          - protocol: https
+            endpoint: https://events.pagerduty.com/integration/.../enqueue
+
+      nonCritical:
+        alarm:
+          topic: ${self:service}-${self:custom.stage}-nonCritical-alerts-alarm
+          notifications:
+          - protocol: email
+            endpoint: alarms@email.com
+
+    definitions:  # these defaults are merged with your definitions
+      criticalFunctionErrors:
+        namespace: 'AWS/Lambda'
+        metric: Errors
+        threshold: 20
+        statistic: Sum
+        period: 60
+        evaluationPeriods: 10
+        comparisonOperator: GreaterThanOrEqualToThreshold
+        okActions:
+          - critical
+        alarmActions:
+          - critical
+      nonCriticalFunctionErrors:
+        namespace: 'AWS/Lambda'
+        metric: Errors
+        threshold: 1
+        statistic: Sum
+        period: 60
+        evaluationPeriods: 10
+        comparisonOperator: GreaterThanOrEqualToThreshold
+        alarmActions:
+          - nonCritical
+    alarms:
+      - criticalFunctionErrors
+      - nonCriticalFunctionErrors
+
+```
 ## SNS Topics
 
 If topic name is specified, plugin assumes that topic does not exist and will create it. To use existing topics, specify ARNs or use Fn::ImportValue to use a topic exported with CloudFormation.
