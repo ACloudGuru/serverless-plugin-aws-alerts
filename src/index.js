@@ -161,7 +161,7 @@ class AlertsPlugin {
         const notifications = isTopicConfigAnObject ? topicConfig.notifications : [];
 
         if (topic) {
-          if (topic.indexOf('arn:') === 0) {
+          if (_.isObject(topic) || topic.indexOf('arn:') === 0) {
             alertTopics[key] = topic;
           } else {
             const cfRef = `AwsAlerts${_.upperFirst(key)}`;
@@ -173,6 +173,9 @@ class AlertsPlugin {
               [cfRef]: this.getSnsTopicCloudFormation(topic, notifications),
             });
           }
+        }
+        else if (isTopicConfigAnObject) {
+          alertTopics[key] = topicConfig;
         }
       });
     }

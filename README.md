@@ -69,6 +69,36 @@ functions:
 
 If topic name is specified, plugin assumes that topic does not exist and will create it. To use existing topics, specify ARNs instead.
 
+You can also use an object that will eventually resolve into an arn of an existing topic:
+
+```yaml
+custom: 
+  alerts:
+    topics:
+      alarm:
+        Fn::Join:
+          - ':'
+          - - arn:aws:sns
+            - Ref: AWS::Region
+            - Ref: AWS::AccountId
+            - ${self:service}-${opt:stage}
+      ok:
+        Ref: SNSTopic
+      insufficientData:
+        topic:
+          Ref: SNSTopic
+
+resources:
+  Resources:
+    SNSTopic:
+      Type: AWS::SNS::Topic
+      Properties:
+        DisplayName: ${self:service}-${opt:stage}
+        Subscription:
+          - Endpoint: me@example.com
+            Protocol: EMAIL
+```
+
 ## SNS Notifications
 
 You can configure subscriptions to your SNS topics within your `serverless.yml`. For each subscription, you'll need to specify a `protocol` and an `endpoint`.
