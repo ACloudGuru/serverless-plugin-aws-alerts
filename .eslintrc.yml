@@ -14,4 +14,4 @@ env:
 rules:
   no-console: 0
   strict: 0
-  node/no-unsupported-features: [ 2, { "version": 4 }]
+  node/no-unsupported-features: 0
