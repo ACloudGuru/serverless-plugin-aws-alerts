@@ -9,6 +9,6 @@
   },
   "devDependencies": {
     "serverless": "^1.22.0",
-    "serverless-plugin-aws-alerts": "^1.0.0"
+    "serverless-plugin-aws-alerts": "^1.2.4"
   }
 }

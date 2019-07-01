@@ -1,7 +1,10 @@
-'use script';
+exports.handler = async (event) => {
+  console.log('Received event', event);
 
-module.exports.handler = (event, context, cb) => {
-    console.log('Received event', event);
+  const response = {
+    statusCode: 200,
+    body: JSON.stringify({ message: `success - ${Date.now()}` })
+  };
 
-    cb(null, { message: 'success' });
+  return response;
 };
