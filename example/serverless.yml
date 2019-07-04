@@ -1,9 +1,8 @@
 service: service-test-alerts-plugin
 provider:
   name: aws
-  runtime: nodejs4.3
+  runtime: nodejs8.10
   region: us-east-1
-  profile: ${opt:profile}
 
 package:
   exclude:
@@ -11,19 +10,17 @@ package:
     - yarn.lock
 
 custom:
-  # notifications:
-  #   - protocol: email
-  #     endpoint: your_email_here
+  notifications:
+    - protocol: email
+      endpoint: ${env:NOTIFICATION_EMAIL}
 
 
   alerts:
     stages: # Optionally - select which stages to deploy alarms to
-      - producton
+      - production
       - staging
 
-    dashboards:
-      - default
-      - vertical
+    dashboards: true
 
     topics:
       ok:
@@ -50,6 +47,7 @@ custom:
         statistic: Average
         period: 300
         evaluationPeriods: 1
+        datapointsToAlarm: 1
         comparisonOperator: GreaterThanThreshold
     global:
       - functionThrottles
@@ -73,6 +71,7 @@ functions:
         statistic: Minimum
         period: 60
         evaluationPeriods: 1
+        datapointsToAlarm: 1
         comparisonOperator: GreaterThanThreshold
     events:
       - http:
@@ -90,6 +89,7 @@ functions:
         statistic: Sum
         period: 60
         evaluationPeriods: 1
+        datapointsToAlarm: 1
         comparisonOperator: GreaterThanThreshold
         pattern: '{$.level > 40}'
     events:

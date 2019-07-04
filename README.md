@@ -40,6 +40,7 @@ custom:
         statistic: Average
         period: 300
         evaluationPeriods: 1
+        datapointsToAlarm: 1
         comparisonOperator: GreaterThanOrEqualToThreshold
     alarms:
       - functionThrottles
@@ -62,6 +63,7 @@ functions:
         statistic: Minimum
         period: 60
         evaluationPeriods: 1
+        datapointsToAlarm: 1
         comparisonOperator: GreaterThanOrEqualToThreshold
 ```
 
@@ -133,6 +135,7 @@ custom:
         statistic: Sum
         period: 60
         evaluationPeriods: 1
+        datapointsToAlarm: 1
         comparisonOperator: GreaterThanThreshold
         pattern: '{$.level > 40}'
 ```
@@ -173,6 +176,7 @@ definitions:
     statistic: Sum
     period: 60
     evaluationPeriods: 1
+    datapointsToAlarm: 1
     comparisonOperator: GreaterThanOrEqualToThreshold
     treatMissingData: missing
   functionErrors:
@@ -182,6 +186,7 @@ definitions:
     statistic: Sum
     period: 60
     evaluationPeriods: 1
+    datapointsToAlarm: 1
     comparisonOperator: GreaterThanOrEqualToThreshold
     treatMissingData: missing
   functionDuration:
@@ -200,6 +205,7 @@ definitions:
     statistic: Sum
     period: 60
     evaluationPeriods: 1
+    datapointsToAlarm: 1
     comparisonOperator: GreaterThanOrEqualToThreshold
     treatMissingData: missing
 ```
@@ -217,6 +223,7 @@ definitions:
     statistic: 'p95'
     period: 60
     evaluationPeriods: 1
+    datapointsToAlarm: 1
     comparisonOperator: GreaterThanThreshold
     treatMissingData: missing
 ```

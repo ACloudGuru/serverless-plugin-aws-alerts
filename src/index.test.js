@@ -188,6 +188,7 @@ describe('#index', function () {
             statistic: 'Maximum',
             period: 300,
             evaluationPeriods: 1,
+            datapointsToAlarm: 1,
             comparisonOperator: 'GreaterThanOrEqualToThreshold',
           },
           customDefinition: {
@@ -197,6 +198,7 @@ describe('#index', function () {
             statistic: 'Minimum',
             period: 120,
             evaluationPeriods: 2,
+            datapointsToAlarm: 1,
             comparisonOperator: 'GreaterThanOrEqualToThreshold',
           }
         }
@@ -213,6 +215,7 @@ describe('#index', function () {
           statistic: 'Sum',
           period: 60,
           evaluationPeriods: 1,
+          datapointsToAlarm: 1,
           comparisonOperator: 'GreaterThanOrEqualToThreshold',
         },
         functionErrors: {
@@ -222,6 +225,7 @@ describe('#index', function () {
           statistic: 'Maximum',
           period: 300,
           evaluationPeriods: 1,
+          datapointsToAlarm: 1,
           comparisonOperator: 'GreaterThanOrEqualToThreshold',
         },
         functionDuration: {
@@ -231,6 +235,7 @@ describe('#index', function () {
           statistic: 'Average',
           period: 60,
           evaluationPeriods: 1,
+          datapointsToAlarm: 1,
           comparisonOperator: 'GreaterThanOrEqualToThreshold',
         },
         functionThrottles: {
@@ -240,6 +245,7 @@ describe('#index', function () {
           statistic: 'Sum',
           period: 60,
           evaluationPeriods: 1,
+          datapointsToAlarm: 1,
           comparisonOperator: 'GreaterThanOrEqualToThreshold',
         },
         customDefinition: {
@@ -249,6 +255,7 @@ describe('#index', function () {
           statistic: 'Minimum',
           period: 120,
           evaluationPeriods: 2,
+          datapointsToAlarm: 1,
           comparisonOperator: 'GreaterThanOrEqualToThreshold',
         }
       });
@@ -265,6 +272,7 @@ describe('#index', function () {
           statistic: 'Minimum',
           period: 120,
           evaluationPeriods: 2,
+          datapointsToAlarm: 1,
           comparisonOperator: 'GreaterThanOrEqualToThreshold',
         }
       },
@@ -309,6 +317,7 @@ describe('#index', function () {
         statistic: 'Minimum',
         period: 120,
         evaluationPeriods: 2,
+        datapointsToAlarm: 1,
         comparisonOperator: 'GreaterThanOrEqualToThreshold',
       }]);
     });
@@ -325,6 +334,7 @@ describe('#index', function () {
           statistic: 'Minimum',
           period: 120,
           evaluationPeriods: 2,
+          datapointsToAlarm: 1,
           comparisonOperator: 'GreaterThanOrEqualToThreshold',
         }]
       }, config, definitions);
@@ -337,6 +347,7 @@ describe('#index', function () {
         statistic: 'Minimum',
         period: 120,
         evaluationPeriods: 2,
+        datapointsToAlarm: 1,
         comparisonOperator: 'GreaterThanOrEqualToThreshold',
       }]);
     });
@@ -462,6 +473,7 @@ describe('#index', function () {
             Statistic: 'Sum',
             Period: 60,
             EvaluationPeriods: 1,
+            DatapointsToAlarm: 1,
             ComparisonOperator: 'GreaterThanOrEqualToThreshold',
             AlarmActions: [],
             OKActions: [],
@@ -486,6 +498,7 @@ describe('#index', function () {
             statistic: 'Sum',
             period: 60,
             evaluationPeriods: 1,
+            datapointsToAlarm: 1,
             comparisonOperator: 'GreaterThanOrEqualToThreshold',
             pattern: '{$.level > 40}'
           }
@@ -510,6 +523,7 @@ describe('#index', function () {
             Statistic: 'Sum',
             Period: 60,
             EvaluationPeriods: 1,
+            DatapointsToAlarm: 1,
             ComparisonOperator: 'GreaterThanOrEqualToThreshold',
             OKActions: [],
             AlarmActions: [],

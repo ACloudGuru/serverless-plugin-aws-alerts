@@ -116,6 +116,7 @@ class AlertsPlugin {
         Threshold: definition.threshold,
         Period: definition.period,
         EvaluationPeriods: definition.evaluationPeriods,
+        DatapointsToAlarm: definition.datapointsToAlarm,
         ComparisonOperator: definition.comparisonOperator,
         OKActions: okActions,
         AlarmActions: alarmActions,
@@ -270,8 +271,8 @@ class AlertsPlugin {
     const dashboardTemplates = this.getDashboardTemplates(configDashboards);
 
     const functions = this.serverless.service
-                          .getAllFunctions()
-                          .map(functionName => ({ name: functionName }));
+      .getAllFunctions()
+      .map(functionName => ({ name: functionName }));
 
     const cf = _.chain(dashboardTemplates)
       .uniq()
