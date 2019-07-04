@@ -10,6 +10,7 @@ module.exports = {
     statistic: 'Sum',
     period: 60,
     evaluationPeriods: 1,
+    datapointsToAlarm: 1,
     comparisonOperator: 'GreaterThanOrEqualToThreshold',
   },
   functionErrors: {
@@ -19,6 +20,7 @@ module.exports = {
     statistic: 'Sum',
     period: 60,
     evaluationPeriods: 1,
+    datapointsToAlarm: 1,
     comparisonOperator: 'GreaterThanOrEqualToThreshold',
   },
   functionDuration: {
@@ -28,6 +30,7 @@ module.exports = {
     statistic: 'Average',
     period: 60,
     evaluationPeriods: 1,
+    datapointsToAlarm: 1,
     comparisonOperator: 'GreaterThanOrEqualToThreshold',
   },
   functionThrottles: {
@@ -37,6 +40,7 @@ module.exports = {
     statistic: 'Sum',
     period: 60,
     evaluationPeriods: 1,
+    datapointsToAlarm: 1,
     comparisonOperator: 'GreaterThanOrEqualToThreshold',
   }
 };
