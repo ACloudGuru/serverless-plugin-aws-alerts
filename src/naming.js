@@ -37,7 +37,6 @@ class Naming {
       return dim.Name != 'FunctionName'
     })
     filteredDimensions.push(funcNameDimension);
-    console.log(filteredDimensions)
     return filteredDimensions
   }
 
