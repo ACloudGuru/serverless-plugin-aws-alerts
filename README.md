@@ -83,19 +83,19 @@ custom:
     topics:
       critical:
         ok:
-          topic: ${self:service}-${self:custom.stage}-critical-alerts-ok
+          topic: ${self:service}-${opt:stage}-critical-alerts-ok
           notifications:
           - protocol: https
             endpoint: https://events.pagerduty.com/integration/.../enqueue
         alarm:
-          topic: ${self:service}-${self:custom.stage}-critical-alerts-alarm
+          topic: ${self:service}-${opt:stage}-critical-alerts-alarm
           notifications:
           - protocol: https
             endpoint: https://events.pagerduty.com/integration/.../enqueue
 
       nonCritical:
         alarm:
-          topic: ${self:service}-${self:custom.stage}-nonCritical-alerts-alarm
+          topic: ${self:service}-${opt:stage}-nonCritical-alerts-alarm
           notifications:
           - protocol: email
             endpoint: alarms@email.com
