@@ -40,6 +40,7 @@ custom:
         statistic: Average
         period: 300
         evaluationPeriods: 1
+        datapointsToAlarm: 1
         comparisonOperator: GreaterThanOrEqualToThreshold
     alarms:
       - functionThrottles
@@ -62,12 +63,34 @@ functions:
         statistic: Minimum
         period: 60
         evaluationPeriods: 1
+        datapointsToAlarm: 1
         comparisonOperator: GreaterThanOrEqualToThreshold
 ```
 
 ## SNS Topics
 
-If topic name is specified, plugin assumes that topic does not exist and will create it. To use existing topics, specify ARNs instead.
+If topic name is specified, plugin assumes that topic does not exist and will create it. To use existing topics, specify ARNs or use Fn::ImportValue to use a topic exported with CloudFormation.
+
+#### ARN support
+
+```yaml
+custom:
+  alerts:
+    topics:
+      alarm:
+        topic: arn:aws:sns:${self:region}:${self::accountId}:monitoring-${opt:stage}
+```
+
+#### Import support
+
+```yaml
+custom:
+  alerts:
+    topics:
+      alarm:
+        topic:
+          Fn::ImportValue: ServiceMonitoring:monitoring-${opt:stage, 'dev'}
+```
 
 ## SNS Notifications
 
@@ -112,6 +135,7 @@ custom:
         statistic: Sum
         period: 60
         evaluationPeriods: 1
+        datapointsToAlarm: 1
         comparisonOperator: GreaterThanThreshold
         pattern: '{$.level > 40}'
 ```
@@ -152,6 +176,7 @@ definitions:
     statistic: Sum
     period: 60
     evaluationPeriods: 1
+    datapointsToAlarm: 1
     comparisonOperator: GreaterThanOrEqualToThreshold
     treatMissingData: missing
   functionErrors:
@@ -161,6 +186,7 @@ definitions:
     statistic: Sum
     period: 60
     evaluationPeriods: 1
+    datapointsToAlarm: 1
     comparisonOperator: GreaterThanOrEqualToThreshold
     treatMissingData: missing
   functionDuration:
@@ -179,6 +205,7 @@ definitions:
     statistic: Sum
     period: 60
     evaluationPeriods: 1
+    datapointsToAlarm: 1
     comparisonOperator: GreaterThanOrEqualToThreshold
     treatMissingData: missing
 ```
@@ -225,6 +252,7 @@ definitions:
     statistic: 'p95'
     period: 60
     evaluationPeriods: 1
+    datapointsToAlarm: 1
     comparisonOperator: GreaterThanThreshold
     treatMissingData: missing
 ```
