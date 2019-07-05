@@ -209,6 +209,35 @@ definitions:
     comparisonOperator: GreaterThanOrEqualToThreshold
     treatMissingData: missing
 ```
+## Additional dimensions
+
+The plugin allows users to provide custom dimensions for the alarm. Dimensions are provided in a list of key/value pairs {Name: foo, Value:bar} 
+The plugin will always apply dimension of {Name: FunctionName, Value: ((FunctionName))}
+ For example:
+ 
+```yaml
+    alarms: # merged with function alarms
+      - name: fooAlarm
+        namespace: 'AWS/Lambda'
+        metric: errors # define custom metrics here
+        threshold: 1
+        statistic: Minimum
+        period: 60
+        evaluationPeriods: 1
+        comparisonOperator: GreaterThanThreshold
+        dimensions:
+          -  Name: foo
+             Value: bar
+```
+
+```json
+'Dimensions': [
+                {
+                    'Name': 'foo',
+                    'Value': 'bar'
+                },
+            ]
+```
 
 ## Using Percentile Statistic for a Metric
 
