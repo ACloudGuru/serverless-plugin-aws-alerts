@@ -23,7 +23,7 @@ deploy:
     tags: true
     repo: ACloudGuru/serverless-plugin-aws-alerts
     branch: master
-    node: '4.4'
+    node: '10'
 
 notifications:
   slack:
