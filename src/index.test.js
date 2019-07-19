@@ -447,6 +447,74 @@ describe('#index', function () {
         }
       });
     });
+
+    it('should create SNS topic with nested definitions', () => {
+      const plugin = pluginFactory({
+        topics: {
+          critical: {
+            ok: 'critical-ok-topic',
+            alert: 'critical-alert-topic',
+            insufficientData: 'critical-insufficientData-topic'
+          },
+          nonCritical: {
+            alarm: 'nonCritical-alarm-topic'
+          }
+        }
+      });
+
+      const config = plugin.getConfig();
+      const topics = plugin.compileAlertTopics(config);
+
+      expect(topics).toEqual({
+        critical: {
+          ok: {
+            Ref: `AwsAlertsCriticalOk`
+          },
+      alert: {
+        Ref: `AwsAlertsCriticalAlert`
+      },
+      insufficientData: {
+        Ref: `AwsAlertsCriticalInsufficientData`
+      }
+        },
+        nonCritical: {
+          alarm: {
+            Ref: `AwsAlertsNonCriticalAlarm`
+          }
+        }
+      });
+
+      expect(plugin.serverless.service.provider.compiledCloudFormationTemplate.Resources).toEqual({
+        'AwsAlertsCriticalOk': {
+          Type: 'AWS::SNS::Topic',
+          Properties: {
+            TopicName: 'critical-ok-topic',
+            Subscription: [],
+          }
+        },
+        'AwsAlertsCriticalAlert': {
+          Type: 'AWS::SNS::Topic',
+          Properties: {
+            TopicName: 'critical-alert-topic',
+            Subscription: [],
+          }
+        },
+        'AwsAlertsCriticalInsufficientData': {
+          Type: 'AWS::SNS::Topic',
+          Properties: {
+            TopicName: 'critical-insufficientData-topic',
+            Subscription: [],
+          }
+        },
+        'AwsAlertsNonCriticalAlarm': {
+          Type: 'AWS::SNS::Topic',
+          Properties: {
+            TopicName: 'nonCritical-alarm-topic',
+            Subscription: [],
+          }
+        }
+      });
+    });
   });
 
   describe('#compileAlarms', () => {
@@ -794,6 +862,67 @@ describe('#index', function () {
         }
       });
     });
+
+
+    it('should add nested actions - create topics', () => {
+      const alertTopics = {
+        critical: {
+          ok: 'critical-ok-topic',
+          alarm: 'critical-alarm-topic',
+          insufficientData: 'critical-insufficientData-topic',
+        },
+        nonCritical: {
+          ok: 'nonCritical-ok-topic',
+          alarm: 'nonCritical-alarm-topic',
+          insufficientData: 'nonCritical-insufficientData-topic',
+        }
+      };
+
+      const definition = {
+        description: 'An error alarm',
+        namespace: 'AWS/Lambda',
+        metric: 'Errors',
+        threshold: 1,
+        statistic: 'Maximum',
+        period: 300,
+        evaluationPeriods: 1,
+        comparisonOperator: 'GreaterThanOrEqualToThreshold',
+        treatMissingData: 'breaching',
+        okActions: ['critical', 'nonCritical'],
+        alarmActions: ['critical', 'nonCritical'],
+        insufficientDataActions: ['critical', 'nonCritical']
+      };
+
+      const functionName = 'func-name';
+      const functionRef = 'func-ref';
+
+      const cf = plugin.getAlarmCloudFormation(alertTopics, definition, functionName, functionRef);
+
+      expect(cf).toEqual({
+        Type: 'AWS::CloudWatch::Alarm',
+        Properties: {
+          AlarmDescription: definition.description,
+          Namespace: definition.namespace,
+          MetricName: definition.metric,
+          Threshold: definition.threshold,
+          Statistic: definition.statistic,
+          Period: definition.period,
+          EvaluationPeriods: definition.evaluationPeriods,
+          ComparisonOperator: definition.comparisonOperator,
+          OKActions: ['critical-ok-topic', 'nonCritical-ok-topic'],
+          AlarmActions: ['critical-alarm-topic', 'nonCritical-alarm-topic'],
+          InsufficientDataActions: ['critical-insufficientData-topic', 'nonCritical-insufficientData-topic'],
+          Dimensions: [{
+            Name: 'FunctionName',
+            Value: {
+              Ref: functionRef,
+            }
+          }],
+          TreatMissingData: 'breaching',
+        }
+      });
+    });
+
 
     it('should use the CloudFormation value ExtendedStatistic for p values', () => {
       const alertTopics = {
