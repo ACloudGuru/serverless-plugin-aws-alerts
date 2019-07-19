@@ -69,7 +69,7 @@ class AlertsPlugin {
     return this.getAlarms(alarms, definitions);
   }
 
-  getAlarmCloudFormation(alertTopics, definition, functionRef) {
+  getAlarmCloudFormation(alertTopics, definition, functionName, functionRef) {
     if (!functionRef) {
       return;
     }
@@ -90,11 +90,12 @@ class AlertsPlugin {
       insufficientDataActions.push(alertTopics.insufficientData);
     }
 
+    const stackName = this.awsProvider.naming.getStackName();
     const namespace = definition.pattern ?
-      this.awsProvider.naming.getStackName() :
+      stackName :
       definition.namespace;
 
-    const metricName = definition.pattern ?
+    const metricId = definition.pattern ?
       this.naming.getPatternMetricName(definition.metric, functionRef) :
       definition.metric;
 
@@ -106,7 +107,7 @@ class AlertsPlugin {
       Type: 'AWS::CloudWatch::Alarm',
       Properties: {
         Namespace: namespace,
-        MetricName: metricName,
+        MetricName: metricId,
         AlarmDescription: definition.description,
         Threshold: definition.threshold,
         Period: definition.period,
@@ -120,6 +121,17 @@ class AlertsPlugin {
         TreatMissingData: treatMissingData,
       }
     };
+
+    if (definition.nameTemplate) {
+      alarm.Properties.AlarmName = this.naming.getAlarmName({
+        template: definition.nameTemplate,
+        functionLogicalId: functionRef,
+        metricName: definition.metric,
+        metricId,
+        functionName,
+        stackName
+      });
+    }
 
     const statisticValues = [ 'SampleCount', 'Average', 'Sum', 'Minimum', 'Maximum'];
     if (_.includes(statisticValues, definition.statistic)) {
@@ -228,11 +240,11 @@ class AlertsPlugin {
       const normalizedFunctionName = this.providerNaming.getLambdaLogicalId(functionName);
 
       const functionAlarms = this.getFunctionAlarms(functionObj, config, definitions);
-      const alarms = globalAlarms.concat(functionAlarms);
+      const alarms = globalAlarms.concat(functionAlarms).map(alarm => _.assign({ nameTemplate: config.nameTemplate }, alarm));
 
       const alarmStatements = alarms.reduce((statements, alarm) => {
         const key = this.naming.getAlarmCloudFormationRef(alarm.name, functionName);
-        const cf = this.getAlarmCloudFormation(alertTopics, alarm, normalizedFunctionName);
+        const cf = this.getAlarmCloudFormation(alertTopics, alarm, functionName, normalizedFunctionName);
 
         statements[key] = cf;
 

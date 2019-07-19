@@ -52,4 +52,23 @@ describe('#naming', function () {
       expect(actual).toEqual(expected);
     });
   });
+
+  describe('#getAlarmName', () => {
+    let naming = null;
+    beforeEach(() => naming = new Naming());
+
+    it('should interpolate alarm name', () => {
+      const template = '$[functionName]-$[functionId]-$[metricName]-$[metricId]';
+      const functionName = 'function';
+      const functionLogicalId = 'functionId';
+      const metricName = 'metric';
+      const metricId = 'metricId';
+      const stackName = 'fooservice-dev';
+
+      const expected = `${stackName}-${functionName}-${functionLogicalId}-${metricName}-${metricId}`;
+      const actual = naming.getAlarmName({ template, functionName, functionLogicalId, metricName, metricId, stackName });
+
+      expect(actual).toEqual(expected);
+    });
+  });
 });
