@@ -893,9 +893,10 @@ describe('#index', function () {
         insufficientDataActions: ['critical', 'nonCritical']
       };
 
+      const functionName = 'func-name';
       const functionRef = 'func-ref';
 
-      const cf = plugin.getAlarmCloudFormation(alertTopics, definition, functionRef);
+      const cf = plugin.getAlarmCloudFormation(alertTopics, definition, functionName, functionRef);
 
       expect(cf).toEqual({
         Type: 'AWS::CloudWatch::Alarm',
