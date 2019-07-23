@@ -6,3 +6,4 @@ coverage/
 .eslintrc.yml
 .travis.yml
 *.test.js
+.DS_Store
