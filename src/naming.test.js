@@ -38,17 +38,30 @@ describe('#naming', function () {
 
   describe('#getDimensionsMap', () => {
     let naming = null;
-    beforeEach( () => naming = new Naming());
+    beforeEach(() => naming = new Naming());
 
     it('should use function name derived from funcref', () => {
-      const expected = [{"Name":"Duck", "Value":"QUACK"}, {"Name":"FunctionName", "Value": {'Ref': 'funcName'}}]
-      const actual = naming.getDimensionsList([{'Name':'FunctionName', 'Value':'overridden'},{'Name':'Duck', 'Value':'QUACK'}], 'funcName')
+      const expected = [{ "Name": "Duck", "Value": "QUACK" }, { "Name": "FunctionName", "Value": { 'Ref': 'funcName' } }]
+      const actual = naming.getDimensionsList([{ 'Name': 'FunctionName', 'Value': 'overridden' }, { 'Name': 'Duck', 'Value': 'QUACK' }], 'funcName')
       expect(actual).toEqual(expected);
     });
 
+    it('should use function name derived from funcref when dimensions are undefined', () => {
+      const expected = [{ "Name": "FunctionName", "Value": { 'Ref': 'funcName' } }]
+      const actual = naming.getDimensionsList(undefined, 'funcName')
+      expect(actual).toEqual(expected);
+    });
+
+
     it('should get a mapped dimensions object when FunctionName is missing', () => {
-      const expected = [{"Name":"Duck", "Value":"QUACK"}, {"Name":"FunctionName", "Value":{'Ref': 'funcName'}}]
-      const actual = naming.getDimensionsList([{'Name':'Duck', 'Value':'QUACK'}], 'funcName');
+      const expected = [{ "Name": "Duck", "Value": "QUACK" }, { "Name": "FunctionName", "Value": { 'Ref': 'funcName' } }]
+      const actual = naming.getDimensionsList([{ 'Name': 'Duck', 'Value': 'QUACK' }], 'funcName');
+      expect(actual).toEqual(expected);
+    });
+
+    it('should not include FunctionName when omitFunctionNameDimension is true', () => {
+      const expected = [{ "Name": "Duck", "Value": "QUACK" }]
+      const actual = naming.getDimensionsList([{ 'Name': 'Duck', 'Value': 'QUACK' }], 'funcName', true);
       expect(actual).toEqual(expected);
     });
   });
