@@ -42,5 +42,16 @@ module.exports = {
     evaluationPeriods: 1,
     datapointsToAlarm: 1,
     comparisonOperator: 'GreaterThanOrEqualToThreshold',
+  },
+  functionTimeouts: {
+    namespace: lambdaNamespace,
+    metric: 'Timeouts',
+    threshold: 1,
+    statistic: 'Sum',
+    period: 60,
+    evaluationPeriods: 1,
+    datapointsToAlarm: 1,
+    comparisonOperator: 'GreaterThanOrEqualToThreshold',
+    pattern: 'Task timed out after'
   }
 };
