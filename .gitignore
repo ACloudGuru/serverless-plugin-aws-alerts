@@ -40,5 +40,8 @@ jspm_packages
 
 .vscode
 
-#vim swap files
+# vim swap files
 *.swp
+
+# macOS internals
+.DS_Store

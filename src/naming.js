@@ -23,6 +23,32 @@ class Naming {
     return `${_.upperFirst(metricName)}${functionName}`;
   }
 
+  getDimensionsList(dimensionsList, funcRef) {
+    let funcNameDimension =  {
+      'Name': 'FunctionName',
+      'Value': {
+        Ref: funcRef
+      }
+    };
+    if(dimensionsList == null) {
+      return [funcNameDimension];
+    }
+    let filteredDimensions = dimensionsList.filter( (dim) => {
+      return dim.Name != 'FunctionName'
+    })
+    filteredDimensions.push(funcNameDimension);
+    return filteredDimensions
+  }
+
+  getAlarmName(options) {
+    const interpolatedTemplate = options.template
+      .replace('$[functionName]', options.functionName)
+      .replace('$[functionId]', options.functionLogicalId)
+      .replace('$[metricName]', options.metricName)
+      .replace('$[metricId]', options.metricId);
+
+    return `${options.stackName}-${interpolatedTemplate}`;
+  }
 }
 
 module.exports = Naming;

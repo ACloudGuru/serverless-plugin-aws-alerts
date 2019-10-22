@@ -25,6 +25,8 @@ custom:
 
     dashboards: true
 
+    nameTemplate: $[functionName]-$[metricName]-Alarm # Optionally - naming template for alarms, can be overwritten in definitions
+
     topics:
       ok: ${self:service}-${opt:stage}-alerts-ok
       alarm: ${self:service}-${opt:stage}-alerts-alarm
@@ -35,11 +37,13 @@ custom:
       customAlarm:
         description: 'My custom alarm'
         namespace: 'AWS/Lambda'
+        nameTemplate: $[functionName]-Duration-IMPORTANT-Alarm # Optionally - naming template for the alarms, overwrites globally defined one
         metric: duration
         threshold: 200
         statistic: Average
         period: 300
         evaluationPeriods: 1
+        datapointsToAlarm: 1
         comparisonOperator: GreaterThanOrEqualToThreshold
     alarms:
       - functionThrottles
@@ -62,12 +66,95 @@ functions:
         statistic: Minimum
         period: 60
         evaluationPeriods: 1
+        datapointsToAlarm: 1
         comparisonOperator: GreaterThanOrEqualToThreshold
 ```
 
+## Multiple topic definitions
+
+You can define several topics for alarms. For example you want to have topics for critical alarms
+reaching your pagerduty, and different topics for noncritical alarms, which just send you emails.
+
+In each alarm definition you have to specify which topics you want to use. In following example
+you get an email for each function error, pagerduty gets alarm only if there are more than 20
+errors in 60s
+
+```yaml
+custom:
+  alerts:
+
+    topics:
+      critical:
+        ok:
+          topic: ${self:service}-${opt:stage}-critical-alerts-ok
+          notifications:
+          - protocol: https
+            endpoint: https://events.pagerduty.com/integration/.../enqueue
+        alarm:
+          topic: ${self:service}-${opt:stage}-critical-alerts-alarm
+          notifications:
+          - protocol: https
+            endpoint: https://events.pagerduty.com/integration/.../enqueue
+
+      nonCritical:
+        alarm:
+          topic: ${self:service}-${opt:stage}-nonCritical-alerts-alarm
+          notifications:
+          - protocol: email
+            endpoint: alarms@email.com
+
+    definitions:  # these defaults are merged with your definitions
+      criticalFunctionErrors:
+        namespace: 'AWS/Lambda'
+        metric: Errors
+        threshold: 20
+        statistic: Sum
+        period: 60
+        evaluationPeriods: 10
+        comparisonOperator: GreaterThanOrEqualToThreshold
+        okActions:
+          - critical
+        alarmActions:
+          - critical
+      nonCriticalFunctionErrors:
+        namespace: 'AWS/Lambda'
+        metric: Errors
+        threshold: 1
+        statistic: Sum
+        period: 60
+        evaluationPeriods: 10
+        comparisonOperator: GreaterThanOrEqualToThreshold
+        alarmActions:
+          - nonCritical
+    alarms:
+      - criticalFunctionErrors
+      - nonCriticalFunctionErrors
+
+```
 ## SNS Topics
 
-If topic name is specified, plugin assumes that topic does not exist and will create it. To use existing topics, specify ARNs instead.
+If topic name is specified, plugin assumes that topic does not exist and will create it. To use existing topics, specify ARNs or use Fn::ImportValue to use a topic exported with CloudFormation.
+
+#### ARN support
+
+```yaml
+custom:
+  alerts:
+    topics:
+      alarm:
+        topic: arn:aws:sns:${self:region}:${self::accountId}:monitoring-${opt:stage}
+```
+
+#### Import support
+
+```yaml
+custom:
+  alerts:
+    topics:
+      alarm:
+        topic:
+          Fn::ImportValue: ServiceMonitoring:monitoring-${opt:stage, 'dev'}
+```
 
 ## SNS Notifications
 
@@ -112,11 +199,21 @@ custom:
         statistic: Sum
         period: 60
         evaluationPeriods: 1
+        datapointsToAlarm: 1
         comparisonOperator: GreaterThanThreshold
         pattern: '{$.level > 40}'
 ```
 
 > Note: For custom log metrics, namespace property will automatically be set to stack name (e.g. `fooservice-dev`).
+
+## Custom Naming
+You can define custom naming template for the alarms. `nameTemplate` property under `alerts` configures naming template for all the alarms, while placing `nameTemplate` under alarm definition configures (overwrites) it for that specific alarm only. Naming template provides interpolation capabilities, where supported placeholders are:
+  - `$[functionName]` - function name (e.g. `helloWorld`)
+  - `$[functionId]` - function logical id (e.g. `HelloWorldLambdaFunction`)
+  - `$[metricName]` - metric name (e.g. `Duration`)
+  - `$[metricId]` - metric id (e.g. `BunyanErrorsHelloWorldLambdaFunction` for the log based alarms, `$[metricName]` otherwise)
+
+> Note: All the alarm names are prefixed with stack name (e.g. `fooservice-dev`).
 
 ## Default Definitions
 The plugin provides some default definitions that you can simply drop into your application. For example:
@@ -152,6 +249,7 @@ definitions:
     statistic: Sum
     period: 60
     evaluationPeriods: 1
+    datapointsToAlarm: 1
     comparisonOperator: GreaterThanOrEqualToThreshold
     treatMissingData: missing
   functionErrors:
@@ -161,6 +259,7 @@ definitions:
     statistic: Sum
     period: 60
     evaluationPeriods: 1
+    datapointsToAlarm: 1
     comparisonOperator: GreaterThanOrEqualToThreshold
     treatMissingData: missing
   functionDuration:
@@ -179,8 +278,38 @@ definitions:
     statistic: Sum
     period: 60
     evaluationPeriods: 1
+    datapointsToAlarm: 1
     comparisonOperator: GreaterThanOrEqualToThreshold
     treatMissingData: missing
+```
+## Additional dimensions
+
+The plugin allows users to provide custom dimensions for the alarm. Dimensions are provided in a list of key/value pairs {Name: foo, Value:bar} 
+The plugin will always apply dimension of {Name: FunctionName, Value: ((FunctionName))}
+ For example:
+ 
+```yaml
+    alarms: # merged with function alarms
+      - name: fooAlarm
+        namespace: 'AWS/Lambda'
+        metric: errors # define custom metrics here
+        threshold: 1
+        statistic: Minimum
+        period: 60
+        evaluationPeriods: 1
+        comparisonOperator: GreaterThanThreshold
+        dimensions:
+          -  Name: foo
+             Value: bar
+```
+
+```json
+'Dimensions': [
+                {
+                    'Name': 'foo',
+                    'Value': 'bar'
+                },
+            ]
 ```
 
 ## Using Percentile Statistic for a Metric
@@ -196,6 +325,7 @@ definitions:
     statistic: 'p95'
     period: 60
     evaluationPeriods: 1
+    datapointsToAlarm: 1
     comparisonOperator: GreaterThanThreshold
     treatMissingData: missing
 ```
