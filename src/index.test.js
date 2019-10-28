@@ -136,6 +136,25 @@ describe('#index', function () {
       const alarmsConfig = plugin.getAlarms(alarms, definitions);
       expect(alarmsConfig).toEqual([testAlarm]);
     });
+
+    it('should call function alarm with functionConfig', () => {
+      const alarms = ['functionAlarm'];
+
+      const definitions = {
+        functionAlarm: jest.fn((functionConfig) => ({
+          config: functionConfig,
+        })),
+      };
+
+      const functionConfig = Symbol('functionConfig');
+
+      const alarmsConfig = plugin.getAlarms(alarms, definitions, functionConfig);
+      expect(alarmsConfig).toEqual([{
+        name: 'functionAlarm',
+        config: functionConfig,
+      }]);
+      expect(definitions.functionAlarm).toHaveBeenCalledWith(functionConfig);
+    });
   });
 
   describe('#getGlobalAlarms', () => {
@@ -207,7 +226,7 @@ describe('#index', function () {
       const plugin = pluginFactory(config);
       const actual = plugin.getDefinitions(config);
 
-      expect(actual).toEqual({
+      expect(actual).toMatchObject({
         functionInvocations: {
           namespace: 'AWS/Lambda',
           metric: 'Invocations',
@@ -470,12 +489,12 @@ describe('#index', function () {
           ok: {
             Ref: `AwsAlertsCriticalOk`
           },
-      alert: {
-        Ref: `AwsAlertsCriticalAlert`
-      },
-      insufficientData: {
-        Ref: `AwsAlertsCriticalInsufficientData`
-      }
+          alert: {
+            Ref: `AwsAlertsCriticalAlert`
+          },
+          insufficientData: {
+            Ref: `AwsAlertsCriticalInsufficientData`
+          }
         },
         nonCritical: {
           alarm: {
@@ -630,7 +649,7 @@ describe('#index', function () {
       });
     });
 
-    it('should use globally defined nameTemplate when it`s not provided in definitions', function() {
+    it('should use globally defined nameTemplate when it`s not provided in definitions', function () {
       let config = {
         nameTemplate: '$[functionName]-global',
         function: ['functionErrors']
@@ -671,7 +690,7 @@ describe('#index', function () {
       });
     });
 
-    it('should overwrite globally defined nameTemplate using definitions', function() {
+    it('should overwrite globally defined nameTemplate using definitions', function () {
       let config = {
         nameTemplate: '$[functionName]-global',
         definitions: {
@@ -989,7 +1008,7 @@ describe('#index', function () {
         evaluationPeriods: 1,
         comparisonOperator: 'GreaterThanThreshold',
         treatMissingData: 'breaching',
-        dimensions: [{'Name':'Cow', 'Value':'MOO'}, {'Name':'Duck', 'Value':'QUACK'}]
+        dimensions: [{ 'Name': 'Cow', 'Value': 'MOO' }, { 'Name': 'Duck', 'Value': 'QUACK' }]
       };
 
       const functionName = 'func-name';
@@ -1014,10 +1033,10 @@ describe('#index', function () {
           Dimensions: [{
             Name: "Cow",
             Value: "MOO"
-            },{
+          }, {
             Name: "Duck",
             Value: "QUACK"
-            },{
+          }, {
             Name: 'FunctionName',
             Value: {
               Ref: functionRef,
@@ -1034,7 +1053,7 @@ describe('#index', function () {
         insufficientData: 'insufficientData-topic',
       };
 
-       const definition = {
+      const definition = {
         nameTemplate: '$[functionName]-$[functionId]-$[metricName]-$[metricId]',
         description: 'An error alarm',
         namespace: 'AWS/Lambda',
@@ -1046,12 +1065,12 @@ describe('#index', function () {
         treatMissingData: 'breaching',
       };
 
-       const functionName = 'func-name';
-       const functionRef = 'func-ref';
+      const functionName = 'func-name';
+      const functionRef = 'func-ref';
 
-       const cf = plugin.getAlarmCloudFormation(alertTopics, definition, functionName, functionRef);
+      const cf = plugin.getAlarmCloudFormation(alertTopics, definition, functionName, functionRef);
 
-       expect(cf).toEqual({
+      expect(cf).toEqual({
         Type: 'AWS::CloudWatch::Alarm',
         Properties: {
           AlarmName: `fooservice-dev-${functionName}-${functionRef}-${definition.metric}-${definition.metric}`,
