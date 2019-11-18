@@ -41,7 +41,7 @@ class AlertsPlugin {
         }
 
         if (_.isFunction(definition)) {
-          definition = definition(functionObj)
+          definition = definition(functionObj, this.serverless)
         }
 
         result.push(Object.assign({}, definition, {
@@ -347,6 +347,8 @@ class AlertsPlugin {
       // TODO warn no config
       return;
     }
+
+    console.log(this.serverless)
 
     if (config.stages && !_.includes(config.stages, this.options.stage)) {
       this.serverless.cli.log(`Warning: Not deploying alerts on stage ${this.options.stage}`);

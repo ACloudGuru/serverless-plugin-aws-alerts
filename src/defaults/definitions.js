@@ -1,6 +1,7 @@
 'use strict';
 
 const lambdaNamespace = 'AWS/Lambda';
+const APIGatewayNamespace = 'AWS/ApiGateway';
 
 module.exports = {
   functionInvocations: {
@@ -23,12 +24,57 @@ module.exports = {
     datapointsToAlarm: 1,
     comparisonOperator: 'GreaterThanOrEqualToThreshold',
   },
+  functionAvailability: {
+    omitDefaultDimension: true,
+    metrics: [{
+      Id: 'errors',
+      MetricStat: {
+        Metric: {
+          MetricName: 'Executions',
+          Namespace: lambdaNamespace,
+        },
+        Period: 60,
+        Stat: 'Sum',
+      },
+      ReturnData: false,
+    }, {
+      Id: 'errors',
+      MetricStat: {
+        Metric: {
+          MetricName: 'Timeouts',
+          Namespace: lambdaNamespace,
+        },
+        Period: 60,
+        Stat: 'Sum',
+      },
+      ReturnData: false,
+    }, {
+      Id: 'requests',
+      MetricStat: {
+        Metric: {
+          MetricName: 'Count',
+          Namespace: lambdaNamespace,
+        },
+        Period: 60,
+        Stat: 'Sum',
+      },
+      ReturnData: false,
+    }, {
+      Id: 'expr',
+      Expression: '((requests - errors - timeouts) / requests) * 100',
+      Label: 'Availability',
+    }],
+    pattern: 'Timeout',
+    threshold: 99.9,
+    evaluationPeriods: 1,
+    comparisonOperator: 'LessThanThreshold'
+  },
   functionDuration: {
     namespace: lambdaNamespace,
     metric: 'Duration',
-    threshold: 500,
+    threshold: 2000,
     statistic: 'Average',
-    period: 60,
+    period: 300,
     evaluationPeriods: 1,
     datapointsToAlarm: 1,
     comparisonOperator: 'GreaterThanOrEqualToThreshold',
@@ -54,11 +100,49 @@ module.exports = {
     comparisonOperator: 'GreaterThanOrEqualToThreshold',
     pattern: 'Task timed out after'
   },
-  APIGatewayAvailability: (functionObj) => {
+  APIGatewayLatency: (functionObj, serverless) => {
     const httpEvent = functionObj.events.find(event => event.http);
     if (!httpEvent) {
       throw new Error('An http event is needed to set up the APIGatewayAvailability alarm.');
     }
+
+    const rawPath = httpEvent.http.path;
+    const path = `${rawPath[0] !== '/' ? '/' : ''}${rawPath}`;
+
+    return {
+      omitDefaultDimension: true,
+      description: 'Messages present in DLQ',
+      namespace: APIGatewayNamespace,
+      metric: 'Latency',
+      dimensions: [{
+        Name: 'ApiName',
+        Value: `${serverless.service.provider.environment.INSTITUTION}-apiv2`,
+      }, {
+        Name: 'Resource',
+        Value: path,
+      }, {
+        Name: 'Method',
+        Value: httpEvent.http.method.toUpperCase(),
+      }, {
+        Name: 'Stage',
+        Value: serverless.processedInput.options.stage,
+      }],
+      threshold: 2000,
+      statistic: 'Average',
+      period: 300,
+      evaluationPeriods: 1,
+      datapointsToAlarm: 1,
+      comparisonOperator: 'GreaterThanOrEqualToThreshold',
+    };
+  },
+  APIGatewayAvailability: (functionObj, serverless) => {
+    const httpEvent = functionObj.events.find(event => event.http);
+    if (!httpEvent) {
+      throw new Error('An http event is needed to set up the APIGatewayAvailability alarm.');
+    }
+
+    const rawPath = httpEvent.http.path;
+    const path = `${rawPath[0] !== '/' ? '/' : ''}${rawPath}`;
 
     return {
       omitDefaultDimension: true,
@@ -68,19 +152,19 @@ module.exports = {
           Metric: {
             Dimensions: [{
               Name: 'ApiName',
-              Value: '<%= INSTITUTION %>-apiv2'
+              Value: `${serverless.service.provider.environment.INSTITUTION}-apiv2`,
             }, {
               Name: 'Resource',
-              Value: httpEvent.http.path,
+              Value: path,
             }, {
               Name: 'Method',
-              Value: httpEvent.http.method,
+              Value: httpEvent.http.method.toUpperCase(),
             }, {
               Name: 'Stage',
-              Value: '${opt:stage}'
+              Value: serverless.processedInput.options.stage,
             }],
             MetricName: '5XXError',
-            Namespace: 'AWS/ApiGateway',
+            Namespace: APIGatewayNamespace,
           },
           Period: 60,
           Stat: 'Sum',
@@ -92,16 +176,16 @@ module.exports = {
           Metric: {
             Dimensions: [{
               Name: 'ApiName',
-              Value: '<%= INSTITUTION %>-apiv2'
+              Value: `${serverless.service.provider.environment.INSTITUTION}-apiv2`,
             }, {
               Name: 'Resource',
-              Value: httpEvent.http.path,
+              Value: path,
             }, {
               Name: 'Method',
-              Value: httpEvent.http.method,
+              Value: httpEvent.http.method.toUpperCase(),
             }, {
               Name: 'Stage',
-              Value: '${opt:stage}'
+              Value: serverless.processedInput.options.stage,
             }],
             MetricName: 'Count',
             Namespace: 'AWS/ApiGateway',
@@ -112,12 +196,12 @@ module.exports = {
         ReturnData: false,
       }, {
         Id: 'expr',
-        Expression: '(requests - errors) / requests',
+        Expression: '((requests - errors) / requests) * 100',
         Label: 'Availability',
       }],
-      threshold: 99.99,
+      threshold: 99.9,
       evaluationPeriods: 1,
-      comparisonOperator: 'LessThanThreshold'
+      comparisonOperator: 'LessThanThreshold',
     };
   },
 };
