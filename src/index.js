@@ -27,7 +27,26 @@ class AlertsPlugin {
   }
 
   getDefinitions(config) {
-    return _.merge({}, defaultDefinitions, config.definitions);
+    const configDefinitions = config.definitions;
+
+    return Object.keys(defaultDefinitions)
+      .reduce((acc, definitionName) => {
+        const definition = defaultDefinitions[definitionName];
+        if (_.isFunction(definition)) {
+          return {
+            ...acc,
+            [definitionName]: definition(configDefinitions[definitionName] || {}),
+          };
+        }
+
+        return {
+          ...acc,
+          [definitionName]: {
+            ...definition,
+            ...(configDefinitions[definitionName] || {}),
+          },
+        };
+      }, {});
   }
 
   getAlarms(alarms, definitions, functionObj) {
@@ -347,8 +366,6 @@ class AlertsPlugin {
       // TODO warn no config
       return;
     }
-
-    console.log(this.serverless)
 
     if (config.stages && !_.includes(config.stages, this.options.stage)) {
       this.serverless.cli.log(`Warning: Not deploying alerts on stage ${this.options.stage}`);

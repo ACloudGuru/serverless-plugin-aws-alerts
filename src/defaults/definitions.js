@@ -99,7 +99,7 @@ module.exports = {
     comparisonOperator: 'GreaterThanOrEqualToThreshold',
     pattern: 'Task timed out after'
   },
-  APIGatewayLatency: (functionObj, serverless) => {
+  APIGatewayLatency: definitions => (functionObj, serverless) => {
     const httpEvent = functionObj.events.find(event => event.http);
     if (!httpEvent) {
       throw new Error('An http event is needed to set up the APIGatewayAvailability alarm.');
@@ -132,9 +132,10 @@ module.exports = {
       evaluationPeriods: 1,
       datapointsToAlarm: 1,
       comparisonOperator: 'GreaterThanOrEqualToThreshold',
+      ...definitions,
     };
   },
-  APIGatewayAvailability: (functionObj, serverless) => {
+  APIGatewayAvailability: definitions => (functionObj, serverless) => {
     const httpEvent = functionObj.events.find(event => event.http);
     if (!httpEvent) {
       throw new Error('An http event is needed to set up the APIGatewayAvailability alarm.');
@@ -201,6 +202,7 @@ module.exports = {
       threshold: 99.9,
       evaluationPeriods: 1,
       comparisonOperator: 'LessThanThreshold',
+      ...definitions,
     };
   },
 };
