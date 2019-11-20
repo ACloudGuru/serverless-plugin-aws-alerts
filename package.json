@@ -1,6 +1,6 @@
 {
   "name": "@ublend-npm/serverless-plugin-aws-alerts",
-  "version": "1.5.3",
+  "version": "1.5.4",
   "description": "",
   "main": "src/index.js",
   "scripts": {
@@ -23,9 +23,9 @@
   },
   "devDependencies": {
     "coveralls": "^2.11.16",
-    "eslint": "^4.7.1",
+    "eslint": "^6.6.0",
     "eslint-config-standard": "^6.2.0",
-    "eslint-plugin-node": "^4.0.0",
+    "eslint-plugin-node": "^10.0.0",
     "eslint-plugin-promise": "^3.4.1",
     "eslint-plugin-standard": "^2.0.1",
     "jest": "^19.0.2"
