@@ -64,7 +64,6 @@ module.exports = {
       Expression: '((requests - errors - timeouts) / requests) * 100',
       Label: 'Availability',
     }],
-    pattern: 'Timeout',
     threshold: 99.9,
     evaluationPeriods: 1,
     comparisonOperator: 'LessThanThreshold'
