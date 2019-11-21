@@ -30,7 +30,7 @@ module.exports = {
       Id: 'errors',
       MetricStat: {
         Metric: {
-          MetricName: 'Executions',
+          MetricName: 'Errors',
           Namespace: lambdaNamespace,
         },
         Period: 60,
@@ -52,7 +52,7 @@ module.exports = {
       Id: 'requests',
       MetricStat: {
         Metric: {
-          MetricName: 'Count',
+          MetricName: 'Invocations',
           Namespace: lambdaNamespace,
         },
         Period: 60,
