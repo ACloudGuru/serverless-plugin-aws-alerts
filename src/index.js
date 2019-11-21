@@ -28,6 +28,9 @@ class AlertsPlugin {
 
   getDefinitions(config) {
     const configDefinitions = config.definitions;
+    if (!configDefinitions) {
+      return defaultDefinitions;
+    }
 
     return Object.keys(defaultDefinitions)
       .reduce((acc, definitionName) => {
