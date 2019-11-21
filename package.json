@@ -1,6 +1,6 @@
 {
   "name": "@ublend-npm/serverless-plugin-aws-alerts",
-  "version": "1.5.6",
+  "version": "1.5.7",
   "description": "",
   "main": "src/index.js",
   "scripts": {
