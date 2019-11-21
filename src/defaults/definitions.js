@@ -38,7 +38,7 @@ module.exports = {
       },
       ReturnData: false,
     }, {
-      Id: 'errors',
+      Id: 'timeouts',
       MetricStat: {
         Metric: {
           MetricName: 'Timeouts',
