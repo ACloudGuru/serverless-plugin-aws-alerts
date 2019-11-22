@@ -2,6 +2,7 @@
 
 const lambdaNamespace = 'AWS/Lambda';
 const APIGatewayNamespace = 'AWS/ApiGateway';
+const SQSNamespace = 'AWS/SQS';
 
 module.exports = {
   functionInvocations: {
@@ -203,6 +204,29 @@ module.exports = {
       evaluationPeriods: 1,
       comparisonOperator: 'LessThanThreshold',
       ...definitions,
+    };
+  },
+  DLQMessageVisible: functionObj => {
+    const dlqName = functionObj.alarmDLQName;
+    if (!dlqName) {
+      throw new Error('Alarm DLQ Name (alarmDLQName) is required.');
+    }
+    const dimensions = [{
+      Name: "QueueName",
+      Value: dlqName,
+    }];
+    return {
+      omitDefaultDimension: true,
+      namespace: SQSNamespace,
+      description: 'Messages present in DLQ',
+      metric: 'ApproximateNumberOfMessagesVisible',
+      threshold: 1,
+      statistic: 'Sum',
+      dimensions,
+      period: 60,
+      evaluationPeriods: 1,
+      datapointsToAlarm: 1,
+      comparisonOperator: 'GreaterThanOrEqualToThreshold',
     };
   },
 };
