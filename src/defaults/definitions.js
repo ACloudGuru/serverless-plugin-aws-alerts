@@ -206,7 +206,7 @@ module.exports = {
       ...definitions,
     };
   },
-  DLQMessageVisible: functionObj => {
+  DLQMessageVisible: definitions => functionObj => {
     const dlqName = functionObj.alarmDLQName;
     if (!dlqName) {
       throw new Error('Alarm DLQ Name (alarmDLQName) is required.');
@@ -227,6 +227,7 @@ module.exports = {
       evaluationPeriods: 1,
       datapointsToAlarm: 1,
       comparisonOperator: 'GreaterThanOrEqualToThreshold',
+      ...definitions,
     };
   },
 };
