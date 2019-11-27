@@ -1,6 +1,6 @@
 {
   "name": "@ublend-npm/serverless-plugin-aws-alerts",
-  "version": "1.5.8",
+  "version": "1.5.9",
   "description": "",
   "main": "src/index.js",
   "scripts": {
@@ -31,7 +31,7 @@
     "jest": "^19.0.2"
   },
   "engines": {
-    "node": ">=10.10.0"
+    "node": ">=8.3.0"
   },
   "jest": {
     "testMatch": [

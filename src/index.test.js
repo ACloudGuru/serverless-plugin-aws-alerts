@@ -141,19 +141,19 @@ describe('#index', function () {
       const alarms = ['functionAlarm'];
 
       const definitions = {
-        functionAlarm: jest.fn((functionConfig) => ({
-          config: functionConfig,
+        functionAlarm: jest.fn((functionName) => ({
+          config: functionName,
         })),
       };
 
-      const functionConfig = Symbol('functionConfig');
+      const functionName = Symbol('functionName');
 
-      const alarmsConfig = plugin.getAlarms(alarms, definitions, functionConfig);
+      const alarmsConfig = plugin.getAlarms(alarms, definitions, functionName);
       expect(alarmsConfig).toEqual([{
         name: 'functionAlarm',
-        config: functionConfig,
+        config: functionName,
       }]);
-      expect(definitions.functionAlarm).toHaveBeenCalledWith(functionConfig);
+      expect(definitions.functionAlarm).toHaveBeenCalledWith(functionName, plugin.serverless);
     });
   });
 
@@ -250,9 +250,9 @@ describe('#index', function () {
         functionDuration: {
           namespace: 'AWS/Lambda',
           metric: 'Duration',
-          threshold: 500,
+          threshold: 2000,
           statistic: 'Average',
-          period: 60,
+          period: 300,
           evaluationPeriods: 1,
           datapointsToAlarm: 1,
           comparisonOperator: 'GreaterThanOrEqualToThreshold',
@@ -304,7 +304,7 @@ describe('#index', function () {
     it('should get no alarms', () => {
       const plugin = pluginFactory(config);
       const definitions = plugin.getDefinitions(config);
-      const actual = plugin.getFunctionAlarms({}, config, definitions);
+      const actual = plugin.getFunctionAlarms('functionName', null, config, definitions);
 
       expect(actual).toEqual([]);
     });
@@ -312,9 +312,7 @@ describe('#index', function () {
     it('should get empty alarms', () => {
       const plugin = pluginFactory(config);
       const definitions = plugin.getDefinitions(config);
-      const actual = plugin.getFunctionAlarms({
-        alarms: []
-      }, config, definitions);
+      const actual = plugin.getFunctionAlarms('functionName', [], config, definitions);
 
       expect(actual).toEqual([]);
     });
@@ -322,11 +320,7 @@ describe('#index', function () {
     it('should get defined function alarms', () => {
       const plugin = pluginFactory(config);
       const definitions = plugin.getDefinitions(config);
-      const actual = plugin.getFunctionAlarms({
-        alarms: [
-          'customAlarm'
-        ]
-      }, config, definitions);
+      const actual = plugin.getFunctionAlarms('functionName', ['customAlarm'], config, definitions);
 
       expect(actual).toEqual([{
         name: 'customAlarm',
@@ -344,19 +338,17 @@ describe('#index', function () {
     it('should get custom function alarms', () => {
       const plugin = pluginFactory(config);
       const definitions = plugin.getDefinitions(config);
-      const actual = plugin.getFunctionAlarms({
-        alarms: [{
-          name: 'fooAlarm',
-          namespace: 'AWS/Lambda',
-          metric: 'Invocations',
-          threshold: 5,
-          statistic: 'Minimum',
-          period: 120,
-          evaluationPeriods: 2,
-          datapointsToAlarm: 1,
-          comparisonOperator: 'GreaterThanOrEqualToThreshold',
-        }]
-      }, config, definitions);
+      const actual = plugin.getFunctionAlarms('functionName', [{
+        name: 'fooAlarm',
+        namespace: 'AWS/Lambda',
+        metric: 'Invocations',
+        threshold: 5,
+        statistic: 'Minimum',
+        period: 120,
+        evaluationPeriods: 2,
+        datapointsToAlarm: 1,
+        comparisonOperator: 'GreaterThanOrEqualToThreshold',
+      }], config, definitions);
 
       expect(actual).toEqual([{
         name: 'fooAlarm',
@@ -375,11 +367,7 @@ describe('#index', function () {
       const plugin = pluginFactory(config);
       const definitions = plugin.getDefinitions(config);
 
-      expect(() => plugin.getFunctionAlarms({
-        alarms: [
-          'missingAlarm'
-        ]
-      }, config, definitions)).toThrow(Error);
+      expect(() => plugin.getFunctionAlarms('functionName', ['missingAlarm'], config, definitions)).toThrow(Error);
     });
   });
 
