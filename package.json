@@ -31,7 +31,7 @@
     "jest": "^19.0.2"
   },
   "engines": {
-    "node": ">=8.0.0"
+    "node": ">=8.3.0"
   },
   "jest": {
     "testMatch": [

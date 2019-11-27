@@ -28,27 +28,30 @@ class AlertsPlugin {
 
   getDefinitions(config) {
     const configDefinitions = config.definitions || {};
-    return Object.keys(defaultDefinitions)
-      .reduce((acc, definitionName) => {
-        const definition = defaultDefinitions[definitionName];
-        if (_.isFunction(definition)) {
+    return {
+      ...configDefinitions,
+      ...Object.keys(defaultDefinitions)
+        .reduce((acc, definitionName) => {
+          const definition = defaultDefinitions[definitionName];
+          if (_.isFunction(definition)) {
+            return {
+              ...acc,
+              [definitionName]: definition(configDefinitions[definitionName] || {}),
+            };
+          }
+
           return {
             ...acc,
-            [definitionName]: definition(configDefinitions[definitionName] || {}),
+            [definitionName]: {
+              ...definition,
+              ...(configDefinitions[definitionName] || {}),
+            },
           };
-        }
-
-        return {
-          ...acc,
-          [definitionName]: {
-            ...definition,
-            ...(configDefinitions[definitionName] || {}),
-          },
-        };
-      }, {});
+        }, {}),
+    };
   }
 
-  getAlarms(alarms, definitions, functionObj) {
+  getAlarms(alarms, definitions, functionName) {
     if (!alarms) return [];
 
     return alarms.reduce((result, alarm) => {
@@ -59,7 +62,7 @@ class AlertsPlugin {
         }
 
         if (_.isFunction(definition)) {
-          definition = definition(functionObj, this.serverless)
+          definition = definition(functionName, this.serverless)
         }
 
         result.push(Object.assign({}, definition, {
@@ -80,12 +83,11 @@ class AlertsPlugin {
     return _.union(config.alarms, config.global, config.function);
   }
 
-  getFunctionAlarms(functionObj, config, definitions, globalAlarms) {
+  getFunctionAlarms(functionName, functionAlarms, config, definitions, globalAlarms) {
     if (!config) throw new Error('Missing config argument');
     if (!definitions) throw new Error('Missing definitions argument');
 
-    const alarms = functionObj.alarms;
-    return this.getAlarms(alarms ? alarms.concat(globalAlarms) : globalAlarms, definitions, functionObj);
+    return this.getAlarms(functionAlarms ? functionAlarms.concat(globalAlarms) : globalAlarms, definitions, functionName);
   }
 
   getAlarmCloudFormation(alertTopics, definition, functionName, functionRef) {
@@ -292,7 +294,7 @@ class AlertsPlugin {
 
       const normalizedFunctionName = this.providerNaming.getLambdaLogicalId(functionName);
 
-      const alarms = this.getFunctionAlarms(functionObj, config, definitions, globalAlarms)
+      const alarms = this.getFunctionAlarms(functionName, functionObj.alarms, config, definitions, globalAlarms)
         .map(alarm => _.assign({ nameTemplate: config.nameTemplate }, alarm));
 
       const alarmStatements = alarms.reduce((statements, alarm) => {

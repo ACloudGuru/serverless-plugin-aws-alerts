@@ -25,49 +25,72 @@ module.exports = {
     datapointsToAlarm: 1,
     comparisonOperator: 'GreaterThanOrEqualToThreshold',
   },
-  functionAvailability: {
-    omitDefaultDimension: true,
-    metrics: [{
-      Id: 'errors',
-      MetricStat: {
-        Metric: {
-          MetricName: 'Errors',
-          Namespace: lambdaNamespace,
+  functionAvailability: () => (functionName, serverless) => {
+    const namingProvider = serverless.getProvider('aws').naming;
+    const funRef = namingProvider.getLambdaLogicalId(functionName);
+
+    return {
+      omitDefaultDimension: true,
+      metrics: [{
+        Id: 'errors',
+        MetricStat: {
+          Metric: {
+            MetricName: 'Errors',
+            Namespace: lambdaNamespace,
+            Dimensions: [{
+              Name: 'FunctionName',
+              Value: {
+                Ref: funRef,
+              }
+            }],
+          },
+          Period: 60,
+          Stat: 'Sum',
         },
-        Period: 60,
-        Stat: 'Sum',
-      },
-      ReturnData: false,
-    }, {
-      Id: 'timeouts',
-      MetricStat: {
-        Metric: {
-          MetricName: 'Timeouts',
-          Namespace: lambdaNamespace,
+        ReturnData: false,
+      }, {
+        Id: 'timeouts',
+        MetricStat: {
+          Metric: {
+            MetricName: 'Timeouts',
+            Namespace: lambdaNamespace,
+            Dimensions: [{
+              Name: 'FunctionName',
+              Value: {
+                Ref: funRef,
+              }
+            }],
+          },
+          Period: 60,
+          Stat: 'Sum',
         },
-        Period: 60,
-        Stat: 'Sum',
-      },
-      ReturnData: false,
-    }, {
-      Id: 'requests',
-      MetricStat: {
-        Metric: {
-          MetricName: 'Invocations',
-          Namespace: lambdaNamespace,
+        ReturnData: false,
+      }, {
+        Id: 'requests',
+        MetricStat: {
+          Metric: {
+            MetricName: 'Invocations',
+            Namespace: lambdaNamespace,
+            Dimensions: [{
+              Name: 'FunctionName',
+              Value: {
+                Ref: funRef,
+              }
+            }],
+          },
+          Period: 60,
+          Stat: 'Sum',
         },
-        Period: 60,
-        Stat: 'Sum',
-      },
-      ReturnData: false,
-    }, {
-      Id: 'expr',
-      Expression: '((requests - errors - timeouts) / requests) * 100',
-      Label: 'Availability',
-    }],
-    threshold: 99.9,
-    evaluationPeriods: 1,
-    comparisonOperator: 'LessThanThreshold'
+        ReturnData: false,
+      }, {
+        Id: 'expr',
+        Expression: '((requests - errors - timeouts) / requests) * 100',
+        Label: 'Availability',
+      }],
+      threshold: 99.9,
+      evaluationPeriods: 1,
+      comparisonOperator: 'LessThanThreshold'
+    };
   },
   functionDuration: {
     namespace: lambdaNamespace,
@@ -100,7 +123,8 @@ module.exports = {
     comparisonOperator: 'GreaterThanOrEqualToThreshold',
     pattern: 'Task timed out after'
   },
-  APIGatewayLatency: definitions => (functionObj, serverless) => {
+  APIGatewayLatency: definitions => (functionName, serverless) => {
+    const functionObj = serverless.service.getFunction(functionName);
     const httpEvent = functionObj.events.find(event => event.http);
     if (!httpEvent) {
       throw new Error('An http event is needed to set up the APIGatewayAvailability alarm.');
@@ -136,7 +160,8 @@ module.exports = {
       ...definitions,
     };
   },
-  APIGatewayAvailability: definitions => (functionObj, serverless) => {
+  APIGatewayAvailability: definitions => (functionName, serverless) => {
+    const functionObj = serverless.service.getFunction(functionName);
     const httpEvent = functionObj.events.find(event => event.http);
     if (!httpEvent) {
       throw new Error('An http event is needed to set up the APIGatewayAvailability alarm.');
@@ -206,7 +231,8 @@ module.exports = {
       ...definitions,
     };
   },
-  DLQMessageVisible: definitions => functionObj => {
+  DLQMessageVisible: definitions => (functionName, serverless) => {
+    const functionObj = serverless.service.getFunction(functionName);
     const dlqName = functionObj.alarmDLQName;
     if (!dlqName) {
       throw new Error('Alarm DLQ Name (alarmDLQName) is required.');
