@@ -356,10 +356,9 @@ class AlertsPlugin {
     const cfLogName = this.providerNaming.getLogGroupLogicalId(functionName);
     const metricNamespace = this.providerNaming.getStackName();
     const logGroupName = this.providerNaming.getLogGroupName(functionObj.name);
-    const metricName = this.naming.getPatternMetricName(
-      alarm.metric,
-      normalizedFunctionName
-    );
+    const customMetricNaming = this.naming.customNaming({
+      functionName, metricName: alarm.metric
+    })
 
     return {
       [logMetricCFRefALERT]: {
@@ -372,7 +371,7 @@ class AlertsPlugin {
             {
               MetricValue: 1,
               MetricNamespace: metricNamespace,
-              MetricName: metricName,
+              MetricName: customMetricNaming,
             },
           ],
         },
@@ -387,7 +386,7 @@ class AlertsPlugin {
             {
               MetricValue: 0,
               MetricNamespace: metricNamespace,
-              MetricName: metricName,
+              MetricName: customMetricNaming,
             },
           ],
         },
