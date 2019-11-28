@@ -318,6 +318,9 @@ class AlertsPlugin {
         });
       }
     }
+    else if (isTopicConfigAnObject) {
+      alertTopics[key] = topicConfig;
+    }
   }
 
   compileAlertTopics(config) {
