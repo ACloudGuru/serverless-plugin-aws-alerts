@@ -127,7 +127,7 @@ module.exports = {
     const functionObj = serverless.service.getFunction(functionName);
     const httpEvent = functionObj.events.find(event => event.http);
     if (!httpEvent) {
-      throw new Error('An http event is needed to set up the APIGatewayAvailability alarm.');
+      throw new Error('An http event is needed to set up the APIGatewayLatency alarm.');
     }
 
     const rawPath = httpEvent.http.path;
@@ -135,7 +135,7 @@ module.exports = {
 
     return {
       omitDefaultDimension: true,
-      description: 'Messages present in DLQ',
+      description: 'APIGateway latency monitoring',
       namespace: APIGatewayNamespace,
       metric: 'Latency',
       dimensions: [{
@@ -172,6 +172,7 @@ module.exports = {
 
     return {
       omitDefaultDimension: true,
+      description: 'APIGateway availability monitoring',
       metrics: [{
         Id: 'errors',
         MetricStat: {
