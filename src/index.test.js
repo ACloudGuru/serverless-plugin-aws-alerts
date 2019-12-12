@@ -821,7 +821,7 @@ describe('#index', function () {
       expect(plugin.getAlarmCloudFormation({}, {})).toBe(undefined);
     });
 
-    it('should add actions - create topic', () => {
+    it('should add default actions - create topic', () => {
       const alertTopics = {
         ok: 'ok-topic',
         alarm: 'alarm-topic',
@@ -871,8 +871,10 @@ describe('#index', function () {
     });
 
 
-    it('should add nested actions - create topics', () => {
+    it('should add nested actions and ignore default - create topics', () => {
       const alertTopics = {
+        ok: 'ok-topic',
+        alarm: 'alarm-topic',
         critical: {
           ok: 'critical-ok-topic',
           alarm: 'critical-alarm-topic',

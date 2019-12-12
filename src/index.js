@@ -99,29 +99,22 @@ class AlertsPlugin {
     const alarmActions = [];
     const insufficientDataActions = [];
 
-    if (alertTopics.ok) {
-      okActions.push(alertTopics.ok);
-    }
-
-    if (alertTopics.alarm) {
-      alarmActions.push(alertTopics.alarm);
-    }
-
-    if (alertTopics.insufficientData) {
-      insufficientDataActions.push(alertTopics.insufficientData);
-    }
-
-
     if (definition.okActions) {
       definition.okActions.map(alertTopic => { okActions.push(alertTopics[alertTopic].ok) });
+    } else if (alertTopics.ok) {
+      okActions.push(alertTopics.ok);
     }
 
     if (definition.alarmActions) {
       definition.alarmActions.map(alertTopic => { alarmActions.push(alertTopics[alertTopic].alarm) });
+    } else if (alertTopics.alarm) {
+      alarmActions.push(alertTopics.alarm);
     }
 
     if (definition.insufficientDataActions) {
       definition.insufficientDataActions.map(alertTopic => { insufficientDataActions.push(alertTopics[alertTopic].insufficientData) });
+    } else if (alertTopics.insufficientData) {
+      insufficientDataActions.push(alertTopics.insufficientData);
     }
 
     const stackName = this.awsProvider.naming.getStackName();
