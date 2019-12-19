@@ -140,6 +140,7 @@ class AlertsPlugin {
     if (definition.nameTemplate) {
       alarm.Properties.AlarmName = this.naming.getAlarmName({
         template: definition.nameTemplate,
+        prefixTemplate: definition.prefixTemplate,
         functionLogicalId: functionRef,
         metricName: definition.metric,
         metricId,
