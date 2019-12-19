@@ -46,8 +46,11 @@ class Naming {
       .replace('$[functionId]', options.functionLogicalId)
       .replace('$[metricName]', options.metricName)
       .replace('$[metricId]', options.metricId);
+    
+    const interpolatedPrefix = (options.prefixTemplate || '$[stackName]')
+      .replace('$[stackName]', options.stackName);
 
-    return `${options.stackName}-${interpolatedTemplate}`;
+    return `${interpolatedPrefix}-${interpolatedTemplate}`;
   }
 }
 
