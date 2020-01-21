@@ -275,7 +275,7 @@ class AlertsPlugin {
       const normalizedFunctionName = this.providerNaming.getLambdaLogicalId(functionName);
 
       const functionAlarms = this.getFunctionAlarms(functionObj, config, definitions);
-      const alarms = globalAlarms.concat(functionAlarms).map(alarm => _.assign({ nameTemplate: config.nameTemplate }, alarm));
+      const alarms = globalAlarms.concat(functionAlarms).map(alarm => _.assign({ nameTemplate: config.nameTemplate, prefixTemplate: config.prefixTemplate }, alarm));
 
       const alarmStatements = alarms.reduce((statements, alarm) => {
         const key = this.naming.getAlarmCloudFormationRef(alarm.name, functionName);
