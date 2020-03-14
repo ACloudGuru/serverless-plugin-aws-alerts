@@ -182,7 +182,12 @@ class AlertsPlugin {
 
     if (topic) {
       if (isTopicConfigAnImport || topic.indexOf('arn:') === 0) {
-        alertTopics[key] = topic;
+        if (customAlarmName) {
+          alertTopics[customAlarmName] = alertTopics[customAlarmName] || {};
+          alertTopics[customAlarmName][key] = topic;
+        } else {
+          alertTopics[key] = topic;
+        }
       } else {
         const cfRef = `AwsAlerts${customAlarmName ? _.upperFirst(customAlarmName) : ''}${_.upperFirst(key)}`;
         if (customAlarmName) {
