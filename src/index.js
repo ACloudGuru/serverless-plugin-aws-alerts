@@ -83,11 +83,17 @@ class AlertsPlugin {
     return _.union(config.alarms, config.global, config.function);
   }
 
-  getFunctionAlarms(functionName, functionAlarms, config, definitions, globalAlarms) {
+  getFunctionAlarms(functionName, functionObj, config, definitions, globalAlarms) {
     if (!config) throw new Error('Missing config argument');
     if (!definitions) throw new Error('Missing definitions argument');
 
-    return this.getAlarms(functionAlarms ? functionAlarms.concat(globalAlarms) : globalAlarms, definitions, functionName);
+    const functionAlarms = functionObj.alarms;
+    let funcGlobalAlarms = globalAlarms;
+    if (!functionObj.inheritGlobalAlarms) {
+      funcGlobalAlarms = [];
+    }
+
+    return this.getAlarms(functionAlarms ? functionAlarms.concat(funcGlobalAlarms) : funcGlobalAlarms, definitions, functionName);
   }
 
   getAlarmCloudFormation(alertTopics, definition, functionName, functionRef) {
@@ -287,7 +293,8 @@ class AlertsPlugin {
 
       const normalizedFunctionName = this.providerNaming.getLambdaLogicalId(functionName);
 
-      const alarms = this.getFunctionAlarms(functionName, functionObj.alarms, config, definitions, globalAlarms)
+
+      const alarms = this.getFunctionAlarms(functionName, functionObj, config, definitions, globalAlarms)
         .map(alarm => _.assign({ nameTemplate: config.nameTemplate }, alarm));
 
       const alarmStatements = alarms.reduce((statements, alarm) => {
