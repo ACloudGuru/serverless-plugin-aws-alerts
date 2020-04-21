@@ -125,112 +125,118 @@ module.exports = {
   },
   APIGatewayLatency: definitions => (functionName, serverless) => {
     const functionObj = serverless.service.getFunction(functionName);
-    const httpEvent = functionObj.events.find(event => event.http);
-    if (!httpEvent) {
+    const httpEvents = functionObj.events.filter(event => event.http);
+    if (!httpEvents.length) {
       throw new Error('An http event is needed to set up the APIGatewayLatency alarm.');
     }
 
-    const rawPath = httpEvent.http.path;
-    const path = `${rawPath[0] !== '/' ? '/' : ''}${rawPath}`;
+    return httpEvents.map((httpEvent) => {
+      const rawPath = httpEvent.http.path;
+      const path = `${rawPath[0] !== '/' ? '/' : ''}${rawPath}`;
 
-    return {
-      omitDefaultDimension: true,
-      description: 'APIGateway latency monitoring',
-      namespace: APIGatewayNamespace,
-      metric: 'Latency',
-      dimensions: [{
-        Name: 'ApiName',
-        Value: `${serverless.service.provider.environment.INSTITUTION}-apiv2`,
-      }, {
-        Name: 'Resource',
-        Value: path,
-      }, {
-        Name: 'Method',
-        Value: httpEvent.http.method.toUpperCase(),
-      }, {
-        Name: 'Stage',
-        Value: serverless.processedInput.options.stage,
-      }],
-      threshold: 2000,
-      statistic: 'Average',
-      period: 300,
-      evaluationPeriods: 1,
-      datapointsToAlarm: 1,
-      comparisonOperator: 'GreaterThanOrEqualToThreshold',
-      ...definitions,
-    };
+      return {
+        nameSuffix: rawPath.replace(/\W/g, ''), // This is so we can distinguish each path alarm for the same lambda
+        omitDefaultDimension: true,
+        description: 'APIGateway latency monitoring',
+        namespace: APIGatewayNamespace,
+        metric: 'Latency',
+        dimensions: [{
+          Name: 'ApiName',
+          Value: `${serverless.service.provider.environment.INSTITUTION}-apiv2`,
+        }, {
+          Name: 'Resource',
+          Value: path,
+        }, {
+          Name: 'Method',
+          Value: httpEvent.http.method.toUpperCase(),
+        }, {
+          Name: 'Stage',
+          Value: serverless.processedInput.options.stage,
+        }],
+        threshold: 2000,
+        statistic: 'Average',
+        period: 300,
+        evaluationPeriods: 1,
+        datapointsToAlarm: 1,
+        comparisonOperator: 'GreaterThanOrEqualToThreshold',
+        ...definitions,
+      };
+    });
   },
   APIGatewayAvailability: definitions => (functionName, serverless) => {
     const functionObj = serverless.service.getFunction(functionName);
-    const httpEvent = functionObj.events.find(event => event.http);
-    if (!httpEvent) {
+    const httpEvents = functionObj.events.filter(event => event.http);
+    if (!httpEvents.length) {
       throw new Error('An http event is needed to set up the APIGatewayAvailability alarm.');
     }
 
-    const rawPath = httpEvent.http.path;
-    const path = `${rawPath[0] !== '/' ? '/' : ''}${rawPath}`;
+    return httpEvents.map((httpEvent) => {
+      const rawPath = httpEvent.http.path;
+      const path = `${rawPath[0] !== '/' ? '/' : ''}${rawPath}`;
 
-    return {
-      omitDefaultDimension: true,
-      description: 'APIGateway availability monitoring',
-      metrics: [{
-        Id: 'errors',
-        MetricStat: {
-          Metric: {
-            Dimensions: [{
-              Name: 'ApiName',
-              Value: `${serverless.service.provider.environment.INSTITUTION}-apiv2`,
-            }, {
-              Name: 'Resource',
-              Value: path,
-            }, {
-              Name: 'Method',
-              Value: httpEvent.http.method.toUpperCase(),
-            }, {
-              Name: 'Stage',
-              Value: serverless.processedInput.options.stage,
-            }],
-            MetricName: '5XXError',
-            Namespace: APIGatewayNamespace,
+      return {
+        nameSuffix: rawPath.replace(/\W/g, ''), // This is so we can distinguish each path alarm for the same lambda
+        omitDefaultDimension: true,
+        description: 'APIGateway availability monitoring',
+        metrics: [{
+          Id: 'errors',
+          MetricStat: {
+            Metric: {
+              Dimensions: [{
+                Name: 'ApiName',
+                Value: `${serverless.service.provider.environment.INSTITUTION}-apiv2`,
+              }, {
+                Name: 'Resource',
+                Value: path,
+              }, {
+                Name: 'Method',
+                Value: httpEvent.http.method.toUpperCase(),
+              }, {
+                Name: 'Stage',
+                Value: serverless.processedInput.options.stage,
+              }],
+              MetricName: '5XXError',
+              Namespace: APIGatewayNamespace,
+            },
+            Period: 60,
+            Stat: 'Sum',
           },
-          Period: 60,
-          Stat: 'Sum',
-        },
-        ReturnData: false,
-      }, {
-        Id: 'requests',
-        MetricStat: {
-          Metric: {
-            Dimensions: [{
-              Name: 'ApiName',
-              Value: `${serverless.service.provider.environment.INSTITUTION}-apiv2`,
-            }, {
-              Name: 'Resource',
-              Value: path,
-            }, {
-              Name: 'Method',
-              Value: httpEvent.http.method.toUpperCase(),
-            }, {
-              Name: 'Stage',
-              Value: serverless.processedInput.options.stage,
-            }],
-            MetricName: 'Count',
-            Namespace: 'AWS/ApiGateway',
+          ReturnData: false,
+        }, {
+          Id: 'requests',
+          MetricStat: {
+            Metric: {
+              Dimensions: [{
+                Name: 'ApiName',
+                Value: `${serverless.service.provider.environment.INSTITUTION}-apiv2`,
+              }, {
+                Name: 'Resource',
+                Value: path,
+              }, {
+                Name: 'Method',
+                Value: httpEvent.http.method.toUpperCase(),
+              }, {
+                Name: 'Stage',
+                Value: serverless.processedInput.options.stage,
+              }],
+              MetricName: 'Count',
+              Namespace: 'AWS/ApiGateway',
+            },
+            Period: 60,
+            Stat: 'Sum',
           },
-          Period: 60,
-          Stat: 'Sum',
-        },
-        ReturnData: false,
-      }, {
-        Id: 'expr',
-        Expression: '((requests - errors) / requests) * 100',
-        Label: 'Availability',
-      }],
-      threshold: 99.9,
-      evaluationPeriods: 1,
-      comparisonOperator: 'LessThanThreshold',
-      ...definitions,
-    };
+          ReturnData: false,
+        }, {
+          Id: 'expr',
+          Expression: '((requests - errors) / requests) * 100',
+          Label: 'Availability',
+        }],
+        threshold: 99.9,
+        evaluationPeriods: 1,
+        comparisonOperator: 'LessThanThreshold',
+        ...definitions,
+      };
+    });
   },
   DLQMessageVisible: definitions => (functionName, serverless) => {
     const functionObj = serverless.service.getFunction(functionName);
