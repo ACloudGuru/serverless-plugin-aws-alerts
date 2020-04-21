@@ -65,9 +65,15 @@ class AlertsPlugin {
           definition = definition(functionName, this.serverless)
         }
 
-        result.push(Object.assign({}, definition, {
-          name: alarm
-        }));
+        if (!Array.isArray(definition)) {
+          definition = [definition]
+        }
+
+        for (const def of definition) {
+          result.push(Object.assign({}, def, {
+            name: `${alarm}${def.nameSuffix || ''}`
+          }));
+        }
       } else if (_.isObject(alarm)) {
         result.push(_.merge({}, definitions[alarm.name], alarm));
       }
@@ -89,7 +95,7 @@ class AlertsPlugin {
 
     const functionAlarms = functionObj.alarms;
     let funcGlobalAlarms = globalAlarms;
-    if (!functionObj.inheritGlobalAlarms) {
+    if (functionObj.inheritGlobalAlarms === false) {
       funcGlobalAlarms = [];
     }
 
