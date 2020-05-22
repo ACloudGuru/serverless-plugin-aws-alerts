@@ -127,6 +127,15 @@ describe('#index', function () {
         statistic: 'Sum'
       }]);
     });
+
+    it('should import alarms from CloudFormation', () => {
+      const testAlarm = { 'Fn::ImportValue': "ServiceMonitoring:monitoring-${opt:stage, 'dev'}" };
+      const alarms = [testAlarm];
+      const definitions = {};
+
+      const alarmsConfig = plugin.getAlarms(alarms, definitions);
+      expect(alarmsConfig).toEqual([testAlarm]);
+    });
   });
 
   describe('#getGlobalAlarms', () => {
@@ -179,6 +188,7 @@ describe('#index', function () {
             statistic: 'Maximum',
             period: 300,
             evaluationPeriods: 1,
+            datapointsToAlarm: 1,
             comparisonOperator: 'GreaterThanOrEqualToThreshold',
           },
           customDefinition: {
@@ -188,6 +198,7 @@ describe('#index', function () {
             statistic: 'Minimum',
             period: 120,
             evaluationPeriods: 2,
+            datapointsToAlarm: 1,
             comparisonOperator: 'GreaterThanOrEqualToThreshold',
           }
         }
@@ -204,6 +215,7 @@ describe('#index', function () {
           statistic: 'Sum',
           period: 60,
           evaluationPeriods: 1,
+          datapointsToAlarm: 1,
           comparisonOperator: 'GreaterThanOrEqualToThreshold',
         },
         functionErrors: {
@@ -213,6 +225,7 @@ describe('#index', function () {
           statistic: 'Maximum',
           period: 300,
           evaluationPeriods: 1,
+          datapointsToAlarm: 1,
           comparisonOperator: 'GreaterThanOrEqualToThreshold',
         },
         functionDuration: {
@@ -222,6 +235,7 @@ describe('#index', function () {
           statistic: 'Average',
           period: 60,
           evaluationPeriods: 1,
+          datapointsToAlarm: 1,
           comparisonOperator: 'GreaterThanOrEqualToThreshold',
         },
         functionThrottles: {
@@ -231,6 +245,7 @@ describe('#index', function () {
           statistic: 'Sum',
           period: 60,
           evaluationPeriods: 1,
+          datapointsToAlarm: 1,
           comparisonOperator: 'GreaterThanOrEqualToThreshold',
         },
         customDefinition: {
@@ -240,6 +255,7 @@ describe('#index', function () {
           statistic: 'Minimum',
           period: 120,
           evaluationPeriods: 2,
+          datapointsToAlarm: 1,
           comparisonOperator: 'GreaterThanOrEqualToThreshold',
         }
       });
@@ -256,6 +272,7 @@ describe('#index', function () {
           statistic: 'Minimum',
           period: 120,
           evaluationPeriods: 2,
+          datapointsToAlarm: 1,
           comparisonOperator: 'GreaterThanOrEqualToThreshold',
         }
       },
@@ -300,6 +317,7 @@ describe('#index', function () {
         statistic: 'Minimum',
         period: 120,
         evaluationPeriods: 2,
+        datapointsToAlarm: 1,
         comparisonOperator: 'GreaterThanOrEqualToThreshold',
       }]);
     });
@@ -316,6 +334,7 @@ describe('#index', function () {
           statistic: 'Minimum',
           period: 120,
           evaluationPeriods: 2,
+          datapointsToAlarm: 1,
           comparisonOperator: 'GreaterThanOrEqualToThreshold',
         }]
       }, config, definitions);
@@ -328,6 +347,7 @@ describe('#index', function () {
         statistic: 'Minimum',
         period: 120,
         evaluationPeriods: 2,
+        datapointsToAlarm: 1,
         comparisonOperator: 'GreaterThanOrEqualToThreshold',
       }]);
     });
@@ -427,6 +447,74 @@ describe('#index', function () {
         }
       });
     });
+
+    it('should create SNS topic with nested definitions', () => {
+      const plugin = pluginFactory({
+        topics: {
+          critical: {
+            ok: 'critical-ok-topic',
+            alert: 'critical-alert-topic',
+            insufficientData: 'critical-insufficientData-topic'
+          },
+          nonCritical: {
+            alarm: 'nonCritical-alarm-topic'
+          }
+        }
+      });
+
+      const config = plugin.getConfig();
+      const topics = plugin.compileAlertTopics(config);
+
+      expect(topics).toEqual({
+        critical: {
+          ok: {
+            Ref: `AwsAlertsCriticalOk`
+          },
+      alert: {
+        Ref: `AwsAlertsCriticalAlert`
+      },
+      insufficientData: {
+        Ref: `AwsAlertsCriticalInsufficientData`
+      }
+        },
+        nonCritical: {
+          alarm: {
+            Ref: `AwsAlertsNonCriticalAlarm`
+          }
+        }
+      });
+
+      expect(plugin.serverless.service.provider.compiledCloudFormationTemplate.Resources).toEqual({
+        'AwsAlertsCriticalOk': {
+          Type: 'AWS::SNS::Topic',
+          Properties: {
+            TopicName: 'critical-ok-topic',
+            Subscription: [],
+          }
+        },
+        'AwsAlertsCriticalAlert': {
+          Type: 'AWS::SNS::Topic',
+          Properties: {
+            TopicName: 'critical-alert-topic',
+            Subscription: [],
+          }
+        },
+        'AwsAlertsCriticalInsufficientData': {
+          Type: 'AWS::SNS::Topic',
+          Properties: {
+            TopicName: 'critical-insufficientData-topic',
+            Subscription: [],
+          }
+        },
+        'AwsAlertsNonCriticalAlarm': {
+          Type: 'AWS::SNS::Topic',
+          Properties: {
+            TopicName: 'nonCritical-alarm-topic',
+            Subscription: [],
+          }
+        }
+      });
+    });
   });
 
   describe('#compileAlarms', () => {
@@ -453,6 +541,7 @@ describe('#index', function () {
             Statistic: 'Sum',
             Period: 60,
             EvaluationPeriods: 1,
+            DatapointsToAlarm: 1,
             ComparisonOperator: 'GreaterThanOrEqualToThreshold',
             AlarmActions: [],
             OKActions: [],
@@ -468,6 +557,7 @@ describe('#index', function () {
         }
       });
     });
+
     it('should compile log metric function alarms', () => {
       let config = {
         definitions: {
@@ -477,6 +567,7 @@ describe('#index', function () {
             statistic: 'Sum',
             period: 60,
             evaluationPeriods: 1,
+            datapointsToAlarm: 1,
             comparisonOperator: 'GreaterThanOrEqualToThreshold',
             pattern: '{$.level > 40}'
           }
@@ -501,6 +592,7 @@ describe('#index', function () {
             Statistic: 'Sum',
             Period: 60,
             EvaluationPeriods: 1,
+            DatapointsToAlarm: 1,
             ComparisonOperator: 'GreaterThanOrEqualToThreshold',
             OKActions: [],
             AlarmActions: [],
@@ -538,6 +630,92 @@ describe('#index', function () {
       });
     });
 
+    it('should use globally defined nameTemplate when it`s not provided in definitions', function() {
+      let config = {
+        nameTemplate: '$[functionName]-global',
+        function: ['functionErrors']
+      };
+
+      const plugin = pluginFactory(config);
+
+      config = plugin.getConfig();
+      const definitions = plugin.getDefinitions(config);
+      const alertTopics = plugin.compileAlertTopics(config);
+
+      plugin.compileAlarms(config, definitions, alertTopics);
+      expect(plugin.serverless.service.provider.compiledCloudFormationTemplate.Resources).toEqual({
+        FooFunctionErrorsAlarm: {
+          Type: 'AWS::CloudWatch::Alarm',
+          Properties: {
+            AlarmName: 'fooservice-dev-foo-global',
+            Namespace: 'AWS/Lambda',
+            MetricName: 'Errors',
+            Threshold: 1,
+            Statistic: 'Sum',
+            Period: 60,
+            EvaluationPeriods: 1,
+            DatapointsToAlarm: 1,
+            ComparisonOperator: 'GreaterThanOrEqualToThreshold',
+            AlarmActions: [],
+            OKActions: [],
+            InsufficientDataActions: [],
+            Dimensions: [{
+              Name: 'FunctionName',
+              Value: {
+                Ref: 'FooLambdaFunction'
+              },
+            }],
+            TreatMissingData: 'missing',
+          }
+        }
+      });
+    });
+
+    it('should overwrite globally defined nameTemplate using definitions', function() {
+      let config = {
+        nameTemplate: '$[functionName]-global',
+        definitions: {
+          functionErrors: {
+            nameTemplate: '$[functionName]-local'
+          }
+        },
+        function: ['functionErrors']
+      };
+
+      const plugin = pluginFactory(config);
+
+      config = plugin.getConfig();
+      const definitions = plugin.getDefinitions(config);
+      const alertTopics = plugin.compileAlertTopics(config);
+
+      plugin.compileAlarms(config, definitions, alertTopics);
+      expect(plugin.serverless.service.provider.compiledCloudFormationTemplate.Resources).toEqual({
+        FooFunctionErrorsAlarm: {
+          Type: 'AWS::CloudWatch::Alarm',
+          Properties: {
+            AlarmName: 'fooservice-dev-foo-local',
+            Namespace: 'AWS/Lambda',
+            MetricName: 'Errors',
+            Threshold: 1,
+            Statistic: 'Sum',
+            Period: 60,
+            EvaluationPeriods: 1,
+            DatapointsToAlarm: 1,
+            ComparisonOperator: 'GreaterThanOrEqualToThreshold',
+            AlarmActions: [],
+            OKActions: [],
+            InsufficientDataActions: [],
+            Dimensions: [{
+              Name: 'FunctionName',
+              Value: {
+                Ref: 'FooLambdaFunction'
+              },
+            }],
+            TreatMissingData: 'missing',
+          }
+        }
+      });
+    });
   });
 
   describe('#compileCloudWatchAlarms', () => {
@@ -655,9 +833,10 @@ describe('#index', function () {
         treatMissingData: 'breaching',
       };
 
+      const functionName = 'func-name';
       const functionRef = 'func-ref';
 
-      const cf = plugin.getAlarmCloudFormation(alertTopics, definition, functionRef);
+      const cf = plugin.getAlarmCloudFormation(alertTopics, definition, functionName, functionRef);
 
       expect(cf).toEqual({
         Type: 'AWS::CloudWatch::Alarm',
@@ -684,7 +863,68 @@ describe('#index', function () {
       });
     });
 
-    it('should user the CloudFormation value ExtendedStatistic for p values', () => {
+
+    it('should add nested actions - create topics', () => {
+      const alertTopics = {
+        critical: {
+          ok: 'critical-ok-topic',
+          alarm: 'critical-alarm-topic',
+          insufficientData: 'critical-insufficientData-topic',
+        },
+        nonCritical: {
+          ok: 'nonCritical-ok-topic',
+          alarm: 'nonCritical-alarm-topic',
+          insufficientData: 'nonCritical-insufficientData-topic',
+        }
+      };
+
+      const definition = {
+        description: 'An error alarm',
+        namespace: 'AWS/Lambda',
+        metric: 'Errors',
+        threshold: 1,
+        statistic: 'Maximum',
+        period: 300,
+        evaluationPeriods: 1,
+        comparisonOperator: 'GreaterThanOrEqualToThreshold',
+        treatMissingData: 'breaching',
+        okActions: ['critical', 'nonCritical'],
+        alarmActions: ['critical', 'nonCritical'],
+        insufficientDataActions: ['critical', 'nonCritical']
+      };
+
+      const functionName = 'func-name';
+      const functionRef = 'func-ref';
+
+      const cf = plugin.getAlarmCloudFormation(alertTopics, definition, functionName, functionRef);
+
+      expect(cf).toEqual({
+        Type: 'AWS::CloudWatch::Alarm',
+        Properties: {
+          AlarmDescription: definition.description,
+          Namespace: definition.namespace,
+          MetricName: definition.metric,
+          Threshold: definition.threshold,
+          Statistic: definition.statistic,
+          Period: definition.period,
+          EvaluationPeriods: definition.evaluationPeriods,
+          ComparisonOperator: definition.comparisonOperator,
+          OKActions: ['critical-ok-topic', 'nonCritical-ok-topic'],
+          AlarmActions: ['critical-alarm-topic', 'nonCritical-alarm-topic'],
+          InsufficientDataActions: ['critical-insufficientData-topic', 'nonCritical-insufficientData-topic'],
+          Dimensions: [{
+            Name: 'FunctionName',
+            Value: {
+              Ref: functionRef,
+            }
+          }],
+          TreatMissingData: 'breaching',
+        }
+      });
+    });
+
+
+    it('should use the CloudFormation value ExtendedStatistic for p values', () => {
       const alertTopics = {
         ok: 'ok-topic',
         alarm: 'alarm-topic',
@@ -703,9 +943,10 @@ describe('#index', function () {
         treatMissingData: 'breaching',
       };
 
+      const functionName = 'func-name';
       const functionRef = 'func-ref';
 
-      const cf = plugin.getAlarmCloudFormation(alertTopics, definition, functionRef);
+      const cf = plugin.getAlarmCloudFormation(alertTopics, definition, functionName, functionRef);
 
       expect(cf).toEqual({
         Type: 'AWS::CloudWatch::Alarm',
@@ -715,6 +956,109 @@ describe('#index', function () {
           MetricName: definition.metric,
           Threshold: definition.threshold,
           ExtendedStatistic: definition.statistic,
+          Period: definition.period,
+          EvaluationPeriods: definition.evaluationPeriods,
+          ComparisonOperator: definition.comparisonOperator,
+          OKActions: ['ok-topic'],
+          AlarmActions: ['alarm-topic'],
+          InsufficientDataActions: ['insufficientData-topic'],
+          Dimensions: [{
+            Name: 'FunctionName',
+            Value: {
+              Ref: functionRef,
+            }
+          }],
+          TreatMissingData: 'breaching',
+        }
+      });
+    });
+    it('should allow user to provide custom dimensions', () => {
+      const alertTopics = {
+        ok: 'ok-topic',
+        alarm: 'alarm-topic',
+        insufficientData: 'insufficientData-topic',
+      };
+
+      const definition = {
+        description: 'An error alarm',
+        namespace: 'AWS/Lambda',
+        metric: 'Errors',
+        threshold: 1,
+        statistic: 'p95',
+        period: 300,
+        evaluationPeriods: 1,
+        comparisonOperator: 'GreaterThanThreshold',
+        treatMissingData: 'breaching',
+        dimensions: [{'Name':'Cow', 'Value':'MOO'}, {'Name':'Duck', 'Value':'QUACK'}]
+      };
+
+      const functionName = 'func-name';
+      const functionRef = 'func-ref';
+
+      const cf = plugin.getAlarmCloudFormation(alertTopics, definition, functionName, functionRef);
+
+      expect(cf).toEqual({
+        Type: 'AWS::CloudWatch::Alarm',
+        Properties: {
+          AlarmDescription: definition.description,
+          Namespace: definition.namespace,
+          MetricName: definition.metric,
+          Threshold: definition.threshold,
+          ExtendedStatistic: definition.statistic,
+          Period: definition.period,
+          EvaluationPeriods: definition.evaluationPeriods,
+          ComparisonOperator: definition.comparisonOperator,
+          OKActions: ['ok-topic'],
+          AlarmActions: ['alarm-topic'],
+          InsufficientDataActions: ['insufficientData-topic'],
+          Dimensions: [{
+            Name: "Cow",
+            Value: "MOO"
+            },{
+            Name: "Duck",
+            Value: "QUACK"
+            },{
+            Name: 'FunctionName',
+            Value: {
+              Ref: functionRef,
+            }
+          }],
+          TreatMissingData: 'breaching',
+        }
+      });
+    });
+    it('should add AlarmName property when nameTemplate is defined', () => {
+      const alertTopics = {
+        ok: 'ok-topic',
+        alarm: 'alarm-topic',
+        insufficientData: 'insufficientData-topic',
+      };
+
+       const definition = {
+        nameTemplate: '$[functionName]-$[functionId]-$[metricName]-$[metricId]',
+        description: 'An error alarm',
+        namespace: 'AWS/Lambda',
+        metric: 'Errors',
+        threshold: 1,
+        period: 300,
+        evaluationPeriods: 1,
+        comparisonOperator: 'GreaterThanThreshold',
+        treatMissingData: 'breaching',
+      };
+
+       const functionName = 'func-name';
+       const functionRef = 'func-ref';
+
+       const cf = plugin.getAlarmCloudFormation(alertTopics, definition, functionName, functionRef);
+
+       expect(cf).toEqual({
+        Type: 'AWS::CloudWatch::Alarm',
+        Properties: {
+          AlarmName: `fooservice-dev-${functionName}-${functionRef}-${definition.metric}-${definition.metric}`,
+          AlarmDescription: definition.description,
+          Namespace: definition.namespace,
+          MetricName: definition.metric,
+          Threshold: definition.threshold,
           Period: definition.period,
           EvaluationPeriods: definition.evaluationPeriods,
           ComparisonOperator: definition.comparisonOperator,

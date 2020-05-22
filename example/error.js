@@ -1,7 +1,6 @@
-'use script';
+exports.handler = (event, context, cb) => {
+  console.log('Received event', event);
+  console.log('Blah');
 
-module.exports.handler = (event, context, cb) => {
-    console.log('Received event', event);
-    console.log('Blah')
-    cb(new Error('This is an error!'));
-}
+  cb(new Error('This is an error'));
+};

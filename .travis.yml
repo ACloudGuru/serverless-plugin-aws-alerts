@@ -1,7 +1,8 @@
 language: node_js
 node_js:
   - '6.10'
-  - '8'
+  - '8.10'
+  - '10'
 
 install:
   - yarn install
@@ -22,7 +23,7 @@ deploy:
     tags: true
     repo: ACloudGuru/serverless-plugin-aws-alerts
     branch: master
-    node: '4.4'
+    node: '10'
 
 notifications:
   slack:
