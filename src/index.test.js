@@ -671,6 +671,48 @@ describe('#index', function () {
       });
     });
 
+    it('should use globally defined prefixTemplate when it`s not provided in definitions', function() {
+      let config = {
+        nameTemplate: '$[functionName]-global',
+        prefixTemplate: 'notTheStackName',
+        function: ['functionErrors']
+      };
+
+      const plugin = pluginFactory(config);
+
+      config = plugin.getConfig();
+      const definitions = plugin.getDefinitions(config);
+      const alertTopics = plugin.compileAlertTopics(config);
+
+      plugin.compileAlarms(config, definitions, alertTopics);
+      expect(plugin.serverless.service.provider.compiledCloudFormationTemplate.Resources).toEqual({
+        FooFunctionErrorsAlarm: {
+          Type: 'AWS::CloudWatch::Alarm',
+          Properties: {
+            AlarmName: 'notTheStackName-foo-global',
+            Namespace: 'AWS/Lambda',
+            MetricName: 'Errors',
+            Threshold: 1,
+            Statistic: 'Sum',
+            Period: 60,
+            EvaluationPeriods: 1,
+            DatapointsToAlarm: 1,
+            ComparisonOperator: 'GreaterThanOrEqualToThreshold',
+            AlarmActions: [],
+            OKActions: [],
+            InsufficientDataActions: [],
+            Dimensions: [{
+              Name: 'FunctionName',
+              Value: {
+                Ref: 'FooLambdaFunction'
+              },
+            }],
+            TreatMissingData: 'missing',
+          }
+        }
+      });
+    });
+
     it('should overwrite globally defined nameTemplate using definitions', function() {
       let config = {
         nameTemplate: '$[functionName]-global',
@@ -694,6 +736,54 @@ describe('#index', function () {
           Type: 'AWS::CloudWatch::Alarm',
           Properties: {
             AlarmName: 'fooservice-dev-foo-local',
+            Namespace: 'AWS/Lambda',
+            MetricName: 'Errors',
+            Threshold: 1,
+            Statistic: 'Sum',
+            Period: 60,
+            EvaluationPeriods: 1,
+            DatapointsToAlarm: 1,
+            ComparisonOperator: 'GreaterThanOrEqualToThreshold',
+            AlarmActions: [],
+            OKActions: [],
+            InsufficientDataActions: [],
+            Dimensions: [{
+              Name: 'FunctionName',
+              Value: {
+                Ref: 'FooLambdaFunction'
+              },
+            }],
+            TreatMissingData: 'missing',
+          }
+        }
+      });
+    });
+
+    it('should overwrite globally defined prefixTemplate using definitions', function() {
+      let config = {
+        nameTemplate: '$[functionName]-global',
+        prefixTemplate: 'notTheStackName',
+        definitions: {
+          functionErrors: {
+            nameTemplate: '$[functionName]-local',
+            prefixTemplate: 'somethingCompletelyCustom'
+          }
+        },
+        function: ['functionErrors']
+      };
+
+      const plugin = pluginFactory(config);
+
+      config = plugin.getConfig();
+      const definitions = plugin.getDefinitions(config);
+      const alertTopics = plugin.compileAlertTopics(config);
+
+      plugin.compileAlarms(config, definitions, alertTopics);
+      expect(plugin.serverless.service.provider.compiledCloudFormationTemplate.Resources).toEqual({
+        FooFunctionErrorsAlarm: {
+          Type: 'AWS::CloudWatch::Alarm',
+          Properties: {
+            AlarmName: 'somethingCompletelyCustom-foo-local',
             Namespace: 'AWS/Lambda',
             MetricName: 'Errors',
             Threshold: 1,
