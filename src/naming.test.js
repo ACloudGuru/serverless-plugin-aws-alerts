@@ -70,5 +70,35 @@ describe('#naming', function () {
 
       expect(actual).toEqual(expected);
     });
+
+    it('should interpolate alarm prefix', () => {
+      const template = '$[functionName]-$[functionId]-$[metricName]-$[metricId]';
+      const prefixTemplate = 'notTheStackName';
+      const functionName = 'function';
+      const functionLogicalId = 'functionId';
+      const metricName = 'metric';
+      const metricId = 'metricId';
+      const stackName = 'fooservice-dev';
+
+      const expected = `notTheStackName-${functionName}-${functionLogicalId}-${metricName}-${metricId}`;
+      const actual = naming.getAlarmName({ template, prefixTemplate, functionName, functionLogicalId, metricName, metricId, stackName });
+
+      expect(actual).toEqual(expected);
+    });
+
+    it('should interpolate an empty alarm prefix', () => {
+      const template = '$[functionName]-$[functionId]-$[metricName]-$[metricId]';
+      const prefixTemplate = '';
+      const functionName = 'function';
+      const functionLogicalId = 'functionId';
+      const metricName = 'metric';
+      const metricId = 'metricId';
+      const stackName = 'fooservice-dev';
+
+      const expected = `${functionName}-${functionLogicalId}-${metricName}-${metricId}`;
+      const actual = naming.getAlarmName({ template, prefixTemplate, functionName, functionLogicalId, metricName, metricId, stackName });
+
+      expect(actual).toEqual(expected);
+    });
   });
 });

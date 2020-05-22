@@ -47,7 +47,15 @@ class Naming {
       .replace('$[metricName]', options.metricName)
       .replace('$[metricId]', options.metricId);
 
-    return `${options.stackName}-${interpolatedTemplate}`;
+    const prefixTemplate = typeof options.prefixTemplate !== 'undefined'
+      ? options.prefixTemplate
+      : '$[stackName]';
+    const interpolatedPrefix = prefixTemplate
+      .replace('$[stackName]', options.stackName);
+
+    return interpolatedPrefix
+      ? `${interpolatedPrefix}-${interpolatedTemplate}`
+      : interpolatedTemplate;
   }
 }
 
