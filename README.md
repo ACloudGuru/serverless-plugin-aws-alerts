@@ -26,6 +26,7 @@ custom:
     dashboards: true
 
     nameTemplate: $[functionName]-$[metricName]-Alarm # Optionally - naming template for alarms, can be overwritten in definitions
+    prefixTemplate: $[stackName] # Optionally - override the alarm name prefix
 
     topics:
       ok: ${self:service}-${opt:stage}-alerts-ok
@@ -38,6 +39,7 @@ custom:
         description: 'My custom alarm'
         namespace: 'AWS/Lambda'
         nameTemplate: $[functionName]-Duration-IMPORTANT-Alarm # Optionally - naming template for the alarms, overwrites globally defined one
+        prefixTemplate: $[stackName] # Optionally - override the alarm name prefix, overwrites globally defined one
         metric: duration
         threshold: 200
         statistic: Average

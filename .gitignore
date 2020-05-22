@@ -45,3 +45,4 @@ jspm_packages
 
 # macOS internals
 .DS_Store
+.env*
