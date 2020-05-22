@@ -1,7 +1,7 @@
 service: service-test-alerts-plugin
 provider:
   name: aws
-  runtime: nodejs8.10
+  runtime: nodejs10.x
   region: us-east-1
 
 package:
