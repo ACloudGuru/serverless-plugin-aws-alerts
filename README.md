@@ -286,10 +286,9 @@ definitions:
 ```
 ## Additional dimensions
 
-The plugin allows users to provide custom dimensions for the alarm. Dimensions are provided in a list of key/value pairs {Name: foo, Value:bar} 
-The plugin will always apply dimension of {Name: FunctionName, Value: ((FunctionName))}
- For example:
- 
+The plugin allows users to provide custom dimensions for the alarm. Dimensions are provided in a list of key/value pairs {Name: foo, Value:bar}
+The plugin will always apply dimension of {Name: FunctionName, Value: ((FunctionName))}, except if the parameter `omitDefaultDimension: true` is passed. For example:
+
 ```yaml
     alarms: # merged with function alarms
       - name: fooAlarm
@@ -300,6 +299,7 @@ The plugin will always apply dimension of {Name: FunctionName, Value: ((Function
         period: 60
         evaluationPeriods: 1
         comparisonOperator: GreaterThanThreshold
+        omitDefaultDimension: true
         dimensions:
           -  Name: foo
              Value: bar
