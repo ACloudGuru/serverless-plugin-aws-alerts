@@ -65,9 +65,9 @@ class AlertsPlugin {
     if (!config) throw new Error('Missing config argument');
     if (!definitions) throw new Error('Missing definitions argument');
 
-    const alarms = functionObj.alarms.filter(alarm => {
+    const alarms = functionObj.alarms ? functionObj.alarms.filter(alarm => {
       return typeof alarm.enabled === "undefined" || alarm.enabled;
-    });
+    }) : functionObj.alarms;
     return this.getAlarms(alarms, definitions);
   }
 
