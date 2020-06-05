@@ -41,12 +41,25 @@ class AlertsPlugin {
           throw new Error(`Alarm definition ${alarm} does not exist!`);
         }
 
-        result.push(Object.assign({}, definition, {
-          name: alarm,
-          enabled: true
-        }));
+        result.push(Object.assign(
+          {
+            enabled: true,
+            type: "static"
+          },
+          definition,
+          {
+            name: alarm
+          })
+        );
       } else if (_.isObject(alarm)) {
-        result.push(_.merge({ enabled: true }, definitions[alarm.name], alarm));
+        result.push(_.merge(
+          {
+            enabled: true,
+            type: "static"
+          },
+          definitions[alarm.name],
+          alarm)
+        );
       }
 
       return result;
@@ -118,24 +131,69 @@ class AlertsPlugin {
 
     const treatMissingData = definition.treatMissingData ? definition.treatMissingData : 'missing';
 
-    const alarm = {
-      Type: 'AWS::CloudWatch::Alarm',
-      Properties: {
-        Namespace: namespace,
-        MetricName: metricId,
-        AlarmDescription: definition.description,
-        Threshold: definition.threshold,
-        Period: definition.period,
-        EvaluationPeriods: definition.evaluationPeriods,
-        DatapointsToAlarm: definition.datapointsToAlarm,
-        ComparisonOperator: definition.comparisonOperator,
-        OKActions: okActions,
-        AlarmActions: alarmActions,
-        InsufficientDataActions: insufficientDataActions,
-        Dimensions: dimensions,
-        TreatMissingData: treatMissingData,
+    const statisticValues = ['SampleCount', 'Average', 'Sum', 'Minimum', 'Maximum'];
+    let alarm;
+    if (definition.type === "static") {
+      alarm = {
+        Type: 'AWS::CloudWatch::Alarm',
+        Properties: {
+          Namespace: namespace,
+          MetricName: metricId,
+          AlarmDescription: definition.description,
+          Threshold: definition.threshold,
+          Period: definition.period,
+          EvaluationPeriods: definition.evaluationPeriods,
+          DatapointsToAlarm: definition.datapointsToAlarm,
+          ComparisonOperator: definition.comparisonOperator,
+          OKActions: okActions,
+          AlarmActions: alarmActions,
+          InsufficientDataActions: insufficientDataActions,
+          Dimensions: dimensions,
+          TreatMissingData: treatMissingData,
+        }
+      };
+
+      if (_.includes(statisticValues, definition.statistic)) {
+        alarm.Properties.Statistic = definition.statistic
+      } else {
+        alarm.Properties.ExtendedStatistic = definition.statistic
       }
-    };
+    } else if (definition.type === "anomalyDetection") {
+      alarm = {
+        Type: 'AWS::CloudWatch::Alarm',
+        Properties: {
+          AlarmDescription: definition.description,
+          EvaluationPeriods: definition.evaluationPeriods,
+          DatapointsToAlarm: definition.datapointsToAlarm,
+          ComparisonOperator: definition.comparisonOperator,
+          TreatMissingData: treatMissingData,
+          OKActions: okActions,
+          AlarmActions: alarmActions,
+          InsufficientDataActions: insufficientDataActions,
+          Metrics: [
+            {
+              Id: "m1",
+              ReturnData: true,
+              MetricStat: {
+                Namespace: namespace,
+                MetricName: metricId,
+                Dimensions: dimensions,
+                Period: definition.period,
+                Stat: definition.statistic
+              }
+            },
+            {
+              Id: "ad1",
+              Expression: `ANOMALY_DETECTION_BAND(m1, ${definition.threshold})`,
+              Label: `${metricId} (expected)`,
+              ReturnData: true
+            }
+          ]
+        }
+      }
+    } else {
+      throw new Error(`Missing type for alarm ${alarm.name} on function ${functionName}, must be one of 'static' or 'anomalyDetection'`);
+    }
 
     if (definition.nameTemplate) {
       alarm.Properties.AlarmName = this.naming.getAlarmName({
@@ -149,12 +207,35 @@ class AlertsPlugin {
       });
     }
 
-    const statisticValues = ['SampleCount', 'Average', 'Sum', 'Minimum', 'Maximum'];
-    if (_.includes(statisticValues, definition.statistic)) {
-      alarm.Properties.Statistic = definition.statistic
-    } else {
-      alarm.Properties.ExtendedStatistic = definition.statistic
-    }
+    /*
+        AuthorizerFunctionInvocationsAlarm:
+          Type: AWS::CloudWatch::Alarm
+          Properties:
+            EvaluationPeriods: 1
+            DatapointsToAlarm: 1
+            ComparisonOperator: LessThanLowerOrGreaterThanUpperThreshold
+            TreatMissingData: missing
+            Metrics:
+              - Id: m1
+                ReturnData: true
+                MetricStat:
+                  Metric:
+                    Namespace: AWS/Lambda
+                    MetricName: Invocations
+                    Dimensions:
+                      - Name: FunctionName
+                        Value:
+                          Ref: AuthorizerLambdaFunction
+                  Period: 60
+                  Stat: Sum
+              - Id: ad1
+                Expression: ANOMALY_DETECTION_BAND(m1, 2)
+                Label: "Invocations (expected)"
+                ReturnData: true
+            ThresholdMetricId: ad1
+            AlarmActions:
+              - arn:aws:sns:us-east-2:#{AWS::AccountId}:developer_alerts
+    */
     return alarm;
   }
 

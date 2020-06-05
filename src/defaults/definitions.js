@@ -5,6 +5,8 @@ const lambdaNamespace = 'AWS/Lambda';
 module.exports = {
   functionInvocations: {
     namespace: lambdaNamespace,
+    enabled: true,
+    type: 'static',
     metric: 'Invocations',
     threshold: 100,
     statistic: 'Sum',
@@ -15,6 +17,8 @@ module.exports = {
   },
   functionErrors: {
     namespace: lambdaNamespace,
+    enabled: true,
+    type: 'static',
     metric: 'Errors',
     threshold: 1,
     statistic: 'Sum',
@@ -25,6 +29,8 @@ module.exports = {
   },
   functionDuration: {
     namespace: lambdaNamespace,
+    enabled: true,
+    type: 'static',
     metric: 'Duration',
     threshold: 500,
     statistic: 'Average',
@@ -35,6 +41,8 @@ module.exports = {
   },
   functionThrottles: {
     namespace: lambdaNamespace,
+    enabled: true,
+    type: 'static',
     metric: 'Throttles',
     threshold: 1,
     statistic: 'Sum',
