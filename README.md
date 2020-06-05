@@ -306,6 +306,29 @@ definitions:
     comparisonOperator: GreaterThanOrEqualToThreshold
     treatMissingData: missing
 ```
+
+## Disabling default alarms for specific functions
+
+Default alarms can be disabled on a per-function basis:
+
+```yaml
+custom:
+  alerts:
+    alarms:
+      - functionThrottles
+      - functionErrors
+      - functionInvocations
+      - functionDuration
+
+functions:
+  bar:
+    handler: bar.handler
+    alarms:
+      - name: functionInvocations
+        enabled: false
+
+```
+
 ## Additional dimensions
 
 The plugin allows users to provide custom dimensions for the alarm. Dimensions are provided in a list of key/value pairs {Name: foo, Value:bar}
