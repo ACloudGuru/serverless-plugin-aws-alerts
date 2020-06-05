@@ -42,10 +42,11 @@ class AlertsPlugin {
         }
 
         result.push(Object.assign({}, definition, {
-          name: alarm
+          name: alarm,
+          enabled: true
         }));
       } else if (_.isObject(alarm)) {
-        result.push(_.merge({}, definitions[alarm.name], alarm));
+        result.push(_.merge({ enabled: true }, definitions[alarm.name], alarm));
       }
 
       return result;
@@ -65,9 +66,7 @@ class AlertsPlugin {
     if (!config) throw new Error('Missing config argument');
     if (!definitions) throw new Error('Missing definitions argument');
 
-    const alarms = functionObj.alarms ? functionObj.alarms.filter(alarm => {
-      return typeof alarm.enabled === "undefined" || alarm.enabled;
-    }) : functionObj.alarms;
+    const alarms = functionObj.alarms;
     return this.getAlarms(alarms, definitions);
   }
 
@@ -280,12 +279,16 @@ class AlertsPlugin {
 
       const alarmStatements = alarms.reduce((statements, alarm) => {
         const key = this.naming.getAlarmCloudFormationRef(alarm.name, functionName);
-        const cf = this.getAlarmCloudFormation(alertTopics, alarm, functionName, normalizedFunctionName);
+        if (alarm.enabled) {
+          const cf = this.getAlarmCloudFormation(alertTopics, alarm, functionName, normalizedFunctionName);
 
-        statements[key] = cf;
+          statements[key] = cf;
 
-        const logMetricCF = this.getLogMetricCloudFormation(alarm, functionName, normalizedFunctionName, functionObj);
-        _.merge(statements, logMetricCF);
+          const logMetricCF = this.getLogMetricCloudFormation(alarm, functionName, normalizedFunctionName, functionObj);
+          _.merge(statements, logMetricCF);
+        } else {
+          delete statements[key];
+        }
 
         return statements;
       }, {});
