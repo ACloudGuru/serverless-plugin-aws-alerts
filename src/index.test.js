@@ -86,12 +86,16 @@ describe('#index', function () {
       const alarmsConfig = plugin.getAlarms(alarms, definitions);
       expect(alarmsConfig).toEqual([{
         name: 'test',
-        enabled: true
+        enabled: true,
+        type: 'static'
       }]);
     });
 
     it('should get alarms config by object', () => {
-      const testAlarm = { enabled: true };
+      const testAlarm = {
+        enabled: true,
+        type: 'static'
+      };
       const alarms = [testAlarm];
       const definitions = {};
 
@@ -125,6 +129,7 @@ describe('#index', function () {
       expect(alarmsConfig).toEqual([{
         name: 'testAlarm',
         enabled: true,
+        type: 'static',
         threshold: 100,
         statistic: 'Sum'
       }]);
@@ -133,7 +138,8 @@ describe('#index', function () {
     it('should import alarms from CloudFormation', () => {
       const testAlarm = {
         'Fn::ImportValue': "ServiceMonitoring:monitoring-${opt:stage, 'dev'}",
-        enabled: true
+        enabled: true,
+        type: 'static'
       };
       const alarms = [testAlarm];
       const definitions = {};
@@ -188,6 +194,7 @@ describe('#index', function () {
       const config = {
         definitions: {
           functionErrors: {
+            type: 'static',
             metric: 'Errors',
             threshold: 1,
             statistic: 'Maximum',
@@ -197,6 +204,8 @@ describe('#index', function () {
             comparisonOperator: 'GreaterThanOrEqualToThreshold',
           },
           customDefinition: {
+            type: 'static',
+            enabled: true,
             namespace: 'AWS/Lambda',
             metric: 'Invocations',
             threshold: 5,
@@ -215,6 +224,8 @@ describe('#index', function () {
       expect(actual).toEqual({
         functionInvocations: {
           namespace: 'AWS/Lambda',
+          type: 'static',
+          enabled: true,
           metric: 'Invocations',
           threshold: 100,
           statistic: 'Sum',
@@ -225,6 +236,8 @@ describe('#index', function () {
         },
         functionErrors: {
           namespace: 'AWS/Lambda',
+          type: 'static',
+          enabled: true,
           metric: 'Errors',
           threshold: 1,
           statistic: 'Maximum',
@@ -235,6 +248,8 @@ describe('#index', function () {
         },
         functionDuration: {
           namespace: 'AWS/Lambda',
+          type: 'static',
+          enabled: true,
           metric: 'Duration',
           threshold: 500,
           statistic: 'Average',
@@ -245,6 +260,8 @@ describe('#index', function () {
         },
         functionThrottles: {
           namespace: 'AWS/Lambda',
+          type: 'static',
+          enabled: true,
           metric: 'Throttles',
           threshold: 1,
           statistic: 'Sum',
@@ -255,6 +272,8 @@ describe('#index', function () {
         },
         customDefinition: {
           namespace: 'AWS/Lambda',
+          type: 'static',
+          enabled: true,
           metric: 'Invocations',
           threshold: 5,
           statistic: 'Minimum',
@@ -317,6 +336,7 @@ describe('#index', function () {
       expect(actual).toEqual([{
         name: 'customAlarm',
         enabled: true,
+        type: 'static',
         namespace: 'AWS/Lambda',
         metric: 'Invocations',
         threshold: 5,
@@ -348,6 +368,7 @@ describe('#index', function () {
       expect(actual).toEqual([{
         name: 'fooAlarm',
         enabled: true,
+        type: 'static',
         namespace: 'AWS/Lambda',
         metric: 'Invocations',
         threshold: 5,
@@ -920,6 +941,8 @@ describe('#index', function () {
 
       const definition = {
         description: 'An error alarm',
+        type: 'static',
+        name: 'test-alarm',
         namespace: 'AWS/Lambda',
         metric: 'Errors',
         threshold: 1,
@@ -977,6 +1000,8 @@ describe('#index', function () {
 
       const definition = {
         description: 'An error alarm',
+        type: 'static',
+        name: 'test-alarm',
         namespace: 'AWS/Lambda',
         metric: 'Errors',
         threshold: 1,
@@ -1030,6 +1055,8 @@ describe('#index', function () {
 
       const definition = {
         description: 'An error alarm',
+        type: 'static',
+        name: 'test-alarm',
         namespace: 'AWS/Lambda',
         metric: 'Errors',
         threshold: 1,
@@ -1078,6 +1105,8 @@ describe('#index', function () {
 
       const definition = {
         description: 'An error alarm',
+        type: 'static',
+        name: 'test-alarm',
         namespace: 'AWS/Lambda',
         metric: 'Errors',
         threshold: 1,
@@ -1134,6 +1163,8 @@ describe('#index', function () {
       const definition = {
         nameTemplate: '$[functionName]-$[functionId]-$[metricName]-$[metricId]',
         description: 'An error alarm',
+        type: 'static',
+        name: 'test-alarm',
         namespace: 'AWS/Lambda',
         metric: 'Errors',
         threshold: 1,
