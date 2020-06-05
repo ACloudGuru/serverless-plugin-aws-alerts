@@ -86,11 +86,12 @@ describe('#index', function () {
       const alarmsConfig = plugin.getAlarms(alarms, definitions);
       expect(alarmsConfig).toEqual([{
         name: 'test',
+        enabled: true
       }]);
     });
 
     it('should get alarms config by object', () => {
-      const testAlarm = {};
+      const testAlarm = { enabled: true };
       const alarms = [testAlarm];
       const definitions = {};
 
@@ -123,13 +124,17 @@ describe('#index', function () {
       const alarmsConfig = plugin.getAlarms(alarms, definitions);
       expect(alarmsConfig).toEqual([{
         name: 'testAlarm',
+        enabled: true,
         threshold: 100,
         statistic: 'Sum'
       }]);
     });
 
     it('should import alarms from CloudFormation', () => {
-      const testAlarm = { 'Fn::ImportValue': "ServiceMonitoring:monitoring-${opt:stage, 'dev'}" };
+      const testAlarm = {
+        'Fn::ImportValue': "ServiceMonitoring:monitoring-${opt:stage, 'dev'}",
+        enabled: true
+      };
       const alarms = [testAlarm];
       const definitions = {};
 
@@ -311,6 +316,7 @@ describe('#index', function () {
 
       expect(actual).toEqual([{
         name: 'customAlarm',
+        enabled: true,
         namespace: 'AWS/Lambda',
         metric: 'Invocations',
         threshold: 5,
@@ -341,6 +347,7 @@ describe('#index', function () {
 
       expect(actual).toEqual([{
         name: 'fooAlarm',
+        enabled: true,
         namespace: 'AWS/Lambda',
         metric: 'Invocations',
         threshold: 5,
@@ -470,12 +477,12 @@ describe('#index', function () {
           ok: {
             Ref: `AwsAlertsCriticalOk`
           },
-      alert: {
-        Ref: `AwsAlertsCriticalAlert`
-      },
-      insufficientData: {
-        Ref: `AwsAlertsCriticalInsufficientData`
-      }
+          alert: {
+            Ref: `AwsAlertsCriticalAlert`
+          },
+          insufficientData: {
+            Ref: `AwsAlertsCriticalInsufficientData`
+          }
         },
         nonCritical: {
           alarm: {
@@ -630,7 +637,7 @@ describe('#index', function () {
       });
     });
 
-    it('should use globally defined nameTemplate when it`s not provided in definitions', function() {
+    it('should use globally defined nameTemplate when it`s not provided in definitions', function () {
       let config = {
         nameTemplate: '$[functionName]-global',
         function: ['functionErrors']
@@ -671,7 +678,7 @@ describe('#index', function () {
       });
     });
 
-    it('should use globally defined prefixTemplate when it`s not provided in definitions', function() {
+    it('should use globally defined prefixTemplate when it`s not provided in definitions', function () {
       let config = {
         nameTemplate: '$[functionName]-global',
         prefixTemplate: 'notTheStackName',
@@ -713,7 +720,7 @@ describe('#index', function () {
       });
     });
 
-    it('should overwrite globally defined nameTemplate using definitions', function() {
+    it('should overwrite globally defined nameTemplate using definitions', function () {
       let config = {
         nameTemplate: '$[functionName]-global',
         definitions: {
@@ -759,7 +766,7 @@ describe('#index', function () {
       });
     });
 
-    it('should overwrite globally defined prefixTemplate using definitions', function() {
+    it('should overwrite globally defined prefixTemplate using definitions', function () {
       let config = {
         nameTemplate: '$[functionName]-global',
         prefixTemplate: 'notTheStackName',
@@ -1079,7 +1086,7 @@ describe('#index', function () {
         evaluationPeriods: 1,
         comparisonOperator: 'GreaterThanThreshold',
         treatMissingData: 'breaching',
-        dimensions: [{'Name':'Cow', 'Value':'MOO'}, {'Name':'Duck', 'Value':'QUACK'}]
+        dimensions: [{ 'Name': 'Cow', 'Value': 'MOO' }, { 'Name': 'Duck', 'Value': 'QUACK' }]
       };
 
       const functionName = 'func-name';
@@ -1104,10 +1111,10 @@ describe('#index', function () {
           Dimensions: [{
             Name: "Cow",
             Value: "MOO"
-            },{
+          }, {
             Name: "Duck",
             Value: "QUACK"
-            },{
+          }, {
             Name: 'FunctionName',
             Value: {
               Ref: functionRef,
@@ -1124,7 +1131,7 @@ describe('#index', function () {
         insufficientData: 'insufficientData-topic',
       };
 
-       const definition = {
+      const definition = {
         nameTemplate: '$[functionName]-$[functionId]-$[metricName]-$[metricId]',
         description: 'An error alarm',
         namespace: 'AWS/Lambda',
@@ -1136,12 +1143,12 @@ describe('#index', function () {
         treatMissingData: 'breaching',
       };
 
-       const functionName = 'func-name';
-       const functionRef = 'func-ref';
+      const functionName = 'func-name';
+      const functionRef = 'func-ref';
 
-       const cf = plugin.getAlarmCloudFormation(alertTopics, definition, functionName, functionRef);
+      const cf = plugin.getAlarmCloudFormation(alertTopics, definition, functionName, functionRef);
 
-       expect(cf).toEqual({
+      expect(cf).toEqual({
         Type: 'AWS::CloudWatch::Alarm',
         Properties: {
           AlarmName: `fooservice-dev-${functionName}-${functionRef}-${definition.metric}-${definition.metric}`,
