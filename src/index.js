@@ -44,7 +44,7 @@ class AlertsPlugin {
         result.push(Object.assign(
           {
             enabled: true,
-            type: "static"
+            type: 'static'
           },
           definition,
           {
@@ -55,7 +55,7 @@ class AlertsPlugin {
         result.push(_.merge(
           {
             enabled: true,
-            type: "static"
+            type: 'static'
           },
           definitions[alarm.name],
           alarm)
@@ -133,7 +133,7 @@ class AlertsPlugin {
 
     const statisticValues = ['SampleCount', 'Average', 'Sum', 'Minimum', 'Maximum'];
     let alarm;
-    if (definition.type === "static") {
+    if (definition.type === 'static') {
       alarm = {
         Type: 'AWS::CloudWatch::Alarm',
         Properties: {
@@ -158,7 +158,7 @@ class AlertsPlugin {
       } else {
         alarm.Properties.ExtendedStatistic = definition.statistic
       }
-    } else if (definition.type === "anomalyDetection") {
+    } else if (definition.type === 'anomalyDetection') {
       alarm = {
         Type: 'AWS::CloudWatch::Alarm',
         Properties: {
@@ -172,7 +172,7 @@ class AlertsPlugin {
           InsufficientDataActions: insufficientDataActions,
           Metrics: [
             {
-              Id: "m1",
+              Id: 'm1',
               ReturnData: true,
               MetricStat: {
                 Namespace: namespace,
@@ -183,12 +183,13 @@ class AlertsPlugin {
               }
             },
             {
-              Id: "ad1",
+              Id: 'ad1',
               Expression: `ANOMALY_DETECTION_BAND(m1, ${definition.threshold})`,
               Label: `${metricId} (expected)`,
               ReturnData: true
             }
-          ]
+          ],
+          ThresholdMetricId: 'ad1'
         }
       }
     } else {
@@ -206,36 +207,6 @@ class AlertsPlugin {
         stackName
       });
     }
-
-    /*
-        AuthorizerFunctionInvocationsAlarm:
-          Type: AWS::CloudWatch::Alarm
-          Properties:
-            EvaluationPeriods: 1
-            DatapointsToAlarm: 1
-            ComparisonOperator: LessThanLowerOrGreaterThanUpperThreshold
-            TreatMissingData: missing
-            Metrics:
-              - Id: m1
-                ReturnData: true
-                MetricStat:
-                  Metric:
-                    Namespace: AWS/Lambda
-                    MetricName: Invocations
-                    Dimensions:
-                      - Name: FunctionName
-                        Value:
-                          Ref: AuthorizerLambdaFunction
-                  Period: 60
-                  Stat: Sum
-              - Id: ad1
-                Expression: ANOMALY_DETECTION_BAND(m1, 2)
-                Label: "Invocations (expected)"
-                ReturnData: true
-            ThresholdMetricId: ad1
-            AlarmActions:
-              - arn:aws:sns:us-east-2:#{AWS::AccountId}:developer_alerts
-    */
     return alarm;
   }
 

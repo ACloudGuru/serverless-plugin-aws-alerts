@@ -1220,7 +1220,7 @@ describe('#index', function () {
         metric: 'Errors',
         threshold: 1,
         period: 300,
-        statistic: "Sum",
+        statistic: 'Sum',
         datapointsToAlarm: 1,
         evaluationPeriods: 1,
         comparisonOperator: 'GreaterThanThreshold',
@@ -1245,7 +1245,7 @@ describe('#index', function () {
           InsufficientDataActions: ['insufficientData-topic'],
           Metrics: [
             {
-              Id: "m1",
+              Id: 'm1',
               ReturnData: true,
               MetricStat: {
                 Namespace: definition.namespace,
@@ -1261,12 +1261,13 @@ describe('#index', function () {
               }
             },
             {
-              Id: "ad1",
+              Id: 'ad1',
               Expression: `ANOMALY_DETECTION_BAND(m1, ${definition.threshold})`,
               Label: `${definition.metric} (expected)`,
               ReturnData: true
             }
-          ]
+          ],
+          ThresholdMetricId: 'ad1'
         }
       });
     });
