@@ -175,9 +175,11 @@ class AlertsPlugin {
               Id: 'm1',
               ReturnData: true,
               MetricStat: {
-                Namespace: namespace,
-                MetricName: metricId,
-                Dimensions: dimensions,
+                Metric: {
+                  Namespace: namespace,
+                  MetricName: metricId,
+                  Dimensions: dimensions
+                },
                 Period: definition.period,
                 Stat: definition.statistic
               }

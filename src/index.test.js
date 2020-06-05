@@ -1248,14 +1248,16 @@ describe('#index', function () {
               Id: 'm1',
               ReturnData: true,
               MetricStat: {
-                Namespace: definition.namespace,
-                MetricName: definition.metric,
-                Dimensions: [{
-                  Name: 'FunctionName',
-                  Value: {
-                    Ref: functionRef,
-                  }
-                }],
+                Metric: {
+                  Namespace: definition.namespace,
+                  MetricName: definition.metric,
+                  Dimensions: [{
+                    Name: 'FunctionName',
+                    Value: {
+                      Ref: functionRef,
+                    }
+                  }]
+                },
                 Period: definition.period,
                 Stat: definition.statistic
               }
