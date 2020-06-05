@@ -1045,7 +1045,6 @@ describe('#index', function () {
       });
     });
 
-
     it('should use the CloudFormation value ExtendedStatistic for p values', () => {
       const alertTopics = {
         ok: 'ok-topic',
@@ -1096,6 +1095,7 @@ describe('#index', function () {
         }
       });
     });
+
     it('should allow user to provide custom dimensions', () => {
       const alertTopics = {
         ok: 'ok-topic',
@@ -1153,6 +1153,7 @@ describe('#index', function () {
         }
       });
     });
+
     it('should add AlarmName property when nameTemplate is defined', () => {
       const alertTopics = {
         ok: 'ok-topic',
@@ -1203,5 +1204,71 @@ describe('#index', function () {
         }
       });
     });
-  })
+
+    it('should generate an AnomalyDetection alarm when type is anomalyDetection', () => {
+      const alertTopics = {
+        ok: 'ok-topic',
+        alarm: 'alarm-topic',
+        insufficientData: 'insufficientData-topic',
+      };
+
+      const definition = {
+        description: 'An error alarm',
+        type: 'anomalyDetection',
+        name: 'test-alarm',
+        namespace: 'AWS/Lambda',
+        metric: 'Errors',
+        threshold: 1,
+        period: 300,
+        statistic: "Sum",
+        datapointsToAlarm: 1,
+        evaluationPeriods: 1,
+        comparisonOperator: 'GreaterThanThreshold',
+        treatMissingData: 'breaching'
+      };
+
+      const functionName = 'func-name';
+      const functionRef = 'func-ref';
+
+      const cf = plugin.getAlarmCloudFormation(alertTopics, definition, functionName, functionRef);
+
+      expect(cf).toEqual({
+        Type: 'AWS::CloudWatch::Alarm',
+        Properties: {
+          AlarmDescription: definition.description,
+          EvaluationPeriods: definition.evaluationPeriods,
+          DatapointsToAlarm: definition.datapointsToAlarm,
+          ComparisonOperator: definition.comparisonOperator,
+          TreatMissingData: 'breaching',
+          OKActions: ['ok-topic'],
+          AlarmActions: ['alarm-topic'],
+          InsufficientDataActions: ['insufficientData-topic'],
+          Metrics: [
+            {
+              Id: "m1",
+              ReturnData: true,
+              MetricStat: {
+                Namespace: definition.namespace,
+                MetricName: definition.metric,
+                Dimensions: [{
+                  Name: 'FunctionName',
+                  Value: {
+                    Ref: functionRef,
+                  }
+                }],
+                Period: definition.period,
+                Stat: definition.statistic
+              }
+            },
+            {
+              Id: "ad1",
+              Expression: `ANOMALY_DETECTION_BAND(m1, ${definition.threshold})`,
+              Label: `${definition.metric} (expected)`,
+              ReturnData: true
+            }
+          ]
+        }
+      });
+    });
+  });
 });
