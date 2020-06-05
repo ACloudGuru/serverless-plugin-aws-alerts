@@ -77,12 +77,14 @@ functions:
 You can create alarms using [CloudWatch AnomalyDetection](https://docs.aws.amazon.com/AmazonCloudWatch/latest/monitoring/CloudWatch_Anomaly_Detection.html) to alarm when data is outside a number of standard deviations of normal, rather than at a static threshold.
 When using anomaly detection alarms the threshold property specifies the "Anomaly Detection Threshold" seen in the AWS console.
 
+Default alarms can also be updated to be anomaly detection alarms by adding the `type: anomalyDetection` property.
+
 ```yaml
 functions:
-  bar:
-    handler: bar.handler
+  foo:
+    handler: foo.handler
     alarms:
-      - name: barAlarm
+      - name: fooAlarm
         type: anomalyDetection
         namespace: 'AWS/Lamabda'
         metric: Invocations
@@ -91,6 +93,17 @@ functions:
         period: 60
         evaluationPeriods: 1
         datapointsToAlarm: 1
+        comparisonOperator: LessThanLowerOrGreaterThanUpperThreshold
+  bar:
+    handler: bar.handler
+    alarms:
+      - name: functionErrors
+        threshold: 2
+        type: anomalyDetection
+        comparisonOperator: LessThanLowerOrGreaterThanUpperThreshold
+      - name: functionInvocations
+        threshold: 2
+        type: anomalyDetection
         comparisonOperator: LessThanLowerOrGreaterThanUpperThreshold
 ```
 
