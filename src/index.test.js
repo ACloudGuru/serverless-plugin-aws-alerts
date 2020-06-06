@@ -833,7 +833,56 @@ describe('#index', function () {
           }
         }
       });
-    });
+	});
+	
+	it('should skip alarms that are marked disabled', () => {
+		let config = {
+			definitions: {
+				functionErrors: {
+					enabled: false
+				}
+			},
+			function: [
+				'functionErrors',
+				'functionInvocations'
+			]
+		};
+
+		const plugin = pluginFactory(config);
+
+		config = plugin.getConfig();
+		const definitions = plugin.getDefinitions(config);
+		const alertTopics = plugin.compileAlertTopics(config);
+
+		plugin.compileAlarms(config, definitions, alertTopics);
+		expect(plugin.serverless.service.provider.compiledCloudFormationTemplate.Resources).toEqual({
+			FooFunctionInvocationsAlarm: {
+				Type: 'AWS::CloudWatch::Alarm',
+				Properties: {
+					Namespace: 'AWS/Lambda',
+					MetricName: 'Invocations',
+					Threshold: 100,
+					Statistic: 'Sum',
+					Period: 60,
+					EvaluationPeriods: 1,
+					DatapointsToAlarm: 1,
+					ComparisonOperator: 'GreaterThanOrEqualToThreshold',
+					Dimensions: [
+						{
+							Name: 'FunctionName',
+							Value: {
+								Ref: 'FooLambdaFunction'
+							}
+						}
+					],
+					AlarmActions: [],
+					OKActions: [],
+					InsufficientDataActions: [],
+					TreatMissingData: 'missing'
+				}
+			}
+		});
+	});
   });
 
   describe('#compileCloudWatchAlarms', () => {
