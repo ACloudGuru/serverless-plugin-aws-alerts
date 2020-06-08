@@ -41,11 +41,25 @@ class AlertsPlugin {
           throw new Error(`Alarm definition ${alarm} does not exist!`);
         }
 
-        result.push(Object.assign({}, definition, {
-          name: alarm
-        }));
+        result.push(Object.assign(
+          {
+            enabled: true,
+            type: 'static'
+          },
+          definition,
+          {
+            name: alarm
+          })
+        );
       } else if (_.isObject(alarm)) {
-        result.push(_.merge({}, definitions[alarm.name], alarm));
+        result.push(_.merge(
+          {
+            enabled: true,
+            type: 'static'
+          },
+          definitions[alarm.name],
+          alarm)
+        );
       }
 
       return result;
@@ -117,24 +131,72 @@ class AlertsPlugin {
 
     const treatMissingData = definition.treatMissingData ? definition.treatMissingData : 'missing';
 
-    const alarm = {
-      Type: 'AWS::CloudWatch::Alarm',
-      Properties: {
-        Namespace: namespace,
-        MetricName: metricId,
-        AlarmDescription: definition.description,
-        Threshold: definition.threshold,
-        Period: definition.period,
-        EvaluationPeriods: definition.evaluationPeriods,
-        DatapointsToAlarm: definition.datapointsToAlarm,
-        ComparisonOperator: definition.comparisonOperator,
-        OKActions: okActions,
-        AlarmActions: alarmActions,
-        InsufficientDataActions: insufficientDataActions,
-        Dimensions: dimensions,
-        TreatMissingData: treatMissingData,
+    const statisticValues = ['SampleCount', 'Average', 'Sum', 'Minimum', 'Maximum'];
+    let alarm;
+    if (definition.type === 'static') {
+      alarm = {
+        Type: 'AWS::CloudWatch::Alarm',
+        Properties: {
+          Namespace: namespace,
+          MetricName: metricId,
+          AlarmDescription: definition.description,
+          Threshold: definition.threshold,
+          Period: definition.period,
+          EvaluationPeriods: definition.evaluationPeriods,
+          DatapointsToAlarm: definition.datapointsToAlarm,
+          ComparisonOperator: definition.comparisonOperator,
+          OKActions: okActions,
+          AlarmActions: alarmActions,
+          InsufficientDataActions: insufficientDataActions,
+          Dimensions: dimensions,
+          TreatMissingData: treatMissingData,
+        }
+      };
+
+      if (_.includes(statisticValues, definition.statistic)) {
+        alarm.Properties.Statistic = definition.statistic
+      } else {
+        alarm.Properties.ExtendedStatistic = definition.statistic
       }
-    };
+    } else if (definition.type === 'anomalyDetection') {
+      alarm = {
+        Type: 'AWS::CloudWatch::Alarm',
+        Properties: {
+          AlarmDescription: definition.description,
+          EvaluationPeriods: definition.evaluationPeriods,
+          DatapointsToAlarm: definition.datapointsToAlarm,
+          ComparisonOperator: definition.comparisonOperator,
+          TreatMissingData: treatMissingData,
+          OKActions: okActions,
+          AlarmActions: alarmActions,
+          InsufficientDataActions: insufficientDataActions,
+          Metrics: [
+            {
+              Id: 'm1',
+              ReturnData: true,
+              MetricStat: {
+                Metric: {
+                  Namespace: namespace,
+                  MetricName: metricId,
+                  Dimensions: dimensions
+                },
+                Period: definition.period,
+                Stat: definition.statistic
+              }
+            },
+            {
+              Id: 'ad1',
+              Expression: `ANOMALY_DETECTION_BAND(m1, ${definition.threshold})`,
+              Label: `${metricId} (expected)`,
+              ReturnData: true
+            }
+          ],
+          ThresholdMetricId: 'ad1'
+        }
+      }
+    } else {
+      throw new Error(`Missing type for alarm ${alarm.name} on function ${functionName}, must be one of 'static' or 'anomalyDetection'`);
+    }
 
     if (definition.nameTemplate) {
       alarm.Properties.AlarmName = this.naming.getAlarmName({
@@ -146,13 +208,6 @@ class AlertsPlugin {
         functionName,
         stackName
       });
-    }
-
-    const statisticValues = ['SampleCount', 'Average', 'Sum', 'Minimum', 'Maximum'];
-    if (_.includes(statisticValues, definition.statistic)) {
-      alarm.Properties.Statistic = definition.statistic
-    } else {
-      alarm.Properties.ExtendedStatistic = definition.statistic
     }
     return alarm;
   }
@@ -278,12 +333,16 @@ class AlertsPlugin {
 
       const alarmStatements = alarms.reduce((statements, alarm) => {
         const key = this.naming.getAlarmCloudFormationRef(alarm.name, functionName);
-        const cf = this.getAlarmCloudFormation(alertTopics, alarm, functionName, normalizedFunctionName);
+        if (alarm.enabled) {
+          const cf = this.getAlarmCloudFormation(alertTopics, alarm, functionName, normalizedFunctionName);
 
-        statements[key] = cf;
+          statements[key] = cf;
 
-        const logMetricCF = this.getLogMetricCloudFormation(alarm, functionName, normalizedFunctionName, functionObj);
-        _.merge(statements, logMetricCF);
+          const logMetricCF = this.getLogMetricCloudFormation(alarm, functionName, normalizedFunctionName, functionObj);
+          _.merge(statements, logMetricCF);
+        } else {
+          delete statements[key];
+        }
 
         return statements;
       }, {});

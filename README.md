@@ -72,6 +72,41 @@ functions:
         comparisonOperator: GreaterThanOrEqualToThreshold
 ```
 
+## Anomaly Detection Alarms
+
+You can create alarms using [CloudWatch AnomalyDetection](https://docs.aws.amazon.com/AmazonCloudWatch/latest/monitoring/CloudWatch_Anomaly_Detection.html) to alarm when data is outside a number of standard deviations of normal, rather than at a static threshold.
+When using anomaly detection alarms the threshold property specifies the "Anomaly Detection Threshold" seen in the AWS console.
+
+Default alarms can also be updated to be anomaly detection alarms by adding the `type: anomalyDetection` property.
+
+```yaml
+functions:
+  foo:
+    handler: foo.handler
+    alarms:
+      - name: fooAlarm
+        type: anomalyDetection
+        namespace: 'AWS/Lamabda'
+        metric: Invocations
+        threshold: 2
+        statistic: Sum
+        period: 60
+        evaluationPeriods: 1
+        datapointsToAlarm: 1
+        comparisonOperator: LessThanLowerOrGreaterThanUpperThreshold
+  bar:
+    handler: bar.handler
+    alarms:
+      - name: functionErrors
+        threshold: 2
+        type: anomalyDetection
+        comparisonOperator: LessThanLowerOrGreaterThanUpperThreshold
+      - name: functionInvocations
+        threshold: 2
+        type: anomalyDetection
+        comparisonOperator: LessThanLowerOrGreaterThanUpperThreshold
+```
+
 ## Multiple topic definitions
 
 You can define several topics for alarms. For example you want to have topics for critical alarms
@@ -284,6 +319,29 @@ definitions:
     comparisonOperator: GreaterThanOrEqualToThreshold
     treatMissingData: missing
 ```
+
+## Disabling default alarms for specific functions
+
+Default alarms can be disabled on a per-function basis:
+
+```yaml
+custom:
+  alerts:
+    alarms:
+      - functionThrottles
+      - functionErrors
+      - functionInvocations
+      - functionDuration
+
+functions:
+  bar:
+    handler: bar.handler
+    alarms:
+      - name: functionInvocations
+        enabled: false
+
+```
+
 ## Additional dimensions
 
 The plugin allows users to provide custom dimensions for the alarm. Dimensions are provided in a list of key/value pairs {Name: foo, Value:bar}
