@@ -230,7 +230,7 @@ class AlertsPlugin {
   _addAlertTopic(key, topics, alertTopics, customAlarmName) {
     const topicConfig = topics[key];
     const isTopicConfigAnObject = _.isObject(topicConfig);
-    const isTopicConfigAnImport = isTopicConfigAnObject && topicConfig['Fn::ImportValue'];
+    const isTopicConfigAnImport = isTopicConfigAnObject && topicConfig.topic['Fn::ImportValue'];
 
     const topic = isTopicConfigAnObject ? topicConfig.topic : topicConfig;
     const notifications = isTopicConfigAnObject ? topicConfig.notifications : [];
