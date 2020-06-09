@@ -411,6 +411,38 @@ describe('#index', function () {
       expect(plugin.serverless.service.provider.compiledCloudFormationTemplate.Resources).toEqual({});
     });
 
+    it('should not create SNS topic when ARN is passed to custom topic', () => {
+      const topicName = 'arn:aws:sns:us-east-1:123456789012:ok-topic';
+
+      const plugin = pluginFactory({
+        topics: {
+          customAlert: {
+            alarm: {
+              topic: topicName,
+            },
+            ok: {
+              topic: topicName,
+            },
+          },
+        },
+      });
+
+      const config = plugin.getConfig();
+      const topics = plugin.compileAlertTopics(config);
+
+      expect(topics).toEqual({
+        customAlert: {
+          alarm: topicName,
+          ok: topicName,
+        },
+      });
+
+      expect(
+        plugin.serverless.service.provider.compiledCloudFormationTemplate
+          .Resources
+      ).toEqual({});
+    });
+
     it('should create SNS topic when name is passed', () => {
       const topicName = 'ok-topic';
       const plugin = pluginFactory({
