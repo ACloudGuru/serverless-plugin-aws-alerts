@@ -3,6 +3,7 @@
 const lambdaNamespace = 'AWS/Lambda';
 const APIGatewayNamespace = 'AWS/ApiGateway';
 const SQSNamespace = 'AWS/SQS';
+const S3Namespace = 'AWS/S3';
 
 module.exports = {
   functionInvocations: {
@@ -263,4 +264,28 @@ module.exports = {
       ...definitions,
     };
   },
+  NumberOfObjectsInBucket: definitions => (functionName, serverless) => {
+    const functionObj = serverless.service.getFunction(functionName);
+    const bucketName = functionObj.alarmBucketName;
+
+    const dimensions = [{
+      Name: 'BucketName',
+      Value: bucketName
+    }]
+
+    return {
+      omitDefaultDimension: true,
+      namespace: S3Namespace,
+      description: 'Objects present in the bucket',
+      metric: 'NumberOfObjects',
+      threshold: 100000,
+      statistic: 'Sum',
+      dimensions,
+      period: 3600,
+      evaluationPeriods: 1,
+      datapointsToAlarm: 1,
+      comparisonOperator: 'GreaterThanOrEqualToThreshold',
+      ...definitions,
+    };
+  }
 };
