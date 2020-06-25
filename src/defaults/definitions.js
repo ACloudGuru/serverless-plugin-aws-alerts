@@ -267,6 +267,7 @@ module.exports = {
   NumberOfObjectsInBucket: definitions => (functionName, serverless) => {
     const functionObj = serverless.service.getFunction(functionName);
     const bucketName = functionObj.alarmBucketName;
+    const threshold = functionObj.alarmBucketObjectsThreshold || 100000;
 
     const dimensions = [{
       Name: 'BucketName',
@@ -278,7 +279,7 @@ module.exports = {
       namespace: S3Namespace,
       description: 'Objects present in the bucket',
       metric: 'NumberOfObjects',
-      threshold: 100000,
+      threshold,
       statistic: 'Sum',
       dimensions,
       period: 3600,
