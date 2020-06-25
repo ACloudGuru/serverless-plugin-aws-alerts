@@ -269,9 +269,14 @@ module.exports = {
     const bucketName = functionObj.alarmBucketName;
     const threshold = functionObj.alarmBucketObjectsThreshold || 100000;
 
-    const dimensions = [{
+    const dimensions = [
+    {
       Name: 'BucketName',
       Value: bucketName
+    },
+    {
+      Name: 'StorageType',
+      Value: 'AllStorageTypes'
     }]
 
     return {
@@ -280,9 +285,9 @@ module.exports = {
       description: 'Objects present in the bucket',
       metric: 'NumberOfObjects',
       threshold,
-      statistic: 'Sum',
+      statistic: 'Average',
       dimensions,
-      period: 3600,
+      period: 86400,
       evaluationPeriods: 1,
       datapointsToAlarm: 1,
       comparisonOperator: 'GreaterThanOrEqualToThreshold',
