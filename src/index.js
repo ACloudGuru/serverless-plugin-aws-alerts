@@ -4,6 +4,7 @@
 const _ = require('lodash');
 
 const Naming = require('./naming');
+const ExternalStack = require('./external-stack');
 const defaultDefinitions = require('./defaults/definitions');
 
 const dashboards = require('./dashboards')
@@ -16,9 +17,12 @@ class AlertsPlugin {
     this.awsProvider = this.serverless.getProvider('aws');
     this.providerNaming = this.awsProvider.naming;
     this.naming = new Naming();
+    this.externalStack = new ExternalStack(serverless, options);
 
     this.hooks = {
       'package:compileEvents': this.compile.bind(this),
+      'after:deploy:deploy': this.externalStack.afterDeployGlobal.bind(this.externalStack),
+      'before:remove:remove': this.externalStack.beforeRemoveGlobal.bind(this.externalStack),
     };
   }
 
@@ -427,7 +431,13 @@ class AlertsPlugin {
   }
 
   addCfResources(resources) {
-    _.merge(this.serverless.service.provider.compiledCloudFormationTemplate.Resources, resources);
+    if (this.externalStack.isUsingExternalStack()) {
+      // If we're using an external CloudFormation stack, merge the resources there.
+      this.externalStack.mergeResources(resources);
+    } else {
+      // Otherwise merge the resources to the main Serverless stack.
+      _.merge(this.serverless.service.provider.compiledCloudFormationTemplate.Resources, resources);
+    }
   }
 }
 

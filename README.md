@@ -390,6 +390,29 @@ definitions:
     treatMissingData: missing
 ```
 
+## Using a Separate CloudFormation Stack
+
+If your Serverless CloudFormation stack is growing too large and you're running out of resources,
+you can configure the plugin to deploy a separate stack for the CloudWatch resources. The default
+behaviour is to create a stack with a "-alerts" suffix in the stack name.
+
+    custom:
+      alerts:
+        externalStack: true
+
+You can customize the name suffix:
+
+    custom:
+      alerts:
+        externalStack:
+          nameSuffix: Alerts
+
+The separate stack will be automatically deployed after you've deployed your main Serverless
+stack. It will also be automatically removed if you remove your main stack.
+
+You can also enable the external stack on the command line with `sls deploy --alerts-external-stack'
+which is equivalent to adding `externalStack: true` to the configuration.
+
 ## License
 
 MIT © [A Cloud Guru](https://acloud.guru/)
