@@ -410,7 +410,7 @@ You can customize the name suffix:
 The separate stack will be automatically deployed after you've deployed your main Serverless
 stack. It will also be automatically removed if you remove your main stack.
 
-You can also enable the external stack on the command line with `sls deploy --alerts-external-stack'`
+You can also enable the external stack on the command line with `sls deploy --alerts-external-stack`
 which is equivalent to adding `externalStack: true` to the configuration.
 
 ## License
