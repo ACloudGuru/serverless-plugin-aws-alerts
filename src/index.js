@@ -234,14 +234,19 @@ class AlertsPlugin {
   _addAlertTopic(key, topics, alertTopics, customAlarmName) {
     const topicConfig = topics[key];
     const isTopicConfigAnObject = _.isObject(topicConfig);
-    const isTopicConfigAnImport = isTopicConfigAnObject && topicConfig['Fn::ImportValue'];
+    const isTopicConfigAnImport = isTopicConfigAnObject && topicConfig.topic['Fn::ImportValue'];
 
     const topic = isTopicConfigAnObject ? topicConfig.topic : topicConfig;
     const notifications = isTopicConfigAnObject ? topicConfig.notifications : [];
 
     if (topic) {
       if (isTopicConfigAnImport || topic.indexOf('arn:') === 0) {
-        alertTopics[key] = topic;
+        if (customAlarmName) {
+          alertTopics[customAlarmName] = alertTopics[customAlarmName] || {};
+          alertTopics[customAlarmName][key] = topic;
+        } else {
+          alertTopics[key] = topic;
+        }
       } else {
         const cfRef = `AwsAlerts${customAlarmName ? _.upperFirst(customAlarmName) : ''}${_.upperFirst(key)}`;
         if (customAlarmName) {
