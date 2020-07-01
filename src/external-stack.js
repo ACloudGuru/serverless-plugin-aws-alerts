@@ -59,6 +59,13 @@ class ExternalStack {
   }
 
   getExternalStackConfig() {
+    if (!this.serverless.service.custom.alerts) {
+      return (
+        this.options["alerts-external-stack"] ||
+        ""
+      );
+    }
+    
     return (
       this.serverless.service.custom.alerts.externalStack ||
       this.options["alerts-external-stack"] ||
