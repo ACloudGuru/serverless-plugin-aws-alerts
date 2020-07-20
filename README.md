@@ -86,7 +86,7 @@ functions:
     alarms:
       - name: fooAlarm
         type: anomalyDetection
-        namespace: 'AWS/Lamabda'
+        namespace: 'AWS/Lambda'
         metric: Invocations
         threshold: 2
         statistic: Sum
