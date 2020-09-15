@@ -314,7 +314,7 @@ module.exports = {
     return {
       omitDefaultDimension: true,
       namespace: ElastiCacheNamespace,
-      description: 'Available memory in the Redis node',
+      description: 'Used memory of the Redis node',
       metric: 'DatabaseMemoryUsagePercentage',
       threshold,
       statistic: 'Maximum',
