@@ -4,6 +4,7 @@ const lambdaNamespace = 'AWS/Lambda';
 const APIGatewayNamespace = 'AWS/ApiGateway';
 const SQSNamespace = 'AWS/SQS';
 const S3Namespace = 'AWS/S3';
+const ElastiCacheNamespace = 'AWS/ElastiCache';
 
 module.exports = {
   functionInvocations: {
@@ -270,14 +271,14 @@ module.exports = {
     const threshold = functionObj.alarmBucketObjectsThreshold || 100000;
 
     const dimensions = [
-    {
-      Name: 'BucketName',
-      Value: bucketName
-    },
-    {
-      Name: 'StorageType',
-      Value: 'AllStorageTypes'
-    }]
+      {
+        Name: 'BucketName',
+        Value: bucketName
+      },
+      {
+        Name: 'StorageType',
+        Value: 'AllStorageTypes'
+      }]
 
     return {
       omitDefaultDimension: true,
@@ -288,6 +289,37 @@ module.exports = {
       statistic: 'Average',
       dimensions,
       period: 86400,
+      evaluationPeriods: 1,
+      datapointsToAlarm: 1,
+      comparisonOperator: 'GreaterThanOrEqualToThreshold',
+      ...definitions,
+    };
+  },
+  RedisMemoryUsagePercentage: definitions => (functionName, serverless) => {
+    const functionObj = serverless.service.getFunction(functionName);
+    const cacheClusterId = functionObj.alarmRedisCacheClusterId;
+    const cacheNodeId = functionObj.alarmRedisCacheNodeId || '0001';
+    const threshold = functionObj.alarmRedisFreeMemoryThreshold || 70;
+
+    const dimensions = [
+      {
+        Name: 'CacheClusterId',
+        Value: cacheClusterId
+      },
+      {
+        Name: 'CacheNodeId',
+        Value: cacheNodeId,
+      }]
+
+    return {
+      omitDefaultDimension: true,
+      namespace: ElastiCacheNamespace,
+      description: 'Used memory percentage of the Redis node',
+      metric: 'DatabaseMemoryUsagePercentage',
+      threshold,
+      statistic: 'Maximum',
+      dimensions,
+      period: 300,
       evaluationPeriods: 1,
       datapointsToAlarm: 1,
       comparisonOperator: 'GreaterThanOrEqualToThreshold',
