@@ -299,7 +299,7 @@ module.exports = {
     const functionObj = serverless.service.getFunction(functionName);
     const cacheClusterId = functionObj.alarmRedisCacheClusterId;
     const cacheNodeId = functionObj.alarmRedisCacheNodeId || '0001';
-    const threshold = functionObj.alarmRedisFreeMemoryThreshold || 60;
+    const threshold = functionObj.alarmRedisFreeMemoryThreshold || 70;
 
     const dimensions = [
       {
@@ -314,7 +314,7 @@ module.exports = {
     return {
       omitDefaultDimension: true,
       namespace: ElastiCacheNamespace,
-      description: 'Used memory of the Redis node',
+      description: 'Used memory percentage of the Redis node',
       metric: 'DatabaseMemoryUsagePercentage',
       threshold,
       statistic: 'Maximum',
