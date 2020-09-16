@@ -46,7 +46,7 @@ module.exports = {
               }
             }],
           },
-          Period: 60,
+          Period: 180,
           Stat: 'Sum',
         },
         ReturnData: false,
@@ -63,7 +63,7 @@ module.exports = {
               }
             }],
           },
-          Period: 60,
+          Period: 180,
           Stat: 'Sum',
         },
         ReturnData: false,
@@ -80,7 +80,7 @@ module.exports = {
               }
             }],
           },
-          Period: 60,
+          Period: 180,
           Stat: 'Sum',
         },
         ReturnData: false,
@@ -91,7 +91,8 @@ module.exports = {
       }],
       threshold: 99.9,
       evaluationPeriods: 1,
-      comparisonOperator: 'LessThanThreshold'
+      comparisonOperator: 'LessThanThreshold',
+      treatMissingData: 'notBreaching',
     };
   },
   functionDuration: {
