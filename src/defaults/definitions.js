@@ -46,7 +46,7 @@ module.exports = {
               }
             }],
           },
-          Period: 180,
+          Period: 60,
           Stat: 'Sum',
         },
         ReturnData: false,
@@ -63,7 +63,7 @@ module.exports = {
               }
             }],
           },
-          Period: 180,
+          Period: 60,
           Stat: 'Sum',
         },
         ReturnData: false,
@@ -80,7 +80,7 @@ module.exports = {
               }
             }],
           },
-          Period: 180,
+          Period: 60,
           Stat: 'Sum',
         },
         ReturnData: false,
@@ -90,7 +90,8 @@ module.exports = {
         Label: 'Availability',
       }],
       threshold: 99.9,
-      evaluationPeriods: 1,
+      evaluationPeriods: 3,
+      datapointsToAlarm: 2,
       comparisonOperator: 'LessThanThreshold',
       treatMissingData: 'notBreaching',
     };
