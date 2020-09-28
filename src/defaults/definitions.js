@@ -236,7 +236,8 @@ module.exports = {
           Label: 'Availability',
         }],
         threshold: 99.9,
-        evaluationPeriods: 1,
+        evaluationPeriods: 3,
+        datapointsToAlarm: 2,
         comparisonOperator: 'LessThanThreshold',
         ...definitions,
       };
