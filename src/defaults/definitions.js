@@ -6,6 +6,7 @@ module.exports = {
   functionInvocations: {
     namespace: lambdaNamespace,
     enabled: true,
+    actionsEnabled: true,
     type: 'static',
     metric: 'Invocations',
     threshold: 100,
@@ -18,6 +19,7 @@ module.exports = {
   functionErrors: {
     namespace: lambdaNamespace,
     enabled: true,
+    actionsEnabled: true,
     type: 'static',
     metric: 'Errors',
     threshold: 1,
@@ -30,6 +32,7 @@ module.exports = {
   functionDuration: {
     namespace: lambdaNamespace,
     enabled: true,
+    actionsEnabled: true,
     type: 'static',
     metric: 'Duration',
     threshold: 500,
@@ -42,6 +45,7 @@ module.exports = {
   functionThrottles: {
     namespace: lambdaNamespace,
     enabled: true,
+    actionsEnabled: true,
     type: 'static',
     metric: 'Throttles',
     threshold: 1,
