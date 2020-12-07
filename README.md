@@ -170,7 +170,7 @@ custom:
 ```
 ## SNS Topics
 
-If topic name is specified, plugin assumes that topic does not exist and will create it. To use existing topics, specify ARNs or use Fn::ImportValue to use a topic exported with CloudFormation.
+If topic name is specified, plugin assumes that topic does not exist and will create it. To use existing topics, specify ARNs or use CloudFormation (e.g. Fn::ImportValue, Fn::Join and Ref) to refer to existing topics.
 
 #### ARN support
 
@@ -182,15 +182,37 @@ custom:
         topic: arn:aws:sns:${self:region}:${self::accountId}:monitoring-${opt:stage}
 ```
 
-#### Import support
+#### CloudFormation support
 
 ```yaml
-custom:
+custom: 
   alerts:
     topics:
       alarm:
         topic:
           Fn::ImportValue: ServiceMonitoring:monitoring-${opt:stage, 'dev'}
+      ok:
+        topic:
+          Fn::Join:
+            - ':'
+            - - arn:aws:sns
+              - Ref: AWS::Region
+              - Ref: AWS::AccountId
+              - example-ok-topic
+      insufficientData:
+        topic:
+          Ref: ExampleInsufficientdataTopic
+          
+
+resources:
+  Resources:
+    ExampleInsufficientdataTopic:
+      Type: AWS::SNS::Topic
+      Properties:
+        DisplayName: example-insufficientdata-topic
+        Subscription:
+          - Endpoint: me@example.com
+            Protocol: EMAIL
 ```
 
 ## SNS Notifications
