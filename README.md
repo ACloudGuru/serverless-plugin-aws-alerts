@@ -36,6 +36,7 @@ custom:
       functionErrors:
         period: 300 # override period
       customAlarm:
+        actionsEnabled: false # Indicates whether actions should be executed during any changes to the alarm state. The default is TRUE
         description: 'My custom alarm'
         namespace: 'AWS/Lambda'
         nameTemplate: $[functionName]-Duration-IMPORTANT-Alarm # Optionally - naming template for the alarms, overwrites globally defined one
@@ -63,6 +64,7 @@ functions:
       - customAlarm
       - name: fooAlarm # creates new alarm or overwrites some properties of the alarm (with the same name) from definitions
         namespace: 'AWS/Lambda'
+        actionsEnabled: false
         metric: errors # define custom metrics here
         threshold: 1
         statistic: Minimum
@@ -388,6 +390,7 @@ definitions:
     datapointsToAlarm: 1
     comparisonOperator: GreaterThanThreshold
     treatMissingData: missing
+    evaluateLowSampleCountPercentile: ignore
 ```
 
 ## Using a Separate CloudFormation Stack

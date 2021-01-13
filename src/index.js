@@ -141,6 +141,7 @@ class AlertsPlugin {
       alarm = {
         Type: 'AWS::CloudWatch::Alarm',
         Properties: {
+          ActionsEnabled: definition.actionsEnabled,
           Namespace: namespace,
           MetricName: metricId,
           AlarmDescription: definition.description,
@@ -161,11 +162,13 @@ class AlertsPlugin {
         alarm.Properties.Statistic = definition.statistic
       } else {
         alarm.Properties.ExtendedStatistic = definition.statistic
+        alarm.Properties.EvaluateLowSampleCountPercentile = definition.evaluateLowSampleCountPercentile
       }
     } else if (definition.type === 'anomalyDetection') {
       alarm = {
         Type: 'AWS::CloudWatch::Alarm',
         Properties: {
+          ActionsEnabled: definition.actionsEnabled,
           AlarmDescription: definition.description,
           EvaluationPeriods: definition.evaluationPeriods,
           DatapointsToAlarm: definition.datapointsToAlarm,
