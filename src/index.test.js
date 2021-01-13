@@ -205,6 +205,7 @@ describe('#index', function () {
           },
           customDefinition: {
             type: 'static',
+            actionsEnabled: false,
             enabled: true,
             namespace: 'AWS/Lambda',
             metric: 'Invocations',
@@ -224,6 +225,7 @@ describe('#index', function () {
       expect(actual).toEqual({
         functionInvocations: {
           namespace: 'AWS/Lambda',
+          actionsEnabled: true,
           type: 'static',
           enabled: true,
           metric: 'Invocations',
@@ -236,6 +238,7 @@ describe('#index', function () {
         },
         functionErrors: {
           namespace: 'AWS/Lambda',
+          actionsEnabled: true,
           type: 'static',
           enabled: true,
           metric: 'Errors',
@@ -248,6 +251,7 @@ describe('#index', function () {
         },
         functionDuration: {
           namespace: 'AWS/Lambda',
+          actionsEnabled: true,
           type: 'static',
           enabled: true,
           metric: 'Duration',
@@ -260,6 +264,7 @@ describe('#index', function () {
         },
         functionThrottles: {
           namespace: 'AWS/Lambda',
+          actionsEnabled: true,
           type: 'static',
           enabled: true,
           metric: 'Throttles',
@@ -272,6 +277,7 @@ describe('#index', function () {
         },
         customDefinition: {
           namespace: 'AWS/Lambda',
+          actionsEnabled: false,
           type: 'static',
           enabled: true,
           metric: 'Invocations',
@@ -575,6 +581,58 @@ describe('#index', function () {
         }
       });
     });
+
+    it('should not create SNS topic when an object including Fn::Join is passed under "topic"', () => {
+      const topic = {
+        'Fn::Join': [
+          ':',
+          [
+            'arn:aws:sns',
+            '${self:provider.region}',
+            {Ref: 'AWS::AccountId'},
+            'ok-topic'
+          ]
+        ],
+      }
+      const plugin = pluginFactory({
+        topics: {
+          ok: {
+            topic
+          }
+        }
+      });
+
+      const config = plugin.getConfig();
+      const topics = plugin.compileAlertTopics(config);
+
+      expect(topics).toEqual({
+        ok: topic
+      });
+
+      expect(plugin.serverless.service.provider.compiledCloudFormationTemplate.Resources).toEqual({});
+    });
+
+    it('should not create SNS topic when an object including Ref is passed under "topic"', () => {
+      const topic = {
+        Ref: 'OkTopicLogicalId',
+      }
+      const plugin = pluginFactory({
+        topics: {
+          ok: {
+            topic
+          }
+        }
+      });
+
+      const config = plugin.getConfig();
+      const topics = plugin.compileAlertTopics(config);
+
+      expect(topics).toEqual({
+        ok: topic
+      });
+
+      expect(plugin.serverless.service.provider.compiledCloudFormationTemplate.Resources).toEqual({});
+    });
   });
 
   describe('#compileAlarms', () => {
@@ -596,6 +654,7 @@ describe('#index', function () {
           Type: 'AWS::CloudWatch::Alarm',
           Properties: {
             Namespace: 'AWS/Lambda',
+            ActionsEnabled: true,
             MetricName: 'Invocations',
             Threshold: 100,
             Statistic: 'Sum',
@@ -707,6 +766,7 @@ describe('#index', function () {
         FooFunctionErrorsAlarm: {
           Type: 'AWS::CloudWatch::Alarm',
           Properties: {
+            ActionsEnabled: true,
             AlarmName: 'fooservice-dev-foo-global',
             Namespace: 'AWS/Lambda',
             MetricName: 'Errors',
@@ -749,6 +809,7 @@ describe('#index', function () {
         FooFunctionErrorsAlarm: {
           Type: 'AWS::CloudWatch::Alarm',
           Properties: {
+            ActionsEnabled: true,
             AlarmName: 'notTheStackName-foo-global',
             Namespace: 'AWS/Lambda',
             MetricName: 'Errors',
@@ -795,6 +856,7 @@ describe('#index', function () {
         FooFunctionErrorsAlarm: {
           Type: 'AWS::CloudWatch::Alarm',
           Properties: {
+            ActionsEnabled: true,
             AlarmName: 'fooservice-dev-foo-local',
             Namespace: 'AWS/Lambda',
             MetricName: 'Errors',
@@ -843,6 +905,7 @@ describe('#index', function () {
         FooFunctionErrorsAlarm: {
           Type: 'AWS::CloudWatch::Alarm',
           Properties: {
+            ActionsEnabled: true,
             AlarmName: 'somethingCompletelyCustom-foo-local',
             Namespace: 'AWS/Lambda',
             MetricName: 'Errors',
@@ -866,7 +929,7 @@ describe('#index', function () {
         }
       });
 	});
-	
+
 	it('should skip alarms that are marked disabled', () => {
 		let config = {
 			definitions: {
@@ -891,6 +954,7 @@ describe('#index', function () {
 			FooFunctionInvocationsAlarm: {
 				Type: 'AWS::CloudWatch::Alarm',
 				Properties: {
+          ActionsEnabled: true,
 					Namespace: 'AWS/Lambda',
 					MetricName: 'Invocations',
 					Threshold: 100,
@@ -1145,6 +1209,7 @@ describe('#index', function () {
         evaluationPeriods: 1,
         comparisonOperator: 'GreaterThanThreshold',
         treatMissingData: 'breaching',
+        evaluateLowSampleCountPercentile: 'ignore',
       };
 
       const functionName = 'func-name';
@@ -1161,6 +1226,7 @@ describe('#index', function () {
           Threshold: definition.threshold,
           ExtendedStatistic: definition.statistic,
           Period: definition.period,
+          EvaluateLowSampleCountPercentile: definition.evaluateLowSampleCountPercentile,
           EvaluationPeriods: definition.evaluationPeriods,
           ComparisonOperator: definition.comparisonOperator,
           OKActions: ['ok-topic'],

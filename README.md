@@ -36,6 +36,7 @@ custom:
       functionErrors:
         period: 300 # override period
       customAlarm:
+        actionsEnabled: false # Indicates whether actions should be executed during any changes to the alarm state. The default is TRUE
         description: 'My custom alarm'
         namespace: 'AWS/Lambda'
         nameTemplate: $[functionName]-Duration-IMPORTANT-Alarm # Optionally - naming template for the alarms, overwrites globally defined one
@@ -63,6 +64,7 @@ functions:
       - customAlarm
       - name: fooAlarm # creates new alarm or overwrites some properties of the alarm (with the same name) from definitions
         namespace: 'AWS/Lambda'
+        actionsEnabled: false
         metric: errors # define custom metrics here
         threshold: 1
         statistic: Minimum
@@ -170,7 +172,7 @@ custom:
 ```
 ## SNS Topics
 
-If topic name is specified, plugin assumes that topic does not exist and will create it. To use existing topics, specify ARNs or use Fn::ImportValue to use a topic exported with CloudFormation.
+If topic name is specified, plugin assumes that topic does not exist and will create it. To use existing topics, specify ARNs or use CloudFormation (e.g. Fn::ImportValue, Fn::Join and Ref) to refer to existing topics.
 
 #### ARN support
 
@@ -182,15 +184,37 @@ custom:
         topic: arn:aws:sns:${self:region}:${self::accountId}:monitoring-${opt:stage}
 ```
 
-#### Import support
+#### CloudFormation support
 
 ```yaml
-custom:
+custom: 
   alerts:
     topics:
       alarm:
         topic:
           Fn::ImportValue: ServiceMonitoring:monitoring-${opt:stage, 'dev'}
+      ok:
+        topic:
+          Fn::Join:
+            - ':'
+            - - arn:aws:sns
+              - Ref: AWS::Region
+              - Ref: AWS::AccountId
+              - example-ok-topic
+      insufficientData:
+        topic:
+          Ref: ExampleInsufficientdataTopic
+          
+
+resources:
+  Resources:
+    ExampleInsufficientdataTopic:
+      Type: AWS::SNS::Topic
+      Properties:
+        DisplayName: example-insufficientdata-topic
+        Subscription:
+          - Endpoint: me@example.com
+            Protocol: EMAIL
 ```
 
 ## SNS Notifications
@@ -388,6 +412,7 @@ definitions:
     datapointsToAlarm: 1
     comparisonOperator: GreaterThanThreshold
     treatMissingData: missing
+    evaluateLowSampleCountPercentile: ignore
 ```
 
 ## Using a Separate CloudFormation Stack

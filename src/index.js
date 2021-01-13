@@ -141,6 +141,7 @@ class AlertsPlugin {
       alarm = {
         Type: 'AWS::CloudWatch::Alarm',
         Properties: {
+          ActionsEnabled: definition.actionsEnabled,
           Namespace: namespace,
           MetricName: metricId,
           AlarmDescription: definition.description,
@@ -161,11 +162,13 @@ class AlertsPlugin {
         alarm.Properties.Statistic = definition.statistic
       } else {
         alarm.Properties.ExtendedStatistic = definition.statistic
+        alarm.Properties.EvaluateLowSampleCountPercentile = definition.evaluateLowSampleCountPercentile
       }
     } else if (definition.type === 'anomalyDetection') {
       alarm = {
         Type: 'AWS::CloudWatch::Alarm',
         Properties: {
+          ActionsEnabled: definition.actionsEnabled,
           AlarmDescription: definition.description,
           EvaluationPeriods: definition.evaluationPeriods,
           DatapointsToAlarm: definition.datapointsToAlarm,
@@ -234,13 +237,14 @@ class AlertsPlugin {
   _addAlertTopic(key, topics, alertTopics, customAlarmName) {
     const topicConfig = topics[key];
     const isTopicConfigAnObject = _.isObject(topicConfig);
-    const isTopicConfigAnImport = isTopicConfigAnObject && topicConfig.topic['Fn::ImportValue'];
 
     const topic = isTopicConfigAnObject ? topicConfig.topic : topicConfig;
+    const isTopicAnObject = _.isObject(topic);
+
     const notifications = isTopicConfigAnObject ? topicConfig.notifications : [];
 
     if (topic) {
-      if (isTopicConfigAnImport || topic.indexOf('arn:') === 0) {
+      if (isTopicAnObject || topic.indexOf('arn:') === 0) {
         if (customAlarmName) {
           alertTopics[customAlarmName] = alertTopics[customAlarmName] || {};
           alertTopics[customAlarmName][key] = topic;
