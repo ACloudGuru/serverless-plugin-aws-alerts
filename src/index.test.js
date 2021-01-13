@@ -581,6 +581,58 @@ describe('#index', function () {
         }
       });
     });
+
+    it('should not create SNS topic when an object including Fn::Join is passed under "topic"', () => {
+      const topic = {
+        'Fn::Join': [
+          ':',
+          [
+            'arn:aws:sns',
+            '${self:provider.region}',
+            {Ref: 'AWS::AccountId'},
+            'ok-topic'
+          ]
+        ],
+      }
+      const plugin = pluginFactory({
+        topics: {
+          ok: {
+            topic
+          }
+        }
+      });
+
+      const config = plugin.getConfig();
+      const topics = plugin.compileAlertTopics(config);
+
+      expect(topics).toEqual({
+        ok: topic
+      });
+
+      expect(plugin.serverless.service.provider.compiledCloudFormationTemplate.Resources).toEqual({});
+    });
+
+    it('should not create SNS topic when an object including Ref is passed under "topic"', () => {
+      const topic = {
+        Ref: 'OkTopicLogicalId',
+      }
+      const plugin = pluginFactory({
+        topics: {
+          ok: {
+            topic
+          }
+        }
+      });
+
+      const config = plugin.getConfig();
+      const topics = plugin.compileAlertTopics(config);
+
+      expect(topics).toEqual({
+        ok: topic
+      });
+
+      expect(plugin.serverless.service.provider.compiledCloudFormationTemplate.Resources).toEqual({});
+    });
   });
 
   describe('#compileAlarms', () => {
