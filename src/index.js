@@ -162,6 +162,7 @@ class AlertsPlugin {
         alarm.Properties.Statistic = definition.statistic
       } else {
         alarm.Properties.ExtendedStatistic = definition.statistic
+        alarm.Properties.EvaluateLowSampleCountPercentile = definition.evaluateLowSampleCountPercentile
       }
     } else if (definition.type === 'anomalyDetection') {
       alarm = {

@@ -1157,6 +1157,7 @@ describe('#index', function () {
         evaluationPeriods: 1,
         comparisonOperator: 'GreaterThanThreshold',
         treatMissingData: 'breaching',
+        evaluateLowSampleCountPercentile: 'ignore',
       };
 
       const functionName = 'func-name';
@@ -1173,6 +1174,7 @@ describe('#index', function () {
           Threshold: definition.threshold,
           ExtendedStatistic: definition.statistic,
           Period: definition.period,
+          EvaluateLowSampleCountPercentile: definition.evaluateLowSampleCountPercentile,
           EvaluationPeriods: definition.evaluationPeriods,
           ComparisonOperator: definition.comparisonOperator,
           OKActions: ['ok-topic'],

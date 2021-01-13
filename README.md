@@ -390,6 +390,7 @@ definitions:
     datapointsToAlarm: 1
     comparisonOperator: GreaterThanThreshold
     treatMissingData: missing
+    evaluateLowSampleCountPercentile: ignore
 ```
 
 ## Using a Separate CloudFormation Stack
