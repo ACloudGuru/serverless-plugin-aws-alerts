@@ -981,6 +981,35 @@ describe('#index', function () {
 	});
   });
 
+  describe('#getDashboardTemplates', () => {
+    const stage = "production";
+    const plugin = pluginFactory({}, stage);
+
+    it('should return default template if config is true', () => {
+      expect(plugin.getDashboardTemplates(true, stage)).toEqual(['default']);
+    });
+
+    it('should return given template if config is string', () => {
+      expect(plugin.getDashboardTemplates("vertical", stage)).toEqual(["vertical"]);
+    });
+
+    it('should return default template if config is object without templates defined', () => {
+      expect(plugin.getDashboardTemplates({ stages: ['production'] }, stage)).toEqual(["default"]);
+    });
+
+    it('should return defined template if config is object with stages and templates defined', () => {
+      expect(plugin.getDashboardTemplates({ stages: ['production'], templates: ['vertical'] }, stage)).toEqual(["vertical"]);
+    });
+
+    it('should return empty array if dashboard should not be deployed to this stage', () => {
+      expect(plugin.getDashboardTemplates({ stages: ['production'], templates: ['vertical'] }, 'dev')).toEqual([]);
+    });
+
+    it('should return all defined dashboards if config is an array', () => {
+      expect(plugin.getDashboardTemplates(['default', 'vertical'], stage)).toEqual(['default', 'vertical']);
+    });
+  });
+
   describe('#compileCloudWatchAlarms', () => {
     const stage = 'production';
     let plugin = null;

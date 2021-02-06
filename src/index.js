@@ -364,13 +364,23 @@ class AlertsPlugin {
     });
   }
 
-  getDashboardTemplates(configDashboards) {
+  getDashboardTemplates(configDashboards, stage) {
     const configType = typeof configDashboards;
 
     if (configType === 'boolean') {
       return ['default']
     } else if (configType === 'string') {
       return [configDashboards]
+    } else if (configType === 'object' && configDashboards.stages) {
+      if (configDashboards.stages.indexOf(stage) >= 0) {
+        if (configDashboards.templates) {
+          return [].concat(configDashboards.templates);
+        }
+        return ['default'];
+      }
+
+      this.serverless.cli.log(`Info: Not deploying dashboards on stage ${this.options.stage}`);
+      return [];
     } else {
       return [].concat(configDashboards);
     }
@@ -381,7 +391,7 @@ class AlertsPlugin {
     const provider = service.provider;
     const stage = this.options.stage;
     const region = this.options.region || provider.region;
-    const dashboardTemplates = this.getDashboardTemplates(configDashboards);
+    const dashboardTemplates = this.getDashboardTemplates(configDashboards, stage);
 
     const functions = this.serverless.service
       .getAllFunctions()
