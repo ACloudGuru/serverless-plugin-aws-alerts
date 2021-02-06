@@ -449,7 +449,7 @@ dashboards: true
 
 Create a vertical dashboard:
 ```yaml
-dashboards: 'vertical'
+dashboards: vertical
 ```
 
 Create dashboards only in specified stages:
@@ -459,7 +459,7 @@ dashboards:
     - production
     - staging
   templates:
-    - 'default'
+    - default
 ```
 
 ## License
