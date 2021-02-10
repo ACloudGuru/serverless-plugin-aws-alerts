@@ -7,7 +7,10 @@
     "lint": "eslint .",
     "lint-fix": "eslint . --fix",
     "test": "jest --coverage",
-    "test:watch": "jest --watch"
+    "test:watch": "jest --watch",
+    "postinstall": "husky install",
+    "prepublishOnly": "pinst --disable",
+    "postpublish": "pinst --enable"
   },
   "repository": {
     "url": "https://github.com/ACloudGuru/serverless-plugin-aws-alerts.git",
@@ -15,13 +18,12 @@
   },
   "author": "John McKim <john@acloud.guru>",
   "license": "MIT",
-  "peerDependencies": {
-    "serverless": "^2.4.0"
-  },
   "dependencies": {
     "lodash": "^4.17.10"
   },
   "devDependencies": {
+    "@commitlint/config-conventional": "^11.0.0",
+    "commitlint": "^11.0.0",
     "eslint": "^7.19.0",
     "eslint-config-airbnb-base": "^14.2.1",
     "eslint-config-prettier": "^7.2.0",
@@ -30,7 +32,11 @@
     "eslint-plugin-prettier": "^3.3.1",
     "husky": "^5.0.9",
     "jest": "^19.0.2",
+    "pinst": "^2.1.4",
     "prettier": "^2.2.1"
+  },
+  "peerDependencies": {
+    "serverless": "^2.4.0"
   },
   "engines": {
     "node": ">=8.10.0"
