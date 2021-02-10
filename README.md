@@ -17,7 +17,7 @@ OR
 service: your-service
 provider:
   name: aws
-  runtime: nodejs4.3
+  runtime: nodejs12.x
 
 custom:
   alerts:
