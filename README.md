@@ -7,18 +7,48 @@
 A Serverless plugin to easily add CloudWatch alarms to functions
 
 ## Installation
-`npm i serverless-plugin-aws-alerts`
+```bash
+npm i serverless-plugin-aws-alerts
+
 OR
-`yarn add --dev serverless-plugin-aws-alerts`
+
+yarn add --dev serverless-plugin-aws-alerts
+```
 
 ## Usage
 
+### Basic Usage
+```yaml
+# serverless.yml
+
+plugins:
+  - serverless-plugin-aws-alerts
+
+custom:
+  alerts:
+    stages:
+      - production
+    topics:
+      alarm:
+        topic: ${self:service}-${opt:stage}-alerts-alarm
+        notifications:
+          - protocol: email
+            endpoint: name@domain.com # Change this to your email address
+    alarms:
+      - functionErrors
+      - functionThrottles
+```
+
+### Advanced Usage
 ```yaml
 service: your-service
 provider:
   name: aws
   runtime: nodejs12.x
 
+plugins:
+  - serverless-plugin-aws-alerts
+  
 custom:
   alerts:
     stages: # Optionally - select which stages to deploy alarms to
@@ -55,9 +85,6 @@ custom:
       - functionErrors
       - functionInvocations
       - functionDuration
-
-plugins:
-  - serverless-plugin-aws-alerts
 
 functions:
   foo:
