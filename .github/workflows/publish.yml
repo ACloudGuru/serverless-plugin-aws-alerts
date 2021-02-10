@@ -1,0 +1,30 @@
+name: Publish
+
+on:
+  release:
+    types: [published]
+
+jobs:
+  publish:
+
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v2
+
+      - name: Use node 14.x
+        uses: actions/setup-node@v1
+        with:
+          node-version: 14.x
+          registry-url: https://registry.npmjs.org
+
+      - name: Install packages
+        run: yarn install --frozen-lockfile
+
+      - name: Version
+        run: yarn version --new-version ${{ github.event.release.tag_name }} --no-git-tag-version --no-commit-hooks
+
+      - name: Publish to npm
+        run: yarn publish --access public
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}

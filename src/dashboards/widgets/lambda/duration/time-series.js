@@ -1,5 +1,3 @@
-'use strict';
-
 const createWidget = (config) => {
   const widget = {
     type: 'metric',
@@ -11,39 +9,42 @@ const createWidget = (config) => {
       title: config.title,
       view: 'timeSeries',
       stacked: false,
-      metrics: [ ],
+      metrics: [],
       region: config.region,
-      period: 300
-    }
+      period: 300,
+    },
   };
 
-  widget.properties.metrics = config.functions.reduce((accum, f) => {
-    return accum.concat([
-      [
-        'AWS/Lambda',
-        'Duration',
-        'FunctionName',
-        `${config.service}-${config.stage}-${f.name}`,
-        {
-          stat: 'p50',
-          period: 900,
-          region: config.region,
-          label: `${f.name} p50`,
-        }
-      ],[
-        'AWS/Lambda',
-        'Duration',
-        'FunctionName',
-        `${config.service}-${config.stage}-${f.name}`,
-        {
-          stat: 'p90',
-          period: 900,
-          region: config.region,
-          label: `${f.name} p90`,
-        }
-      ]
-    ]);
-  }, []);
+  widget.properties.metrics = config.functions.reduce(
+    (accum, f) =>
+      accum.concat([
+        [
+          'AWS/Lambda',
+          'Duration',
+          'FunctionName',
+          `${config.service}-${config.stage}-${f.name}`,
+          {
+            stat: 'p50',
+            period: 900,
+            region: config.region,
+            label: `${f.name} p50`,
+          },
+        ],
+        [
+          'AWS/Lambda',
+          'Duration',
+          'FunctionName',
+          `${config.service}-${config.stage}-${f.name}`,
+          {
+            stat: 'p90',
+            period: 900,
+            region: config.region,
+            label: `${f.name} p90`,
+          },
+        ],
+      ]),
+    []
+  );
 
   return widget;
 };

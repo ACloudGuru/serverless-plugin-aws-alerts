@@ -1,10 +1,8 @@
-'use strict';
-
 const widgetFactory = require('./widgets/factory');
 
 const dashboards = {
-  'default': require('./configs/default'),
-  'vertical': require('./configs/vertical'),
+  default: require('./configs/default'),
+  vertical: require('./configs/vertical'),
 };
 
 const createDashboard = (service, stage, region, functions, name) => {
@@ -22,7 +20,7 @@ const createDashboard = (service, stage, region, functions, name) => {
       region,
       coordinates: w.coordinates,
       title: w.title,
-      functions
+      functions,
     };
 
     return widget.createWidget(config);

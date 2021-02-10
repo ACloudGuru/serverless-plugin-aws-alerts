@@ -27,8 +27,8 @@ Examples:
 
 ## Todos:
 
-- [ ] Write tests
-- [ ] Write documentation
-- [ ] Fix linting errors
-- [ ] Provide verification config/commands/resources
+[] Write tests
+[] Write documentation
+[] Fix linting errors
+[] Provide verification config/commands/resources
 
