@@ -1,9 +1,8 @@
 name: Publish
 
 on:
-  push:
-    branches:
-      - master
+  release:
+    types: [published]
 
 jobs:
   publish:
@@ -16,14 +15,16 @@ jobs:
       - name: Use node 14.x
         uses: actions/setup-node@v1
         with:
-          node-version: '14.x'
-          registry-url: 'https://registry.npmjs.org'
+          node-version: 14.x
+          registry-url: https://registry.npmjs.org
 
       - name: Install packages
         run: yarn install --frozen-lockfile
 
+      - name: Version
+        run: yarn version --new-version "${GITHUB_REF:11}" --no-git-tag-version --no-commit-hooks
+
       - name: Publish to npm
-        run: yarn release
+        run: yarn publish --access public
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
-

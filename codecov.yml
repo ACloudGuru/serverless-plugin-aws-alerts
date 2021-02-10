@@ -3,7 +3,17 @@ coverage:
     project:
       default:
         target: auto
-        threshold: null
+        threshold: 90%
+        base: auto
+        flags:
+          - unit
+        paths:
+          - "src"
+        branches:
+          - master
+        if_ci_failed: error
+        informational: false
+        only_pulls: false
 
 comment:
   layout: "reach, diff, flags, files"
