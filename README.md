@@ -438,6 +438,30 @@ stack. It will also be automatically removed if you remove your main stack.
 You can also enable the external stack on the command line with `sls deploy --alerts-external-stack`
 which is equivalent to adding `externalStack: true` to the configuration.
 
+## Dashboards
+
+The plugin can create dashboards automatically for basic metrics.
+
+Default setup for a single dashboard:
+```yaml
+dashboards: true
+```
+
+Create a vertical dashboard:
+```yaml
+dashboards: vertical
+```
+
+Create dashboards only in specified stages:
+```yaml
+dashboards:
+  stages:
+    - production
+    - staging
+  templates:
+    - default
+```
+
 ## License
 
 MIT © [A Cloud Guru](https://acloud.guru/)
