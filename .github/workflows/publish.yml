@@ -22,7 +22,7 @@ jobs:
         run: yarn install --frozen-lockfile
 
       - name: Version
-        run: yarn version --new-version "${GITHUB_REF:11}" --no-git-tag-version --no-commit-hooks
+        run: yarn version --new-version ${{ github.event.release.tag_name }} --no-git-tag-version --no-commit-hooks
 
       - name: Publish to npm
         run: yarn publish --access public
