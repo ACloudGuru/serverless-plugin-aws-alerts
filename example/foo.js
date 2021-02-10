@@ -1,9 +1,7 @@
-exports.handler = async (event) => {
-  console.log('Received event', event);
-
+exports.handler = async () => {
   const response = {
     statusCode: 200,
-    body: JSON.stringify({ message: `success - ${Date.now()}` })
+    body: JSON.stringify({ message: `success - ${Date.now()}` }),
   };
 
   return response;

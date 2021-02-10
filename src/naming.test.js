@@ -1,33 +1,37 @@
-'use strict';
-
 const Naming = require('./naming');
 
-describe('#naming', function () {
+describe('#naming', () => {
   describe('#getAlarmCloudFormationRef', () => {
     let naming = null;
-    beforeEach(() => naming = new Naming());
+    beforeEach(() => (naming = new Naming()));
 
     it('should get alarm name', () => {
       const expected = 'PrefixFunctionErrorsAlarm';
-      const actual = naming.getAlarmCloudFormationRef('functionErrors', 'prefix');
+      const actual = naming.getAlarmCloudFormationRef(
+        'functionErrors',
+        'prefix'
+      );
       expect(actual).toEqual(expected);
     });
   });
 
   describe('#getLogMetricCloudFormationRef', () => {
     let naming = null;
-    beforeEach(() => naming = new Naming());
+    beforeEach(() => (naming = new Naming()));
 
     it('should get alarm name', () => {
       const expected = 'PrefixFunctionErrorsLogMetricFilter';
-      const actual = naming.getLogMetricCloudFormationRef('Prefix', 'functionErrors');
+      const actual = naming.getLogMetricCloudFormationRef(
+        'Prefix',
+        'functionErrors'
+      );
       expect(actual).toEqual(expected);
     });
   });
 
   describe('#getPatternMetricName', () => {
     let naming = null;
-    beforeEach(() => naming = new Naming());
+    beforeEach(() => (naming = new Naming()));
 
     it('should get the pattern metric name', () => {
       const expected = 'MetricNamefoo';
@@ -38,40 +42,59 @@ describe('#naming', function () {
 
   describe('#getDimensionsMap', () => {
     let naming = null;
-    beforeEach(() => naming = new Naming());
+    beforeEach(() => (naming = new Naming()));
 
     it('should use function name derived from funcref', () => {
-      const expected = [{ "Name": "Duck", "Value": "QUACK" }, { "Name": "FunctionName", "Value": { 'Ref': 'funcName' } }]
-      const actual = naming.getDimensionsList([{ 'Name': 'FunctionName', 'Value': 'overridden' }, { 'Name': 'Duck', 'Value': 'QUACK' }], 'funcName')
+      const expected = [
+        { Name: 'Duck', Value: 'QUACK' },
+        { Name: 'FunctionName', Value: { Ref: 'funcName' } },
+      ];
+      const actual = naming.getDimensionsList(
+        [
+          { Name: 'FunctionName', Value: 'overridden' },
+          { Name: 'Duck', Value: 'QUACK' },
+        ],
+        'funcName'
+      );
       expect(actual).toEqual(expected);
     });
 
     it('should use function name derived from funcref when dimensions are undefined', () => {
-      const expected = [{ "Name": "FunctionName", "Value": { 'Ref': 'funcName' } }]
-      const actual = naming.getDimensionsList(undefined, 'funcName')
+      const expected = [{ Name: 'FunctionName', Value: { Ref: 'funcName' } }];
+      const actual = naming.getDimensionsList(undefined, 'funcName');
       expect(actual).toEqual(expected);
     });
 
-
     it('should get a mapped dimensions object when FunctionName is missing', () => {
-      const expected = [{ "Name": "Duck", "Value": "QUACK" }, { "Name": "FunctionName", "Value": { 'Ref': 'funcName' } }]
-      const actual = naming.getDimensionsList([{ 'Name': 'Duck', 'Value': 'QUACK' }], 'funcName');
+      const expected = [
+        { Name: 'Duck', Value: 'QUACK' },
+        { Name: 'FunctionName', Value: { Ref: 'funcName' } },
+      ];
+      const actual = naming.getDimensionsList(
+        [{ Name: 'Duck', Value: 'QUACK' }],
+        'funcName'
+      );
       expect(actual).toEqual(expected);
     });
 
     it('should not include FunctionName when omitFunctionNameDimension is true', () => {
-      const expected = [{ "Name": "Duck", "Value": "QUACK" }]
-      const actual = naming.getDimensionsList([{ 'Name': 'Duck', 'Value': 'QUACK' }], 'funcName', true);
+      const expected = [{ Name: 'Duck', Value: 'QUACK' }];
+      const actual = naming.getDimensionsList(
+        [{ Name: 'Duck', Value: 'QUACK' }],
+        'funcName',
+        true
+      );
       expect(actual).toEqual(expected);
     });
   });
 
   describe('#getAlarmName', () => {
     let naming = null;
-    beforeEach(() => naming = new Naming());
+    beforeEach(() => (naming = new Naming()));
 
     it('should interpolate alarm name', () => {
-      const template = '$[functionName]-$[functionId]-$[metricName]-$[metricId]';
+      const template =
+        '$[functionName]-$[functionId]-$[metricName]-$[metricId]';
       const functionName = 'function';
       const functionLogicalId = 'functionId';
       const metricName = 'metric';
@@ -79,13 +102,21 @@ describe('#naming', function () {
       const stackName = 'fooservice-dev';
 
       const expected = `${stackName}-${functionName}-${functionLogicalId}-${metricName}-${metricId}`;
-      const actual = naming.getAlarmName({ template, functionName, functionLogicalId, metricName, metricId, stackName });
+      const actual = naming.getAlarmName({
+        template,
+        functionName,
+        functionLogicalId,
+        metricName,
+        metricId,
+        stackName,
+      });
 
       expect(actual).toEqual(expected);
     });
 
     it('should interpolate alarm prefix', () => {
-      const template = '$[functionName]-$[functionId]-$[metricName]-$[metricId]';
+      const template =
+        '$[functionName]-$[functionId]-$[metricName]-$[metricId]';
       const prefixTemplate = 'notTheStackName';
       const functionName = 'function';
       const functionLogicalId = 'functionId';
@@ -94,13 +125,22 @@ describe('#naming', function () {
       const stackName = 'fooservice-dev';
 
       const expected = `notTheStackName-${functionName}-${functionLogicalId}-${metricName}-${metricId}`;
-      const actual = naming.getAlarmName({ template, prefixTemplate, functionName, functionLogicalId, metricName, metricId, stackName });
+      const actual = naming.getAlarmName({
+        template,
+        prefixTemplate,
+        functionName,
+        functionLogicalId,
+        metricName,
+        metricId,
+        stackName,
+      });
 
       expect(actual).toEqual(expected);
     });
 
     it('should interpolate an empty alarm prefix', () => {
-      const template = '$[functionName]-$[functionId]-$[metricName]-$[metricId]';
+      const template =
+        '$[functionName]-$[functionId]-$[metricName]-$[metricId]';
       const prefixTemplate = '';
       const functionName = 'function';
       const functionLogicalId = 'functionId';
@@ -109,7 +149,15 @@ describe('#naming', function () {
       const stackName = 'fooservice-dev';
 
       const expected = `${functionName}-${functionLogicalId}-${metricName}-${metricId}`;
-      const actual = naming.getAlarmName({ template, prefixTemplate, functionName, functionLogicalId, metricName, metricId, stackName });
+      const actual = naming.getAlarmName({
+        template,
+        prefixTemplate,
+        functionName,
+        functionLogicalId,
+        metricName,
+        metricId,
+        stackName,
+      });
 
       expect(actual).toEqual(expected);
     });

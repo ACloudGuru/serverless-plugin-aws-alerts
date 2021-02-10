@@ -2,12 +2,14 @@
   [![NPM version][npm-image]][npm-url]
   [![Build Status][travis-image]][travis-url]
   [![Dependency Status][daviddm-image]][daviddm-url]
-  [![Coverage percentage][coveralls-image]][coveralls-url]
+  [![codecov][codecov-image]][codecov-url]
 
 A Serverless plugin to easily add CloudWatch alarms to functions
 
 ## Installation
 `npm i serverless-plugin-aws-alerts`
+OR
+`yarn add --dev serverless-plugin-aws-alerts`
 
 ## Usage
 
@@ -187,7 +189,7 @@ custom:
 #### CloudFormation support
 
 ```yaml
-custom: 
+custom:
   alerts:
     topics:
       alarm:
@@ -204,7 +206,6 @@ custom:
       insufficientData:
         topic:
           Ref: ExampleInsufficientdataTopic
-          
 
 resources:
   Resources:
@@ -473,5 +474,5 @@ MIT © [A Cloud Guru](https://acloud.guru/)
 [travis-url]: https://travis-ci.org/ACloudGuru/serverless-plugin-aws-alerts
 [daviddm-image]: https://david-dm.org/ACloudGuru/serverless-plugin-aws-alerts.svg?theme=shields.io
 [daviddm-url]: https://david-dm.org/ACloudGuru/serverless-plugin-aws-alerts
-[coveralls-image]: https://coveralls.io/repos/ACloudGuru/serverless-plugin-aws-alerts/badge.svg
-[coveralls-url]: https://coveralls.io/r/ACloudGuru/serverless-plugin-aws-alerts
+[codecov-image]: https://codecov.io/gh/ACloudGuru/serverless-plugin-aws-alerts/branch/master/graph/badge.svg?token=uC4maLoz3W
+[codecov-url]: https://codecov.io/gh/ACloudGuru/serverless-plugin-aws-alerts

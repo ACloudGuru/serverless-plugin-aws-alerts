@@ -1,5 +1,3 @@
-'use strict';
-
 const createWidget = (config) => {
   const apiName = `${config.stage}-${config.service}`;
 
@@ -14,13 +12,37 @@ const createWidget = (config) => {
       view: 'timeSeries',
       stacked: false,
       metrics: [
-          [ 'AWS/ApiGateway', 'IntegrationLatency', 'ApiName', apiName, { stat: 'p50', period: 900, region: config.region } ],
-          [ 'AWS/ApiGateway', 'Latency', 'ApiName', apiName, { stat: 'p50', period: 900, region: config.region } ],
-          [ 'AWS/ApiGateway', 'IntegrationLatency', 'ApiName', apiName, { stat: 'p90', period: 900, region: config.region } ],
-          [ 'AWS/ApiGateway', 'Latency', 'ApiName', apiName, { stat: 'p90', period: 900, region: config.region } ]
+        [
+          'AWS/ApiGateway',
+          'IntegrationLatency',
+          'ApiName',
+          apiName,
+          { stat: 'p50', period: 900, region: config.region },
+        ],
+        [
+          'AWS/ApiGateway',
+          'Latency',
+          'ApiName',
+          apiName,
+          { stat: 'p50', period: 900, region: config.region },
+        ],
+        [
+          'AWS/ApiGateway',
+          'IntegrationLatency',
+          'ApiName',
+          apiName,
+          { stat: 'p90', period: 900, region: config.region },
+        ],
+        [
+          'AWS/ApiGateway',
+          'Latency',
+          'ApiName',
+          apiName,
+          { stat: 'p90', period: 900, region: config.region },
+        ],
       ],
       region: config.region,
-    }
+    },
   };
 
   return widget;

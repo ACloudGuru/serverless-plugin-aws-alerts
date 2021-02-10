@@ -1,5 +1,3 @@
-'use strict';
-
 const createWidget = (config) => {
   const widget = {
     type: 'metric',
@@ -11,18 +9,23 @@ const createWidget = (config) => {
       title: config.title,
       view: 'timeSeries',
       stacked: false,
-      metrics: [ ],
+      metrics: [],
       region: config.region,
-      period: 300
-    }
+      period: 300,
+    },
   };
 
   // TODO for a GSI add "GlobalSecondaryIndexName", "index name" to end
   widget.properties.metrics = [
-    [ 'AWS/DynamoDB', 'ProvisionedReadCapacityUnits', 'TableName', config.table.name ],
-    [ '.', 'ConsumedReadCapacityUnits', '.', '.' ],
-    [ '.', 'ProvisionedWriteCapacityUnits', '.', '.' ],
-    [ '.', 'ConsumedWriteCapacityUnits', '.', '.' ],
+    [
+      'AWS/DynamoDB',
+      'ProvisionedReadCapacityUnits',
+      'TableName',
+      config.table.name,
+    ],
+    ['.', 'ConsumedReadCapacityUnits', '.', '.'],
+    ['.', 'ProvisionedWriteCapacityUnits', '.', '.'],
+    ['.', 'ConsumedWriteCapacityUnits', '.', '.'],
   ];
 
   return widget;

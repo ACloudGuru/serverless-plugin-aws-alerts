@@ -1,6 +1,3 @@
-exports.handler = (event, context, cb) => {
-  console.log('Received event', event);
-  console.log('Blah');
-
+exports.handler = (_, __, cb) => {
   cb(new Error('This is an error'));
 };
