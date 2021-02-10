@@ -1,5 +1,3 @@
-'use strict';
-
 const _ = require('lodash');
 const path = require('path');
 
@@ -11,20 +9,20 @@ const pluginFactory = (alarmsConfig, s) => {
   const stage = s || 'dev';
   const functions = {
     foo: {
-      name: 'foo'
-    }
+      name: 'foo',
+    },
   };
 
   const serverless = {
     cli: {
-      log: console.log
+      log: console.log, // eslint-disable-line no-console
     },
     config: {
-      servicePath: testServicePath
+      servicePath: testServicePath,
     },
     service: {
       custom: {
-        alerts: alarmsConfig
+        alerts: alarmsConfig,
       },
       getAllFunctions: () => Object.keys(functions),
       getFunction: (name) => functions[name],
@@ -35,23 +33,21 @@ const pluginFactory = (alarmsConfig, s) => {
       },
       service: 'fooservice',
     },
-    getProvider: () => {
-      return {
-        naming: {
-          getLambdaLogicalId: (name) => `${_.upperFirst(name)}LambdaFunction`,
-          getLogGroupLogicalId: (name) => name,
-          getLogGroupName: (name) => `/aws/lambda/${name}`,
-          getStackName: () => `fooservice-${stage}`,
-        }
-      };
-    }
+    getProvider: () => ({
+      naming: {
+        getLambdaLogicalId: (name) => `${_.upperFirst(name)}LambdaFunction`,
+        getLogGroupLogicalId: (name) => name,
+        getLogGroupName: (name) => `/aws/lambda/${name}`,
+        getStackName: () => `fooservice-${stage}`,
+      },
+    }),
   };
   return new Plugin(serverless, {
     stage,
   });
 };
 
-describe('#index', function () {
+describe('#index', () => {
   describe('#getConfig', () => {
     it('should get config', () => {
       const expected = {};
@@ -80,21 +76,23 @@ describe('#index', function () {
       const testAlarm = {};
       const alarms = ['test'];
       const definitions = {
-        'test': testAlarm,
+        test: testAlarm,
       };
 
       const alarmsConfig = plugin.getAlarms(alarms, definitions);
-      expect(alarmsConfig).toEqual([{
-        name: 'test',
-        enabled: true,
-        type: 'static'
-      }]);
+      expect(alarmsConfig).toEqual([
+        {
+          name: 'test',
+          enabled: true,
+          type: 'static',
+        },
+      ]);
     });
 
     it('should get alarms config by object', () => {
       const testAlarm = {
         enabled: true,
-        type: 'static'
+        type: 'static',
       };
       const alarms = [testAlarm];
       const definitions = {};
@@ -115,31 +113,33 @@ describe('#index', function () {
     it('should merge alarm with definition', () => {
       const testAlarm = {
         name: 'testAlarm',
-        threshold: 100
+        threshold: 100,
       };
       const alarms = [testAlarm];
       const definitions = {
         testAlarm: {
           threshold: 1,
-          statistic: 'Sum'
-        }
+          statistic: 'Sum',
+        },
       };
 
       const alarmsConfig = plugin.getAlarms(alarms, definitions);
-      expect(alarmsConfig).toEqual([{
-        name: 'testAlarm',
-        enabled: true,
-        type: 'static',
-        threshold: 100,
-        statistic: 'Sum'
-      }]);
+      expect(alarmsConfig).toEqual([
+        {
+          name: 'testAlarm',
+          enabled: true,
+          type: 'static',
+          threshold: 100,
+          statistic: 'Sum',
+        },
+      ]);
     });
 
     it('should import alarms from CloudFormation', () => {
       const testAlarm = {
-        'Fn::ImportValue': "ServiceMonitoring:monitoring-${opt:stage, 'dev'}",
+        'Fn::ImportValue': "ServiceMonitoring:monitoring-${opt:stage, 'dev'}", // eslint-disable-line
         enabled: true,
-        type: 'static'
+        type: 'static',
       };
       const alarms = [testAlarm];
       const definitions = {};
@@ -165,26 +165,6 @@ describe('#index', function () {
     it('should throw if no definitions argument', () => {
       expect(() => {
         plugin.getGlobalAlarms({});
-      }).toThrow();
-    });
-  });
-
-  describe('#getFunctionAlarms', () => {
-    let plugin = null;
-
-    beforeEach(() => {
-      plugin = pluginFactory({});
-    });
-
-    it('should throw if no config argument', () => {
-      expect(() => {
-        plugin.getFunctionAlarms({});
-      }).toThrow();
-    });
-
-    it('should throw if no definitions argument', () => {
-      expect(() => {
-        plugin.getFunctionAlarms({}, {});
       }).toThrow();
     });
   });
@@ -215,8 +195,8 @@ describe('#index', function () {
             evaluationPeriods: 2,
             datapointsToAlarm: 1,
             comparisonOperator: 'GreaterThanOrEqualToThreshold',
-          }
-        }
+          },
+        },
       };
 
       const plugin = pluginFactory(config);
@@ -287,7 +267,7 @@ describe('#index', function () {
           evaluationPeriods: 2,
           datapointsToAlarm: 1,
           comparisonOperator: 'GreaterThanOrEqualToThreshold',
-        }
+        },
       });
     });
   });
@@ -304,12 +284,10 @@ describe('#index', function () {
           evaluationPeriods: 2,
           datapointsToAlarm: 1,
           comparisonOperator: 'GreaterThanOrEqualToThreshold',
-        }
+        },
       },
       global: ['functionThrottles'],
-      'function': [
-        'functionInvocations',
-      ]
+      function: ['functionInvocations'],
     };
 
     it('should get no alarms', () => {
@@ -323,9 +301,13 @@ describe('#index', function () {
     it('should get empty alarms', () => {
       const plugin = pluginFactory(config);
       const definitions = plugin.getDefinitions(config);
-      const actual = plugin.getFunctionAlarms({
-        alarms: []
-      }, config, definitions);
+      const actual = plugin.getFunctionAlarms(
+        {
+          alarms: [],
+        },
+        config,
+        definitions
+      );
 
       expect(actual).toEqual([]);
     });
@@ -333,33 +315,19 @@ describe('#index', function () {
     it('should get defined function alarms', () => {
       const plugin = pluginFactory(config);
       const definitions = plugin.getDefinitions(config);
-      const actual = plugin.getFunctionAlarms({
-        alarms: [
-          'customAlarm'
-        ]
-      }, config, definitions);
+      const actual = plugin.getFunctionAlarms(
+        {
+          alarms: ['customAlarm'],
+        },
+        config,
+        definitions
+      );
 
-      expect(actual).toEqual([{
-        name: 'customAlarm',
-        enabled: true,
-        type: 'static',
-        namespace: 'AWS/Lambda',
-        metric: 'Invocations',
-        threshold: 5,
-        statistic: 'Minimum',
-        period: 120,
-        evaluationPeriods: 2,
-        datapointsToAlarm: 1,
-        comparisonOperator: 'GreaterThanOrEqualToThreshold',
-      }]);
-    });
-
-    it('should get custom function alarms', () => {
-      const plugin = pluginFactory(config);
-      const definitions = plugin.getDefinitions(config);
-      const actual = plugin.getFunctionAlarms({
-        alarms: [{
-          name: 'fooAlarm',
+      expect(actual).toEqual([
+        {
+          name: 'customAlarm',
+          enabled: true,
+          type: 'static',
           namespace: 'AWS/Lambda',
           metric: 'Invocations',
           threshold: 5,
@@ -368,33 +336,63 @@ describe('#index', function () {
           evaluationPeriods: 2,
           datapointsToAlarm: 1,
           comparisonOperator: 'GreaterThanOrEqualToThreshold',
-        }]
-      }, config, definitions);
+        },
+      ]);
+    });
 
-      expect(actual).toEqual([{
-        name: 'fooAlarm',
-        enabled: true,
-        type: 'static',
-        namespace: 'AWS/Lambda',
-        metric: 'Invocations',
-        threshold: 5,
-        statistic: 'Minimum',
-        period: 120,
-        evaluationPeriods: 2,
-        datapointsToAlarm: 1,
-        comparisonOperator: 'GreaterThanOrEqualToThreshold',
-      }]);
+    it('should get custom function alarms', () => {
+      const plugin = pluginFactory(config);
+      const definitions = plugin.getDefinitions(config);
+      const actual = plugin.getFunctionAlarms(
+        {
+          alarms: [
+            {
+              name: 'fooAlarm',
+              namespace: 'AWS/Lambda',
+              metric: 'Invocations',
+              threshold: 5,
+              statistic: 'Minimum',
+              period: 120,
+              evaluationPeriods: 2,
+              datapointsToAlarm: 1,
+              comparisonOperator: 'GreaterThanOrEqualToThreshold',
+            },
+          ],
+        },
+        config,
+        definitions
+      );
+
+      expect(actual).toEqual([
+        {
+          name: 'fooAlarm',
+          enabled: true,
+          type: 'static',
+          namespace: 'AWS/Lambda',
+          metric: 'Invocations',
+          threshold: 5,
+          statistic: 'Minimum',
+          period: 120,
+          evaluationPeriods: 2,
+          datapointsToAlarm: 1,
+          comparisonOperator: 'GreaterThanOrEqualToThreshold',
+        },
+      ]);
     });
 
     it('should throw if definition is missing alarms', () => {
       const plugin = pluginFactory(config);
       const definitions = plugin.getDefinitions(config);
 
-      expect(() => plugin.getFunctionAlarms({
-        alarms: [
-          'missingAlarm'
-        ]
-      }, config, definitions)).toThrow(Error);
+      expect(() =>
+        plugin.getFunctionAlarms(
+          {
+            alarms: ['missingAlarm'],
+          },
+          config,
+          definitions
+        )
+      ).toThrow(Error);
     });
   });
 
@@ -403,18 +401,21 @@ describe('#index', function () {
       const topicArn = 'arn:aws:sns:us-east-1:123456789012:ok-topic';
       const plugin = pluginFactory({
         topics: {
-          ok: topicArn
-        }
+          ok: topicArn,
+        },
       });
 
       const config = plugin.getConfig();
       const topics = plugin.compileAlertTopics(config);
 
       expect(topics).toEqual({
-        ok: topicArn
+        ok: topicArn,
       });
 
-      expect(plugin.serverless.service.provider.compiledCloudFormationTemplate.Resources).toEqual({});
+      expect(
+        plugin.serverless.service.provider.compiledCloudFormationTemplate
+          .Resources
+      ).toEqual({});
     });
 
     it('should not create SNS topic when ARN is passed to custom topic', () => {
@@ -453,8 +454,8 @@ describe('#index', function () {
       const topicName = 'ok-topic';
       const plugin = pluginFactory({
         topics: {
-          ok: topicName
-        }
+          ok: topicName,
+        },
       });
 
       const config = plugin.getConfig();
@@ -462,18 +463,21 @@ describe('#index', function () {
 
       expect(topics).toEqual({
         ok: {
-          Ref: `AwsAlertsOk`
-        }
+          Ref: `AwsAlertsOk`,
+        },
       });
 
-      expect(plugin.serverless.service.provider.compiledCloudFormationTemplate.Resources).toEqual({
-        'AwsAlertsOk': {
+      expect(
+        plugin.serverless.service.provider.compiledCloudFormationTemplate
+          .Resources
+      ).toEqual({
+        AwsAlertsOk: {
           Type: 'AWS::SNS::Topic',
           Properties: {
             TopicName: topicName,
             Subscription: [],
-          }
-        }
+          },
+        },
       });
     });
 
@@ -483,12 +487,14 @@ describe('#index', function () {
         topics: {
           ok: {
             topic: topicName,
-            notifications: [{
-              protocol: 'email',
-              endpoint: 'test@email.com',
-            }]
-          }
-        }
+            notifications: [
+              {
+                protocol: 'email',
+                endpoint: 'test@email.com',
+              },
+            ],
+          },
+        },
       });
 
       const config = plugin.getConfig();
@@ -496,21 +502,26 @@ describe('#index', function () {
 
       expect(topics).toEqual({
         ok: {
-          Ref: `AwsAlertsOk`
-        }
+          Ref: `AwsAlertsOk`,
+        },
       });
 
-      expect(plugin.serverless.service.provider.compiledCloudFormationTemplate.Resources).toEqual({
-        'AwsAlertsOk': {
+      expect(
+        plugin.serverless.service.provider.compiledCloudFormationTemplate
+          .Resources
+      ).toEqual({
+        AwsAlertsOk: {
           Type: 'AWS::SNS::Topic',
           Properties: {
             TopicName: topicName,
-            Subscription: [{
-              Protocol: 'email',
-              Endpoint: 'test@email.com',
-            }],
-          }
-        }
+            Subscription: [
+              {
+                Protocol: 'email',
+                Endpoint: 'test@email.com',
+              },
+            ],
+          },
+        },
       });
     });
 
@@ -520,12 +531,12 @@ describe('#index', function () {
           critical: {
             ok: 'critical-ok-topic',
             alert: 'critical-alert-topic',
-            insufficientData: 'critical-insufficientData-topic'
+            insufficientData: 'critical-insufficientData-topic',
           },
           nonCritical: {
-            alarm: 'nonCritical-alarm-topic'
-          }
-        }
+            alarm: 'nonCritical-alarm-topic',
+          },
+        },
       });
 
       const config = plugin.getConfig();
@@ -534,51 +545,54 @@ describe('#index', function () {
       expect(topics).toEqual({
         critical: {
           ok: {
-            Ref: `AwsAlertsCriticalOk`
+            Ref: `AwsAlertsCriticalOk`,
           },
           alert: {
-            Ref: `AwsAlertsCriticalAlert`
+            Ref: `AwsAlertsCriticalAlert`,
           },
           insufficientData: {
-            Ref: `AwsAlertsCriticalInsufficientData`
-          }
+            Ref: `AwsAlertsCriticalInsufficientData`,
+          },
         },
         nonCritical: {
           alarm: {
-            Ref: `AwsAlertsNonCriticalAlarm`
-          }
-        }
+            Ref: `AwsAlertsNonCriticalAlarm`,
+          },
+        },
       });
 
-      expect(plugin.serverless.service.provider.compiledCloudFormationTemplate.Resources).toEqual({
-        'AwsAlertsCriticalOk': {
+      expect(
+        plugin.serverless.service.provider.compiledCloudFormationTemplate
+          .Resources
+      ).toEqual({
+        AwsAlertsCriticalOk: {
           Type: 'AWS::SNS::Topic',
           Properties: {
             TopicName: 'critical-ok-topic',
             Subscription: [],
-          }
+          },
         },
-        'AwsAlertsCriticalAlert': {
+        AwsAlertsCriticalAlert: {
           Type: 'AWS::SNS::Topic',
           Properties: {
             TopicName: 'critical-alert-topic',
             Subscription: [],
-          }
+          },
         },
-        'AwsAlertsCriticalInsufficientData': {
+        AwsAlertsCriticalInsufficientData: {
           Type: 'AWS::SNS::Topic',
           Properties: {
             TopicName: 'critical-insufficientData-topic',
             Subscription: [],
-          }
+          },
         },
-        'AwsAlertsNonCriticalAlarm': {
+        AwsAlertsNonCriticalAlarm: {
           Type: 'AWS::SNS::Topic',
           Properties: {
             TopicName: 'nonCritical-alarm-topic',
             Subscription: [],
-          }
-        }
+          },
+        },
       });
     });
 
@@ -588,59 +602,63 @@ describe('#index', function () {
           ':',
           [
             'arn:aws:sns',
-            '${self:provider.region}',
-            {Ref: 'AWS::AccountId'},
-            'ok-topic'
-          ]
+            '${self:provider.region}', // eslint-disable-line
+            { Ref: 'AWS::AccountId' },
+            'ok-topic',
+          ],
         ],
-      }
+      };
       const plugin = pluginFactory({
         topics: {
           ok: {
-            topic
-          }
-        }
+            topic,
+          },
+        },
       });
 
       const config = plugin.getConfig();
       const topics = plugin.compileAlertTopics(config);
 
       expect(topics).toEqual({
-        ok: topic
+        ok: topic,
       });
 
-      expect(plugin.serverless.service.provider.compiledCloudFormationTemplate.Resources).toEqual({});
+      expect(
+        plugin.serverless.service.provider.compiledCloudFormationTemplate
+          .Resources
+      ).toEqual({});
     });
 
     it('should not create SNS topic when an object including Ref is passed under "topic"', () => {
       const topic = {
         Ref: 'OkTopicLogicalId',
-      }
+      };
       const plugin = pluginFactory({
         topics: {
           ok: {
-            topic
-          }
-        }
+            topic,
+          },
+        },
       });
 
       const config = plugin.getConfig();
       const topics = plugin.compileAlertTopics(config);
 
       expect(topics).toEqual({
-        ok: topic
+        ok: topic,
       });
 
-      expect(plugin.serverless.service.provider.compiledCloudFormationTemplate.Resources).toEqual({});
+      expect(
+        plugin.serverless.service.provider.compiledCloudFormationTemplate
+          .Resources
+      ).toEqual({});
     });
   });
 
   describe('#compileAlarms', () => {
     it('should compile default function alarms', () => {
       const plugin = pluginFactory({
-        'function': [
-          'functionInvocations',
-        ]
+        function: ['functionInvocations'],
       });
 
       const config = plugin.getConfig();
@@ -649,7 +667,10 @@ describe('#index', function () {
 
       plugin.compileAlarms(config, definitions, alertTopics);
 
-      expect(plugin.serverless.service.provider.compiledCloudFormationTemplate.Resources).toEqual({
+      expect(
+        plugin.serverless.service.provider.compiledCloudFormationTemplate
+          .Resources
+      ).toEqual({
         FooFunctionInvocationsAlarm: {
           Type: 'AWS::CloudWatch::Alarm',
           Properties: {
@@ -665,15 +686,17 @@ describe('#index', function () {
             AlarmActions: [],
             OKActions: [],
             InsufficientDataActions: [],
-            Dimensions: [{
-              Name: 'FunctionName',
-              Value: {
-                Ref: 'FooLambdaFunction'
+            Dimensions: [
+              {
+                Name: 'FunctionName',
+                Value: {
+                  Ref: 'FooLambdaFunction',
+                },
               },
-            }],
+            ],
             TreatMissingData: 'missing',
-          }
-        }
+          },
+        },
       });
     });
 
@@ -688,10 +711,10 @@ describe('#index', function () {
             evaluationPeriods: 1,
             datapointsToAlarm: 1,
             comparisonOperator: 'GreaterThanOrEqualToThreshold',
-            pattern: '{$.level > 40}'
-          }
+            pattern: '{$.level > 40}',
+          },
         },
-        'function': ['bunyanErrors']
+        function: ['bunyanErrors'],
       };
 
       const plugin = pluginFactory(config);
@@ -701,7 +724,10 @@ describe('#index', function () {
       const alertTopics = plugin.compileAlertTopics(config);
 
       plugin.compileAlarms(config, definitions, alertTopics);
-      expect(plugin.serverless.service.provider.compiledCloudFormationTemplate.Resources).toEqual({
+      expect(
+        plugin.serverless.service.provider.compiledCloudFormationTemplate
+          .Resources
+      ).toEqual({
         FooBunyanErrorsAlarm: {
           Type: 'AWS::CloudWatch::Alarm',
           Properties: {
@@ -726,12 +752,14 @@ describe('#index', function () {
           Properties: {
             FilterPattern: '{$.level > 40}',
             LogGroupName: '/aws/lambda/foo',
-            MetricTransformations: [{
-              MetricValue: 1,
-              MetricNamespace: 'fooservice-dev',
-              MetricName: 'BunyanErrorsFooLambdaFunction'
-            }],
-          }
+            MetricTransformations: [
+              {
+                MetricValue: 1,
+                MetricNamespace: 'fooservice-dev',
+                MetricName: 'BunyanErrorsFooLambdaFunction',
+              },
+            ],
+          },
         },
         FooLambdaFunctionBunyanErrorsLogMetricFilterOK: {
           Type: 'AWS::Logs::MetricFilter',
@@ -739,20 +767,22 @@ describe('#index', function () {
           Properties: {
             FilterPattern: '',
             LogGroupName: '/aws/lambda/foo',
-            MetricTransformations: [{
-              MetricValue: 0,
-              MetricNamespace: 'fooservice-dev',
-              MetricName: 'BunyanErrorsFooLambdaFunction'
-            }],
+            MetricTransformations: [
+              {
+                MetricValue: 0,
+                MetricNamespace: 'fooservice-dev',
+                MetricName: 'BunyanErrorsFooLambdaFunction',
+              },
+            ],
           },
         },
       });
     });
 
-    it('should use globally defined nameTemplate when it`s not provided in definitions', function () {
+    it('should use globally defined nameTemplate when it`s not provided in definitions', () => {
       let config = {
         nameTemplate: '$[functionName]-global',
-        function: ['functionErrors']
+        function: ['functionErrors'],
       };
 
       const plugin = pluginFactory(config);
@@ -762,7 +792,10 @@ describe('#index', function () {
       const alertTopics = plugin.compileAlertTopics(config);
 
       plugin.compileAlarms(config, definitions, alertTopics);
-      expect(plugin.serverless.service.provider.compiledCloudFormationTemplate.Resources).toEqual({
+      expect(
+        plugin.serverless.service.provider.compiledCloudFormationTemplate
+          .Resources
+      ).toEqual({
         FooFunctionErrorsAlarm: {
           Type: 'AWS::CloudWatch::Alarm',
           Properties: {
@@ -779,23 +812,25 @@ describe('#index', function () {
             AlarmActions: [],
             OKActions: [],
             InsufficientDataActions: [],
-            Dimensions: [{
-              Name: 'FunctionName',
-              Value: {
-                Ref: 'FooLambdaFunction'
+            Dimensions: [
+              {
+                Name: 'FunctionName',
+                Value: {
+                  Ref: 'FooLambdaFunction',
+                },
               },
-            }],
+            ],
             TreatMissingData: 'missing',
-          }
-        }
+          },
+        },
       });
     });
 
-    it('should use globally defined prefixTemplate when it`s not provided in definitions', function () {
+    it('should use globally defined prefixTemplate when it`s not provided in definitions', () => {
       let config = {
         nameTemplate: '$[functionName]-global',
         prefixTemplate: 'notTheStackName',
-        function: ['functionErrors']
+        function: ['functionErrors'],
       };
 
       const plugin = pluginFactory(config);
@@ -805,7 +840,10 @@ describe('#index', function () {
       const alertTopics = plugin.compileAlertTopics(config);
 
       plugin.compileAlarms(config, definitions, alertTopics);
-      expect(plugin.serverless.service.provider.compiledCloudFormationTemplate.Resources).toEqual({
+      expect(
+        plugin.serverless.service.provider.compiledCloudFormationTemplate
+          .Resources
+      ).toEqual({
         FooFunctionErrorsAlarm: {
           Type: 'AWS::CloudWatch::Alarm',
           Properties: {
@@ -822,27 +860,29 @@ describe('#index', function () {
             AlarmActions: [],
             OKActions: [],
             InsufficientDataActions: [],
-            Dimensions: [{
-              Name: 'FunctionName',
-              Value: {
-                Ref: 'FooLambdaFunction'
+            Dimensions: [
+              {
+                Name: 'FunctionName',
+                Value: {
+                  Ref: 'FooLambdaFunction',
+                },
               },
-            }],
+            ],
             TreatMissingData: 'missing',
-          }
-        }
+          },
+        },
       });
     });
 
-    it('should overwrite globally defined nameTemplate using definitions', function () {
+    it('should overwrite globally defined nameTemplate using definitions', () => {
       let config = {
         nameTemplate: '$[functionName]-global',
         definitions: {
           functionErrors: {
-            nameTemplate: '$[functionName]-local'
-          }
+            nameTemplate: '$[functionName]-local',
+          },
         },
-        function: ['functionErrors']
+        function: ['functionErrors'],
       };
 
       const plugin = pluginFactory(config);
@@ -852,7 +892,10 @@ describe('#index', function () {
       const alertTopics = plugin.compileAlertTopics(config);
 
       plugin.compileAlarms(config, definitions, alertTopics);
-      expect(plugin.serverless.service.provider.compiledCloudFormationTemplate.Resources).toEqual({
+      expect(
+        plugin.serverless.service.provider.compiledCloudFormationTemplate
+          .Resources
+      ).toEqual({
         FooFunctionErrorsAlarm: {
           Type: 'AWS::CloudWatch::Alarm',
           Properties: {
@@ -869,29 +912,31 @@ describe('#index', function () {
             AlarmActions: [],
             OKActions: [],
             InsufficientDataActions: [],
-            Dimensions: [{
-              Name: 'FunctionName',
-              Value: {
-                Ref: 'FooLambdaFunction'
+            Dimensions: [
+              {
+                Name: 'FunctionName',
+                Value: {
+                  Ref: 'FooLambdaFunction',
+                },
               },
-            }],
+            ],
             TreatMissingData: 'missing',
-          }
-        }
+          },
+        },
       });
     });
 
-    it('should overwrite globally defined prefixTemplate using definitions', function () {
+    it('should overwrite globally defined prefixTemplate using definitions', () => {
       let config = {
         nameTemplate: '$[functionName]-global',
         prefixTemplate: 'notTheStackName',
         definitions: {
           functionErrors: {
             nameTemplate: '$[functionName]-local',
-            prefixTemplate: 'somethingCompletelyCustom'
-          }
+            prefixTemplate: 'somethingCompletelyCustom',
+          },
         },
-        function: ['functionErrors']
+        function: ['functionErrors'],
       };
 
       const plugin = pluginFactory(config);
@@ -901,7 +946,10 @@ describe('#index', function () {
       const alertTopics = plugin.compileAlertTopics(config);
 
       plugin.compileAlarms(config, definitions, alertTopics);
-      expect(plugin.serverless.service.provider.compiledCloudFormationTemplate.Resources).toEqual({
+      expect(
+        plugin.serverless.service.provider.compiledCloudFormationTemplate
+          .Resources
+      ).toEqual({
         FooFunctionErrorsAlarm: {
           Type: 'AWS::CloudWatch::Alarm',
           Properties: {
@@ -918,71 +966,73 @@ describe('#index', function () {
             AlarmActions: [],
             OKActions: [],
             InsufficientDataActions: [],
-            Dimensions: [{
-              Name: 'FunctionName',
-              Value: {
-                Ref: 'FooLambdaFunction'
+            Dimensions: [
+              {
+                Name: 'FunctionName',
+                Value: {
+                  Ref: 'FooLambdaFunction',
+                },
               },
-            }],
+            ],
             TreatMissingData: 'missing',
-          }
-        }
+          },
+        },
       });
-	});
+    });
 
-	it('should skip alarms that are marked disabled', () => {
-		let config = {
-			definitions: {
-				functionErrors: {
-					enabled: false
-				}
-			},
-			function: [
-				'functionErrors',
-				'functionInvocations'
-			]
-		};
+    it('should skip alarms that are marked disabled', () => {
+      let config = {
+        definitions: {
+          functionErrors: {
+            enabled: false,
+          },
+        },
+        function: ['functionErrors', 'functionInvocations'],
+      };
 
-		const plugin = pluginFactory(config);
+      const plugin = pluginFactory(config);
 
-		config = plugin.getConfig();
-		const definitions = plugin.getDefinitions(config);
-		const alertTopics = plugin.compileAlertTopics(config);
+      config = plugin.getConfig();
+      const definitions = plugin.getDefinitions(config);
+      const alertTopics = plugin.compileAlertTopics(config);
 
-		plugin.compileAlarms(config, definitions, alertTopics);
-		expect(plugin.serverless.service.provider.compiledCloudFormationTemplate.Resources).toEqual({
-			FooFunctionInvocationsAlarm: {
-				Type: 'AWS::CloudWatch::Alarm',
-				Properties: {
-          ActionsEnabled: true,
-					Namespace: 'AWS/Lambda',
-					MetricName: 'Invocations',
-					Threshold: 100,
-					Statistic: 'Sum',
-					Period: 60,
-					EvaluationPeriods: 1,
-					DatapointsToAlarm: 1,
-					ComparisonOperator: 'GreaterThanOrEqualToThreshold',
-					Dimensions: [
-						{
-							Name: 'FunctionName',
-							Value: {
-								Ref: 'FooLambdaFunction'
-							}
-						}
-					],
-					AlarmActions: [],
-					OKActions: [],
-					InsufficientDataActions: [],
-					TreatMissingData: 'missing'
-				}
-			}
-		});
-	});
+      plugin.compileAlarms(config, definitions, alertTopics);
+      expect(
+        plugin.serverless.service.provider.compiledCloudFormationTemplate
+          .Resources
+      ).toEqual({
+        FooFunctionInvocationsAlarm: {
+          Type: 'AWS::CloudWatch::Alarm',
+          Properties: {
+            ActionsEnabled: true,
+            Namespace: 'AWS/Lambda',
+            MetricName: 'Invocations',
+            Threshold: 100,
+            Statistic: 'Sum',
+            Period: 60,
+            EvaluationPeriods: 1,
+            DatapointsToAlarm: 1,
+            ComparisonOperator: 'GreaterThanOrEqualToThreshold',
+            Dimensions: [
+              {
+                Name: 'FunctionName',
+                Value: {
+                  Ref: 'FooLambdaFunction',
+                },
+              },
+            ],
+            AlarmActions: [],
+            OKActions: [],
+            InsufficientDataActions: [],
+            TreatMissingData: 'missing',
+          },
+        },
+      });
+    });
   });
 
   describe('#getDashboardTemplates', () => {
-    const stage = "production";
+    const stage = 'production';
     const plugin = pluginFactory({}, stage);
 
     it('should return default template if config is true', () => {
@@ -990,23 +1040,39 @@ describe('#index', function () {
     });
 
     it('should return given template if config is string', () => {
-      expect(plugin.getDashboardTemplates("vertical", stage)).toEqual(["vertical"]);
+      expect(plugin.getDashboardTemplates('vertical', stage)).toEqual([
+        'vertical',
+      ]);
     });
 
     it('should return default template if config is object without templates defined', () => {
-      expect(plugin.getDashboardTemplates({ stages: ['production'] }, stage)).toEqual(["default"]);
+      expect(
+        plugin.getDashboardTemplates({ stages: ['production'] }, stage)
+      ).toEqual(['default']);
     });
 
     it('should return defined template if config is object with stages and templates defined', () => {
-      expect(plugin.getDashboardTemplates({ stages: ['production'], templates: ['vertical'] }, stage)).toEqual(["vertical"]);
+      expect(
+        plugin.getDashboardTemplates(
+          { stages: ['production'], templates: ['vertical'] },
+          stage
+        )
+      ).toEqual(['vertical']);
     });
 
     it('should return empty array if dashboard should not be deployed to this stage', () => {
-      expect(plugin.getDashboardTemplates({ stages: ['production'], templates: ['vertical'] }, 'dev')).toEqual([]);
+      expect(
+        plugin.getDashboardTemplates(
+          { stages: ['production'], templates: ['vertical'] },
+          'dev'
+        )
+      ).toEqual([]);
     });
 
     it('should return all defined dashboards if config is an array', () => {
-      expect(plugin.getDashboardTemplates(['default', 'vertical'], stage)).toEqual(['default', 'vertical']);
+      expect(
+        plugin.getDashboardTemplates(['default', 'vertical'], stage)
+      ).toEqual(['default', 'vertical']);
     });
   });
 
@@ -1038,6 +1104,7 @@ describe('#index', function () {
       plugin.compileAlarms = jest.fn();
     });
 
+    /* eslint-disable jest/expect-expect */
     it('should compile alarms - by default', () => {
       const config = {};
       const definitions = {};
@@ -1054,7 +1121,7 @@ describe('#index', function () {
 
     it('should compile alarms - for stage', () => {
       const config = {
-        stages: [stage]
+        stages: [stage],
       };
       const definitions = {};
       const alertTopics = {};
@@ -1067,6 +1134,7 @@ describe('#index', function () {
 
       expectCompiled(config, definitions, alertTopics);
     });
+    /* eslint-enable jest/expect-expect */
 
     it('should not compile alarms without config', () => {
       plugin.getConfig.mockImplementation(() => null);
@@ -1082,7 +1150,7 @@ describe('#index', function () {
 
     it('should not compile alarms on invalid stage', () => {
       plugin.getConfig.mockImplementation(() => ({
-        stages: ['blah']
+        stages: ['blah'],
       }));
 
       plugin.compile();
@@ -1130,7 +1198,12 @@ describe('#index', function () {
       const functionName = 'func-name';
       const functionRef = 'func-ref';
 
-      const cf = plugin.getAlarmCloudFormation(alertTopics, definition, functionName, functionRef);
+      const cf = plugin.getAlarmCloudFormation(
+        alertTopics,
+        definition,
+        functionName,
+        functionRef
+      );
 
       expect(cf).toEqual({
         Type: 'AWS::CloudWatch::Alarm',
@@ -1146,17 +1219,18 @@ describe('#index', function () {
           OKActions: ['ok-topic'],
           AlarmActions: ['alarm-topic'],
           InsufficientDataActions: ['insufficientData-topic'],
-          Dimensions: [{
-            Name: 'FunctionName',
-            Value: {
-              Ref: functionRef,
-            }
-          }],
+          Dimensions: [
+            {
+              Name: 'FunctionName',
+              Value: {
+                Ref: functionRef,
+              },
+            },
+          ],
           TreatMissingData: 'breaching',
-        }
+        },
       });
     });
-
 
     it('should add nested actions - create topics', () => {
       const alertTopics = {
@@ -1169,7 +1243,7 @@ describe('#index', function () {
           ok: 'nonCritical-ok-topic',
           alarm: 'nonCritical-alarm-topic',
           insufficientData: 'nonCritical-insufficientData-topic',
-        }
+        },
       };
 
       const definition = {
@@ -1186,13 +1260,18 @@ describe('#index', function () {
         treatMissingData: 'breaching',
         okActions: ['critical', 'nonCritical'],
         alarmActions: ['critical', 'nonCritical'],
-        insufficientDataActions: ['critical', 'nonCritical']
+        insufficientDataActions: ['critical', 'nonCritical'],
       };
 
       const functionName = 'func-name';
       const functionRef = 'func-ref';
 
-      const cf = plugin.getAlarmCloudFormation(alertTopics, definition, functionName, functionRef);
+      const cf = plugin.getAlarmCloudFormation(
+        alertTopics,
+        definition,
+        functionName,
+        functionRef
+      );
 
       expect(cf).toEqual({
         Type: 'AWS::CloudWatch::Alarm',
@@ -1207,15 +1286,20 @@ describe('#index', function () {
           ComparisonOperator: definition.comparisonOperator,
           OKActions: ['critical-ok-topic', 'nonCritical-ok-topic'],
           AlarmActions: ['critical-alarm-topic', 'nonCritical-alarm-topic'],
-          InsufficientDataActions: ['critical-insufficientData-topic', 'nonCritical-insufficientData-topic'],
-          Dimensions: [{
-            Name: 'FunctionName',
-            Value: {
-              Ref: functionRef,
-            }
-          }],
+          InsufficientDataActions: [
+            'critical-insufficientData-topic',
+            'nonCritical-insufficientData-topic',
+          ],
+          Dimensions: [
+            {
+              Name: 'FunctionName',
+              Value: {
+                Ref: functionRef,
+              },
+            },
+          ],
           TreatMissingData: 'breaching',
-        }
+        },
       });
     });
 
@@ -1244,7 +1328,12 @@ describe('#index', function () {
       const functionName = 'func-name';
       const functionRef = 'func-ref';
 
-      const cf = plugin.getAlarmCloudFormation(alertTopics, definition, functionName, functionRef);
+      const cf = plugin.getAlarmCloudFormation(
+        alertTopics,
+        definition,
+        functionName,
+        functionRef
+      );
 
       expect(cf).toEqual({
         Type: 'AWS::CloudWatch::Alarm',
@@ -1255,20 +1344,23 @@ describe('#index', function () {
           Threshold: definition.threshold,
           ExtendedStatistic: definition.statistic,
           Period: definition.period,
-          EvaluateLowSampleCountPercentile: definition.evaluateLowSampleCountPercentile,
+          EvaluateLowSampleCountPercentile:
+            definition.evaluateLowSampleCountPercentile,
           EvaluationPeriods: definition.evaluationPeriods,
           ComparisonOperator: definition.comparisonOperator,
           OKActions: ['ok-topic'],
           AlarmActions: ['alarm-topic'],
           InsufficientDataActions: ['insufficientData-topic'],
-          Dimensions: [{
-            Name: 'FunctionName',
-            Value: {
-              Ref: functionRef,
-            }
-          }],
+          Dimensions: [
+            {
+              Name: 'FunctionName',
+              Value: {
+                Ref: functionRef,
+              },
+            },
+          ],
           TreatMissingData: 'breaching',
-        }
+        },
       });
     });
 
@@ -1291,13 +1383,21 @@ describe('#index', function () {
         evaluationPeriods: 1,
         comparisonOperator: 'GreaterThanThreshold',
         treatMissingData: 'breaching',
-        dimensions: [{ 'Name': 'Cow', 'Value': 'MOO' }, { 'Name': 'Duck', 'Value': 'QUACK' }]
+        dimensions: [
+          { Name: 'Cow', Value: 'MOO' },
+          { Name: 'Duck', Value: 'QUACK' },
+        ],
       };
 
       const functionName = 'func-name';
       const functionRef = 'func-ref';
 
-      const cf = plugin.getAlarmCloudFormation(alertTopics, definition, functionName, functionRef);
+      const cf = plugin.getAlarmCloudFormation(
+        alertTopics,
+        definition,
+        functionName,
+        functionRef
+      );
 
       expect(cf).toEqual({
         Type: 'AWS::CloudWatch::Alarm',
@@ -1313,20 +1413,24 @@ describe('#index', function () {
           OKActions: ['ok-topic'],
           AlarmActions: ['alarm-topic'],
           InsufficientDataActions: ['insufficientData-topic'],
-          Dimensions: [{
-            Name: "Cow",
-            Value: "MOO"
-          }, {
-            Name: "Duck",
-            Value: "QUACK"
-          }, {
-            Name: 'FunctionName',
-            Value: {
-              Ref: functionRef,
-            }
-          }],
+          Dimensions: [
+            {
+              Name: 'Cow',
+              Value: 'MOO',
+            },
+            {
+              Name: 'Duck',
+              Value: 'QUACK',
+            },
+            {
+              Name: 'FunctionName',
+              Value: {
+                Ref: functionRef,
+              },
+            },
+          ],
           TreatMissingData: 'breaching',
-        }
+        },
       });
     });
 
@@ -1354,7 +1458,12 @@ describe('#index', function () {
       const functionName = 'func-name';
       const functionRef = 'func-ref';
 
-      const cf = plugin.getAlarmCloudFormation(alertTopics, definition, functionName, functionRef);
+      const cf = plugin.getAlarmCloudFormation(
+        alertTopics,
+        definition,
+        functionName,
+        functionRef
+      );
 
       expect(cf).toEqual({
         Type: 'AWS::CloudWatch::Alarm',
@@ -1370,14 +1479,16 @@ describe('#index', function () {
           OKActions: ['ok-topic'],
           AlarmActions: ['alarm-topic'],
           InsufficientDataActions: ['insufficientData-topic'],
-          Dimensions: [{
-            Name: 'FunctionName',
-            Value: {
-              Ref: functionRef,
-            }
-          }],
+          Dimensions: [
+            {
+              Name: 'FunctionName',
+              Value: {
+                Ref: functionRef,
+              },
+            },
+          ],
           TreatMissingData: 'breaching',
-        }
+        },
       });
     });
 
@@ -1400,13 +1511,18 @@ describe('#index', function () {
         datapointsToAlarm: 1,
         evaluationPeriods: 1,
         comparisonOperator: 'GreaterThanThreshold',
-        treatMissingData: 'breaching'
+        treatMissingData: 'breaching',
       };
 
       const functionName = 'func-name';
       const functionRef = 'func-ref';
 
-      const cf = plugin.getAlarmCloudFormation(alertTopics, definition, functionName, functionRef);
+      const cf = plugin.getAlarmCloudFormation(
+        alertTopics,
+        definition,
+        functionName,
+        functionRef
+      );
 
       expect(cf).toEqual({
         Type: 'AWS::CloudWatch::Alarm',
@@ -1427,26 +1543,28 @@ describe('#index', function () {
                 Metric: {
                   Namespace: definition.namespace,
                   MetricName: definition.metric,
-                  Dimensions: [{
-                    Name: 'FunctionName',
-                    Value: {
-                      Ref: functionRef,
-                    }
-                  }]
+                  Dimensions: [
+                    {
+                      Name: 'FunctionName',
+                      Value: {
+                        Ref: functionRef,
+                      },
+                    },
+                  ],
                 },
                 Period: definition.period,
-                Stat: definition.statistic
-              }
+                Stat: definition.statistic,
+              },
             },
             {
               Id: 'ad1',
               Expression: `ANOMALY_DETECTION_BAND(m1, ${definition.threshold})`,
               Label: `${definition.metric} (expected)`,
-              ReturnData: true
-            }
+              ReturnData: true,
+            },
           ],
-          ThresholdMetricId: 'ad1'
-        }
+          ThresholdMetricId: 'ad1',
+        },
       });
     });
   });

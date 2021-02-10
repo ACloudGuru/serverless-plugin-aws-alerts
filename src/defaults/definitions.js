@@ -1,5 +1,3 @@
-'use strict';
-
 const lambdaNamespace = 'AWS/Lambda';
 
 module.exports = {
@@ -54,5 +52,5 @@ module.exports = {
     evaluationPeriods: 1,
     datapointsToAlarm: 1,
     comparisonOperator: 'GreaterThanOrEqualToThreshold',
-  }
+  },
 };

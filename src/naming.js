@@ -1,13 +1,9 @@
-'use strict';
-
 const _ = require('lodash');
 
-const getNormalisedName = (name) => {
-  return `${_.upperFirst(name.replace(/-/g, 'Dash').replace(/_/g, 'Underscore'))}`;
-}
+const getNormalisedName = (name) =>
+  `${_.upperFirst(name.replace(/-/g, 'Dash').replace(/_/g, 'Underscore'))}`;
 
 class Naming {
-
   getAlarmCloudFormationRef(alarmName, prefix) {
     const normalizePrefix = getNormalisedName(prefix);
     const normalizedName = getNormalisedName(alarmName);
@@ -25,21 +21,21 @@ class Naming {
 
   getDimensionsList(dimensionsList, funcRef, omitDefaultDimension) {
     if (omitDefaultDimension) {
-      return dimensionsList || []
+      return dimensionsList || [];
     }
 
-    let funcNameDimension = {
-      'Name': 'FunctionName',
-      'Value': {
-        Ref: funcRef
-      }
+    const funcNameDimension = {
+      Name: 'FunctionName',
+      Value: {
+        Ref: funcRef,
+      },
     };
 
-    let filteredDimensions = (dimensionsList || []).filter((dim) => {
-      return dim.Name != 'FunctionName'
-    })
+    const filteredDimensions = (dimensionsList || []).filter(
+      (dim) => dim.Name !== 'FunctionName'
+    );
     filteredDimensions.push(funcNameDimension);
-    return filteredDimensions
+    return filteredDimensions;
   }
 
   getAlarmName(options) {
@@ -49,11 +45,14 @@ class Naming {
       .replace('$[metricName]', options.metricName)
       .replace('$[metricId]', options.metricId);
 
-    const prefixTemplate = typeof options.prefixTemplate !== 'undefined'
-      ? options.prefixTemplate
-      : '$[stackName]';
-    const interpolatedPrefix = prefixTemplate
-      .replace('$[stackName]', options.stackName);
+    const prefixTemplate =
+      typeof options.prefixTemplate !== 'undefined'
+        ? options.prefixTemplate
+        : '$[stackName]';
+    const interpolatedPrefix = prefixTemplate.replace(
+      '$[stackName]',
+      options.stackName
+    );
 
     return interpolatedPrefix
       ? `${interpolatedPrefix}-${interpolatedTemplate}`

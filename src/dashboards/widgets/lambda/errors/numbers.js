@@ -1,5 +1,3 @@
-'use strict';
-
 const createWidget = (config) => {
   const widget = {
     type: 'metric',
@@ -10,13 +8,13 @@ const createWidget = (config) => {
     properties: {
       title: config.title,
       view: 'singleValue',
-      metrics: [ ],
+      metrics: [],
       region: config.region,
-      period: 300
-    }
+      period: 300,
+    },
   };
 
-  widget.properties.metrics = config.functions.map(f => ([
+  widget.properties.metrics = config.functions.map((f) => [
     'AWS/Lambda',
     'Errors',
     'FunctionName',
@@ -25,9 +23,9 @@ const createWidget = (config) => {
       stat: 'Sum',
       period: 2592000,
       region: config.region,
-      label: f.name
-    }
-  ]));
+      label: f.name,
+    },
+  ]);
 
   return widget;
 };

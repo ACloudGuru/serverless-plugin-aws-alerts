@@ -1,5 +1,3 @@
-"use strict";
-
 /**
  * The ExternalStack class manages an external CloudFormation stack
  * for the alarms. It is enabled by using this custom option in serverless.yml:
@@ -19,57 +17,54 @@ class ExternalStack {
   constructor(serverless, options) {
     this.serverless = serverless;
     this.options = options;
-    this.provider = this.serverless.getProvider("aws");
+    this.provider = this.serverless.getProvider('aws');
     this.queuedResources = [];
     this.mergedResources = {};
     this.refParameters = {};
     this.stackStatusCodes = {
-      CREATE_COMPLETE: "success",
-      CREATE_IN_PROGRESS: "in_progress",
-      CREATE_FAILED: "failure",
-      DELETE_COMPLETE: "success",
-      DELETE_FAILED: "failure",
-      DELETE_IN_PROGRESS: "in_progress",
-      REVIEW_IN_PROGRESS: "in_progress",
-      ROLLBACK_COMPLETE: "failure",
-      ROLLBACK_FAILED: "failure",
-      ROLLBACK_IN_PROGRESS: "in_progress",
-      UPDATE_COMPLETE: "success",
-      UPDATE_COMPLETE_CLEANUP_IN_PROGRESS: "in_progress",
-      UPDATE_IN_PROGRESS: "in_progress",
-      UPDATE_ROLLBACK_COMPLETE: "failure",
-      UPDATE_ROLLBACK_COMPLETE_CLEANUP_IN_PROGRESS: "in_progress",
-      UPDATE_ROLLBACK_FAILED: "failure",
-      UPDATE_ROLLBACK_IN_PROGRESS: "in_progress",
+      CREATE_COMPLETE: 'success',
+      CREATE_IN_PROGRESS: 'in_progress',
+      CREATE_FAILED: 'failure',
+      DELETE_COMPLETE: 'success',
+      DELETE_FAILED: 'failure',
+      DELETE_IN_PROGRESS: 'in_progress',
+      REVIEW_IN_PROGRESS: 'in_progress',
+      ROLLBACK_COMPLETE: 'failure',
+      ROLLBACK_FAILED: 'failure',
+      ROLLBACK_IN_PROGRESS: 'in_progress',
+      UPDATE_COMPLETE: 'success',
+      UPDATE_COMPLETE_CLEANUP_IN_PROGRESS: 'in_progress',
+      UPDATE_IN_PROGRESS: 'in_progress',
+      UPDATE_ROLLBACK_COMPLETE: 'failure',
+      UPDATE_ROLLBACK_COMPLETE_CLEANUP_IN_PROGRESS: 'in_progress',
+      UPDATE_ROLLBACK_FAILED: 'failure',
+      UPDATE_ROLLBACK_IN_PROGRESS: 'in_progress',
     };
     this.phrases = {
       create: {
-        success: "created successfully",
-        failure: "create failed",
+        success: 'created successfully',
+        failure: 'create failed',
       },
       update: {
-        success: "updated successfully",
-        failure: "updated failed",
+        success: 'updated successfully',
+        failure: 'updated failed',
       },
       delete: {
-        success: "removed successfully",
-        failure: "remove failed",
+        success: 'removed successfully',
+        failure: 'remove failed',
       },
     };
   }
 
   getExternalStackConfig() {
     if (!this.serverless.service.custom.alerts) {
-      return (
-        this.options["alerts-external-stack"] ||
-        ""
-      );
+      return this.options['alerts-external-stack'] || '';
     }
-    
+
     return (
       this.serverless.service.custom.alerts.externalStack ||
-      this.options["alerts-external-stack"] ||
-      ""
+      this.options['alerts-external-stack'] ||
+      ''
     );
   }
 
@@ -77,7 +72,7 @@ class ExternalStack {
     return (
       (this.getExternalStackConfig() &&
         this.getExternalStackConfig().nameSuffix) ||
-      "-alerts"
+      '-alerts'
     );
   }
 
@@ -102,9 +97,9 @@ class ExternalStack {
           preMergedResources
         );
       }
-    } else if (typeof resource === "object") {
+    } else if (typeof resource === 'object') {
       for (const key in resource) {
-        if (key === "Ref" && typeof resource[key] === "string") {
+        if (key === 'Ref' && typeof resource[key] === 'string') {
           // Found a (Lambda function) reference. See if it's unresolved.
           const refName = resource[key];
           if (!preMergedResources[refName]) {
@@ -118,18 +113,18 @@ class ExternalStack {
             ) {
               // Found Lambda function in main stack, create a parameter from it.
               this.refParameters[refName] = {
-                Type: "String",
+                Type: 'String',
                 Default: mainResource.Properties.FunctionName,
               };
             } else {
               this.serverless.cli.log(
-                "Warning: Unresolved external alert stack reference: " + refName
+                `Warning: Unresolved external alert stack reference: ${refName}`
               );
             }
           }
         } else if (
-          key === "DependsOn" &&
-          typeof resource[key] === "string" &&
+          key === 'DependsOn' &&
+          typeof resource[key] === 'string' &&
           parent &&
           childKey
         ) {
@@ -151,8 +146,7 @@ class ExternalStack {
               delete parent[childKey];
             } else {
               this.serverless.cli.log(
-                "Warning: Unresolved external alert stack dependency: " +
-                  refName
+                `Warning: Unresolved external alert stack dependency: ${refName}`
               );
             }
           }
@@ -177,11 +171,11 @@ class ExternalStack {
   mergeQueuedResources() {
     // Make one map of all resources so we can find unresolved references
     const preMergedResources = {};
-    for (let resource of this.queuedResources) {
+    for (const resource of this.queuedResources) {
       Object.assign(preMergedResources, resource);
     }
     // Now find the unresolved references and create parameters from them
-    for (let resource of this.queuedResources) {
+    for (const resource of this.queuedResources) {
       this.fixLambdaFunctionAndLogGroupReferences(
         null,
         null,
@@ -204,10 +198,9 @@ class ExternalStack {
     if (!Object.keys(this.mergedResources).length) {
       // Stack is empty - delete it
       return this.deleteExternalStack(externalStackName, true);
-    } else {
-      // Stack is not empty - deploy it
-      return this.deployExternalStack(externalStackName);
     }
+    // Stack is not empty - deploy it
+    return this.deployExternalStack(externalStackName);
   }
 
   beforeRemoveGlobal() {
@@ -219,73 +212,54 @@ class ExternalStack {
 
   describeExternalStack(externalStackName) {
     return this.provider
-      .request("CloudFormation", "describeStacks", {
+      .request('CloudFormation', 'describeStacks', {
         StackName: externalStackName,
       })
-      .then((response) => {
-        return response.Stacks && response.Stacks[0];
-      })
+      .then((response) => response.Stacks && response.Stacks[0])
       .catch((err) => {
         if (err.message && err.message.match(/does not exist$/)) {
           // Stack doesn't exist yet
           return null;
-        } else {
-          // Some other error, let it throw
-          return Promise.reject(err);
         }
+        // Some other error, let it throw
+        return Promise.reject(err);
       });
   }
 
   waitForExternalStack(externalStackName, operation) {
     let dots = 0;
-    const readMore = () => {
-      return this.describeExternalStack(externalStackName).then((response) => {
+    const readMore = () =>
+      this.describeExternalStack(externalStackName).then((response) => {
         if (!response) {
           // Stack does not exist
-          if (dots) this.serverless.cli.consoleLog("");
+          if (dots) this.serverless.cli.consoleLog('');
           this.serverless.cli.log(
-            "External alert stack " +
-              externalStackName +
-              " removed successfully."
+            `External alert stack ${externalStackName} removed successfully.`
           );
           return;
         }
         const state = this.stackStatusCodes[response.StackStatus];
-        if (state === "in_progress") {
+        if (state === 'in_progress') {
           // Continue until no longer in progress
           this.serverless.cli.printDot();
           dots += 1;
           return new Promise((resolve) => setTimeout(resolve, 5000)).then(
             readMore
           );
-        } else {
-          if (dots) this.serverless.cli.consoleLog("");
-          this.serverless.cli.log(
-            "External alert stack " +
-              externalStackName +
-              " " +
-              this.phrases[operation][state] +
-              " (" +
-              response.StackStatus +
-              ")."
+        }
+        if (dots) this.serverless.cli.consoleLog('');
+        this.serverless.cli.log(
+          `External alert stack ${externalStackName} ${this.phrases[operation][state]} (${response.StackStatus}).`
+        );
+        if (this.stackStatusCodes[response.StackStatus] === 'failure') {
+          // The operation failed, so return an error to Serverless
+          return Promise.reject(
+            new Error(
+              `External alert stack ${externalStackName} ${this.phrases[operation][state]} (${response.StackStatus})`
+            )
           );
-          if (this.stackStatusCodes[response.StackStatus] === "failure") {
-            // The operation failed, so return an error to Serverless
-            return Promise.reject(
-              new Error(
-                "External alert stack " +
-                  externalStackName +
-                  " " +
-                  this.phrases[operation][state] +
-                  " (" +
-                  response.StackStatus +
-                  ")"
-              )
-            );
-          }
         }
       });
-    };
     return readMore();
   }
 
@@ -295,10 +269,10 @@ class ExternalStack {
     const configResources =
       (externalStackConfig && externalStackConfig.resources) || {};
     const compiledCloudFormationTemplate = {
-      AWSTemplateFormatVersion: "2010-09-09",
+      AWSTemplateFormatVersion: '2010-09-09',
       Description:
         configResources.Description ||
-        "External AWS CloudFormation template for alerts",
+        'External AWS CloudFormation template for alerts',
       Metadata: configResources.Metadata || undefined,
       Parameters: Object.assign(
         {},
@@ -322,11 +296,11 @@ class ExternalStack {
     };
     if (
       typeof externalStackConfig &&
-      externalStackConfig.stackTags === "object"
+      externalStackConfig.stackTags === 'object'
     ) {
       // Add custom tags specified only for this stack
       Object.assign(stackTags, externalStackConfig.stackTags);
-    } else if (typeof this.serverless.service.provider.stackTags === "object") {
+    } else if (typeof this.serverless.service.provider.stackTags === 'object') {
       // Add stackTags from Serverless main provider config
       Object.assign(stackTags, this.serverless.service.provider.stackTags);
     }
@@ -344,14 +318,13 @@ class ExternalStack {
             deployParameters,
             stackTags
           );
-        } else {
-          return this.createExternalStack(
-            externalStackName,
-            compiledCloudFormationTemplate,
-            deployParameters,
-            stackTags
-          );
         }
+        return this.createExternalStack(
+          externalStackName,
+          compiledCloudFormationTemplate,
+          deployParameters,
+          stackTags
+        );
       }
     );
   }
@@ -359,11 +332,11 @@ class ExternalStack {
   // From Serverless
   setServersideEncryptionOptions(putParams, deploymentBucketOptions) {
     const encryptionFields = [
-      ["serverSideEncryption", "ServerSideEncryption"],
-      ["sseCustomerAlgorithim", "SSECustomerAlgorithm"],
-      ["sseCustomerKey", "SSECustomerKey"],
-      ["sseCustomerKeyMD5", "SSECustomerKeyMD5"],
-      ["sseKMSKeyId", "SSEKMSKeyId"],
+      ['serverSideEncryption', 'ServerSideEncryption'],
+      ['sseCustomerAlgorithim', 'SSECustomerAlgorithm'],
+      ['sseCustomerKey', 'SSECustomerKey'],
+      ['sseCustomerKeyMD5', 'SSECustomerKeyMD5'],
+      ['sseKMSKeyId', 'SSEKMSKeyId'],
     ];
 
     const params = putParams;
@@ -385,20 +358,20 @@ class ExternalStack {
     // look for china - currently s3.cn-north-1.amazonaws.com.cn
     if (strRegion.match(/cn-/)) return `s3.${strRegion}.amazonaws.com.cn`;
     // default s3 endpoint for other regions
-    return "s3.amazonaws.com";
+    return 's3.amazonaws.com';
   }
 
   // From Serverless
   uploadCloudFormationTemplate(compiledCloudFormationTemplate) {
-    this.serverless.cli.log("Uploading external alerts template to S3...");
+    this.serverless.cli.log('Uploading external alerts template to S3...');
 
     const compiledTemplateFileName =
-      "compiled-cloudformation-alerts-template.json";
+      'compiled-cloudformation-alerts-template.json';
 
     let params = {
       Key: `${this.serverless.service.package.artifactDirectoryName}/${compiledTemplateFileName}`,
       Body: JSON.stringify(compiledCloudFormationTemplate),
-      ContentType: "application/json",
+      ContentType: 'application/json',
     };
 
     const deploymentBucketObject = this.serverless.service.provider
@@ -413,7 +386,7 @@ class ExternalStack {
       .getServerlessDeploymentBucketName()
       .then((bucketName) => {
         params.Bucket = bucketName;
-        return this.provider.request("S3", "upload", params);
+        return this.provider.request('S3', 'upload', params);
       })
       .then(() => {
         // Return the template URL
@@ -432,17 +405,15 @@ class ExternalStack {
     stackTags
   ) {
     this.serverless.cli.log(
-      "Creating external alert stack " +
-        externalStackName +
-        " (" +
-        Object.keys(this.mergedResources).length +
-        " resources configured)..."
+      `Creating external alert stack ${externalStackName} (${
+        Object.keys(this.mergedResources).length
+      } resources configured)...`
     );
 
     // These are mostly the same parameters that Serverless uses in https://github.com/serverless/serverless/blob/master/lib/plugins/aws/deploy/lib/createStack.js
     const params = {
       StackName: externalStackName,
-      OnFailure: "ROLLBACK",
+      OnFailure: 'ROLLBACK',
       Capabilities: [],
       Parameters: deployParameters || [],
       Tags: Object.keys(stackTags).map((key) => ({
@@ -452,18 +423,14 @@ class ExternalStack {
     };
 
     return Promise.resolve()
-      .then(() => {
-        return this.uploadCloudFormationTemplate(
-          compiledCloudFormationTemplate
-        );
-      })
+      .then(() =>
+        this.uploadCloudFormationTemplate(compiledCloudFormationTemplate)
+      )
       .then((templateUrl) => {
         params.TemplateURL = templateUrl;
-        return this.provider.request("CloudFormation", "createStack", params);
+        return this.provider.request('CloudFormation', 'createStack', params);
       })
-      .then(() => {
-        return this.waitForExternalStack(externalStackName, "create");
-      });
+      .then(() => this.waitForExternalStack(externalStackName, 'create'));
   }
 
   updateExternalStack(
@@ -473,11 +440,9 @@ class ExternalStack {
     stackTags
   ) {
     this.serverless.cli.log(
-      "Updating external alert stack " +
-        externalStackName +
-        " (" +
-        Object.keys(this.mergedResources).length +
-        " resources configured)..."
+      `Updating external alert stack ${externalStackName} (${
+        Object.keys(this.mergedResources).length
+      } resources configured)...`
     );
 
     // These are the same parameters that Serverless uses in https://github.com/serverless/serverless/blob/master/lib/plugins/aws/lib/updateStack.js
@@ -492,44 +457,37 @@ class ExternalStack {
     };
 
     return Promise.resolve()
-      .then(() => {
-        return this.uploadCloudFormationTemplate(
-          compiledCloudFormationTemplate
-        );
-      })
+      .then(() =>
+        this.uploadCloudFormationTemplate(compiledCloudFormationTemplate)
+      )
       .then((templateUrl) => {
         params.TemplateURL = templateUrl;
-        return this.provider.request("CloudFormation", "updateStack", params);
+        return this.provider.request('CloudFormation', 'updateStack', params);
       })
-      .then(() => {
-        return this.waitForExternalStack(externalStackName, "update");
-      })
+      .then(() => this.waitForExternalStack(externalStackName, 'update'))
       .then(null, (err) => {
         if (err.message && err.message.match(/^No updates/)) {
           // Stack is unchanged, ignore error
           this.serverless.cli.log(
-            "External alert stack " + externalStackName + " has not changed."
+            `External alert stack ${externalStackName} has not changed.`
           );
           return Promise.resolve();
-        } else {
-          return Promise.reject(err);
         }
+        return Promise.reject(err);
       });
   }
 
   deleteExternalStack(externalStackName, becauseNoResources) {
     this.serverless.cli.log(
-      "Removing external alert stack " +
-        externalStackName +
-        (becauseNoResources ? " (no resources configured)..." : "...")
+      `Removing external alert stack ${externalStackName}${
+        becauseNoResources ? ' (no resources configured)...' : '...'
+      }`
     );
     return this.provider
-      .request("CloudFormation", "deleteStack", {
+      .request('CloudFormation', 'deleteStack', {
         StackName: externalStackName,
       })
-      .then(() => {
-        return this.waitForExternalStack(externalStackName, "delete");
-      });
+      .then(() => this.waitForExternalStack(externalStackName, 'delete'));
   }
 }
 
