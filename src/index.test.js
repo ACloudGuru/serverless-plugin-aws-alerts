@@ -1434,7 +1434,7 @@ describe('#index', () => {
       });
     });
 
-    it('should add AlarmName property when nameTemplate is defined', () => {
+    it('should use nameTemplate when it is defined', () => {
       const alertTopics = {
         ok: 'ok-topic',
         alarm: 'alarm-topic',
@@ -1469,6 +1469,64 @@ describe('#index', () => {
         Type: 'AWS::CloudWatch::Alarm',
         Properties: {
           AlarmName: `fooservice-dev-${functionName}-${functionRef}-${definition.metric}-${definition.metric}`,
+          AlarmDescription: definition.description,
+          Namespace: definition.namespace,
+          MetricName: definition.metric,
+          Threshold: definition.threshold,
+          Period: definition.period,
+          EvaluationPeriods: definition.evaluationPeriods,
+          ComparisonOperator: definition.comparisonOperator,
+          OKActions: ['ok-topic'],
+          AlarmActions: ['alarm-topic'],
+          InsufficientDataActions: ['insufficientData-topic'],
+          Dimensions: [
+            {
+              Name: 'FunctionName',
+              Value: {
+                Ref: functionRef,
+              },
+            },
+          ],
+          TreatMissingData: 'breaching',
+        },
+      });
+    });
+
+    it('should use prefixTemplate when it is defined, even if nameTemplate is not defined', () => {
+      const alertTopics = {
+        ok: 'ok-topic',
+        alarm: 'alarm-topic',
+        insufficientData: 'insufficientData-topic',
+      };
+
+      const definition = {
+        prefixTemplate: 'test-prefix',
+        description: 'An error alarm',
+        type: 'static',
+        name: 'test-alarm',
+        namespace: 'AWS/Lambda',
+        metric: 'Errors',
+        threshold: 1,
+        period: 300,
+        evaluationPeriods: 1,
+        comparisonOperator: 'GreaterThanThreshold',
+        treatMissingData: 'breaching',
+      };
+
+      const functionName = 'func-name';
+      const functionRef = 'func-ref';
+
+      const cf = plugin.getAlarmCloudFormation(
+        alertTopics,
+        definition,
+        functionName,
+        functionRef
+      );
+
+      expect(cf).toEqual({
+        Type: 'AWS::CloudWatch::Alarm',
+        Properties: {
+          AlarmName: `test-prefix-${functionName}-${definition.name}`,
           AlarmDescription: definition.description,
           Namespace: definition.namespace,
           MetricName: definition.metric,
