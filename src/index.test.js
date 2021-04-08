@@ -41,6 +41,9 @@ const pluginFactory = (alarmsConfig, s) => {
         getStackName: () => `fooservice-${stage}`,
       },
     }),
+    configSchemaHandler: {
+      defineFunctionProperties: () => {},
+    },
   };
   return new Plugin(serverless, {
     stage,
