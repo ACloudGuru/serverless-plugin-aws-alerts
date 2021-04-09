@@ -235,7 +235,7 @@ class AlertsPlugin {
       };
     } else {
       throw new Error(
-        `Missing type for alarm ${alarm.name} on function ${functionName}, must be one of 'static' or 'anomalyDetection'`
+        `Missing type for alarm ${definition.name} on function ${functionName}, must be one of 'static' or 'anomalyDetection'`
       );
     }
 
@@ -249,7 +249,18 @@ class AlertsPlugin {
         functionName,
         stackName,
       });
+    } else if (definition.prefixTemplate) {
+      alarm.Properties.AlarmName = this.naming.getAlarmName({
+        template: '$[functionName]-$[metricName]',
+        prefixTemplate: definition.prefixTemplate,
+        functionLogicalId: functionRef,
+        metricName: definition.name || definition.metric,
+        metricId,
+        functionName,
+        stackName,
+      });
     }
+
     return alarm;
   }
 
