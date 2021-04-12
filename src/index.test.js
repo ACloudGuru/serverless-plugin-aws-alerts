@@ -1,5 +1,5 @@
-const _ = require('lodash');
 const path = require('path');
+const { upperFirst } = require('./helpers');
 
 const Plugin = require('./index');
 
@@ -35,7 +35,7 @@ const pluginFactory = (alarmsConfig, s) => {
     },
     getProvider: () => ({
       naming: {
-        getLambdaLogicalId: (name) => `${_.upperFirst(name)}LambdaFunction`,
+        getLambdaLogicalId: (name) => `${upperFirst(name)}LambdaFunction`,
         getLogGroupLogicalId: (name) => name,
         getLogGroupName: (name) => `/aws/lambda/${name}`,
         getStackName: () => `fooservice-${stage}`,

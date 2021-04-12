@@ -1,6 +1,4 @@
-// Try to remove this. Such a large package
-const _ = require('lodash');
-
+const { merge, isString, isObject, union, upperFirst } = require('./helpers');
 const Naming = require('./naming');
 const ExternalStack = require('./external-stack');
 const defaultDefinitions = require('./defaults/definitions');
@@ -41,14 +39,14 @@ class AlertsPlugin {
   }
 
   getDefinitions(config) {
-    return _.merge({}, defaultDefinitions, config.definitions);
+    return merge({}, defaultDefinitions, config.definitions);
   }
 
   getAlarms(alarms, definitions) {
     if (!alarms) return [];
 
     return alarms.reduce((result, alarm) => {
-      if (_.isString(alarm)) {
+      if (isString(alarm)) {
         const definition = definitions[alarm];
 
         if (!definition) {
@@ -67,9 +65,9 @@ class AlertsPlugin {
             }
           )
         );
-      } else if (_.isObject(alarm)) {
+      } else if (isObject(alarm)) {
         result.push(
-          _.merge(
+          merge(
             {
               enabled: true,
               type: 'static',
@@ -88,7 +86,7 @@ class AlertsPlugin {
     if (!config) throw new Error('Missing config argument');
     if (!definitions) throw new Error('Missing definitions argument');
 
-    const alarms = _.union(config.alarms, config.global, config.function);
+    const alarms = union(config.alarms, config.global, config.function);
 
     return this.getAlarms(alarms, definitions);
   }
@@ -189,7 +187,7 @@ class AlertsPlugin {
         },
       };
 
-      if (_.includes(statisticValues, definition.statistic)) {
+      if (statisticValues.includes(definition.statistic)) {
         alarm.Properties.Statistic = definition.statistic;
       } else {
         alarm.Properties.ExtendedStatistic = definition.statistic;
@@ -281,10 +279,10 @@ class AlertsPlugin {
 
   _addAlertTopic(key, topics, alertTopics, customAlarmName) {
     const topicConfig = topics[key];
-    const isTopicConfigAnObject = _.isObject(topicConfig);
+    const isTopicConfigAnObject = isObject(topicConfig);
 
     const topic = isTopicConfigAnObject ? topicConfig.topic : topicConfig;
-    const isTopicAnObject = _.isObject(topic);
+    const isTopicAnObject = isObject(topic);
 
     const notifications = isTopicConfigAnObject
       ? topicConfig.notifications
@@ -300,8 +298,8 @@ class AlertsPlugin {
         }
       } else {
         const cfRef = `AwsAlerts${
-          customAlarmName ? _.upperFirst(customAlarmName) : ''
-        }${_.upperFirst(key)}`;
+          customAlarmName ? upperFirst(customAlarmName) : ''
+        }${upperFirst(key)}`;
         if (customAlarmName) {
           if (!alertTopics[customAlarmName]) {
             alertTopics[customAlarmName] = {};
@@ -413,7 +411,7 @@ class AlertsPlugin {
         definitions
       );
       const alarms = globalAlarms.concat(functionAlarms).map((alarm) =>
-        _.assign(
+        Object.assign(
           {
             nameTemplate: config.nameTemplate,
             prefixTemplate: config.prefixTemplate,
@@ -443,7 +441,7 @@ class AlertsPlugin {
             normalizedFunctionName,
             functionObj
           );
-          _.merge(statements, logMetricCF);
+          merge(statements, logMetricCF);
         } else {
           delete statements[key];
         }
@@ -494,34 +492,31 @@ class AlertsPlugin {
       .getAllFunctions()
       .map((functionName) => ({ name: functionName }));
 
-    const cf = _.chain(dashboardTemplates)
-      .uniq()
-      .reduce((acc, d) => {
-        const dashboard = dashboards.createDashboard(
-          service.service,
-          stage,
-          region,
-          functions,
-          d
-        );
+    const cf = [...new Set(dashboardTemplates)].reduce((acc, d) => {
+      const dashboard = dashboards.createDashboard(
+        service.service,
+        stage,
+        region,
+        functions,
+        d
+      );
 
-        const cfResource =
-          d === 'default' ? 'AlertsDashboard' : `AlertsDashboard${d}`;
-        const dashboardName =
-          d === 'default'
-            ? `${service.service}-${stage}-${region}`
-            : `${service.service}-${stage}-${region}-${d}`;
+      const cfResource =
+        d === 'default' ? 'AlertsDashboard' : `AlertsDashboard${d}`;
+      const dashboardName =
+        d === 'default'
+          ? `${service.service}-${stage}-${region}`
+          : `${service.service}-${stage}-${region}-${d}`;
 
-        acc[cfResource] = {
-          Type: 'AWS::CloudWatch::Dashboard',
-          Properties: {
-            DashboardName: dashboardName,
-            DashboardBody: JSON.stringify(dashboard),
-          },
-        };
-        return acc;
-      }, {})
-      .value();
+      acc[cfResource] = {
+        Type: 'AWS::CloudWatch::Dashboard',
+        Properties: {
+          DashboardName: dashboardName,
+          DashboardBody: JSON.stringify(dashboard),
+        },
+      };
+      return acc;
+    }, {});
     this.addCfResources(cf);
   }
 
@@ -532,7 +527,7 @@ class AlertsPlugin {
       return;
     }
 
-    if (config.stages && !_.includes(config.stages, this.options.stage)) {
+    if (config.stages && !config.stages.includes(this.options.stage)) {
       this.serverless.cli.log(
         `Warning: Not deploying alerts on stage ${this.options.stage}`
       );
@@ -555,7 +550,7 @@ class AlertsPlugin {
       this.externalStack.mergeResources(resources);
     } else {
       // Otherwise merge the resources to the main Serverless stack.
-      _.merge(
+      merge(
         this.serverless.service.provider.compiledCloudFormationTemplate
           .Resources,
         resources
