@@ -1,7 +1,7 @@
-const _ = require('lodash');
+const { upperFirst } = require('./helpers');
 
 const getNormalisedName = (name) =>
-  `${_.upperFirst(name.replace(/-/g, 'Dash').replace(/_/g, 'Underscore'))}`;
+  `${upperFirst(name.replace(/-/g, 'Dash').replace(/_/g, 'Underscore'))}`;
 
 class Naming {
   getAlarmCloudFormationRef(alarmName, prefix) {
@@ -12,11 +12,11 @@ class Naming {
   }
 
   getLogMetricCloudFormationRef(normalizedName, alarmName) {
-    return `${normalizedName}${_.upperFirst(alarmName)}LogMetricFilter`;
+    return `${normalizedName}${upperFirst(alarmName)}LogMetricFilter`;
   }
 
   getPatternMetricName(metricName, functionName) {
-    return `${_.upperFirst(metricName)}${functionName}`;
+    return `${upperFirst(metricName)}${functionName}`;
   }
 
   getDimensionsList(dimensionsList, funcRef, omitDefaultDimension) {

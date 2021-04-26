@@ -19,7 +19,11 @@
   "author": "John McKim <john@acloud.guru>",
   "license": "MIT",
   "dependencies": {
-    "lodash": "^4.17.10"
+    "lodash.merge": "^4.6.2",
+    "lodash.isstring": "^4.0.1",
+    "lodash.isobject": "^3.0.2",
+    "lodash.union": "^4.6.0",
+    "lodash.upperfirst": "^4.3.1"
   },
   "devDependencies": {
     "@commitlint/config-conventional": "^11.0.0",
