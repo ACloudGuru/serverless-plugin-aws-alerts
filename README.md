@@ -48,7 +48,7 @@ provider:
 
 plugins:
   - serverless-plugin-aws-alerts
-  
+
 custom:
   alerts:
     stages: # Optionally - select which stages to deploy alarms to
@@ -293,7 +293,7 @@ custom:
         pattern: '{$.level > 40}'
 ```
 
-> Note: For custom log metrics, namespace property will automatically be set to stack name (e.g. `fooservice-dev`).
+> Note: For custom log metrics, namespace property will automatically be set to stack name if it is not set in the definition(e.g. `fooservice-dev`).
 
 ## Custom Naming
 You can define custom naming template for the alarms. `nameTemplate` property under `alerts` configures naming template for all the alarms, while placing `nameTemplate` under alarm definition configures (overwrites) it for that specific alarm only. Naming template provides interpolation capabilities, where supported placeholders are:

@@ -99,6 +99,14 @@ class AlertsPlugin {
     return this.getAlarms(alarms, definitions);
   }
 
+  getNameSpace(definition, stackName) {
+    if (!definition.namespace && definition.pattern) {
+      return stackName;
+    }
+
+    return definition.namespace;
+  }
+
   getAlarmCloudFormation(alertTopics, definition, functionName, functionRef) {
     if (!functionRef) {
       return;
@@ -140,7 +148,7 @@ class AlertsPlugin {
 
     const stackName = this.awsProvider.naming.getStackName();
 
-    const namespace = definition.pattern ? stackName : definition.namespace;
+    const namespace = this.getNameSpace(definition, stackName);
 
     const metricId = definition.pattern
       ? this.naming.getPatternMetricName(definition.metric, functionRef)
@@ -354,7 +362,8 @@ class AlertsPlugin {
     const logMetricCFRefOK = `${logMetricCFRefBase}OK`;
 
     const cfLogName = this.providerNaming.getLogGroupLogicalId(functionName);
-    const metricNamespace = this.providerNaming.getStackName();
+    const stackName = this.providerNaming.getStackName();
+    const metricNamespace = this.getNameSpace(alarm, stackName);
     const logGroupName = this.providerNaming.getLogGroupName(functionObj.name);
     const metricName = this.naming.getPatternMetricName(
       alarm.metric,
