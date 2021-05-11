@@ -782,6 +782,86 @@ describe('#index', () => {
       });
     });
 
+    it('should use custom namespace if it is set in the definition', () => {
+      let config = {
+        definitions: {
+          bunyanErrors: {
+            metric: 'BunyanErrors',
+            namespace: 'CustomNameSpace',
+            threshold: 0,
+            statistic: 'Sum',
+            period: 60,
+            evaluationPeriods: 1,
+            datapointsToAlarm: 1,
+            comparisonOperator: 'GreaterThanOrEqualToThreshold',
+            pattern: '{$.level > 40}',
+          },
+        },
+        function: ['bunyanErrors'],
+      };
+
+      const plugin = pluginFactory(config);
+
+      config = plugin.getConfig();
+      const definitions = plugin.getDefinitions(config);
+      const alertTopics = plugin.compileAlertTopics(config);
+
+      plugin.compileAlarms(config, definitions, alertTopics);
+      expect(
+        plugin.serverless.service.provider.compiledCloudFormationTemplate
+          .Resources
+      ).toEqual({
+        FooBunyanErrorsAlarm: {
+          Type: 'AWS::CloudWatch::Alarm',
+          Properties: {
+            Namespace: 'CustomNameSpace',
+            MetricName: 'BunyanErrorsFooLambdaFunction',
+            Threshold: 0,
+            Statistic: 'Sum',
+            Period: 60,
+            EvaluationPeriods: 1,
+            DatapointsToAlarm: 1,
+            ComparisonOperator: 'GreaterThanOrEqualToThreshold',
+            OKActions: [],
+            AlarmActions: [],
+            InsufficientDataActions: [],
+            Dimensions: [],
+            TreatMissingData: 'missing',
+          },
+        },
+        FooLambdaFunctionBunyanErrorsLogMetricFilterALERT: {
+          Type: 'AWS::Logs::MetricFilter',
+          DependsOn: 'foo',
+          Properties: {
+            FilterPattern: '{$.level > 40}',
+            LogGroupName: '/aws/lambda/foo',
+            MetricTransformations: [
+              {
+                MetricValue: 1,
+                MetricNamespace: 'CustomNameSpace',
+                MetricName: 'BunyanErrorsFooLambdaFunction',
+              },
+            ],
+          },
+        },
+        FooLambdaFunctionBunyanErrorsLogMetricFilterOK: {
+          Type: 'AWS::Logs::MetricFilter',
+          DependsOn: 'foo',
+          Properties: {
+            FilterPattern: '',
+            LogGroupName: '/aws/lambda/foo',
+            MetricTransformations: [
+              {
+                MetricValue: 0,
+                MetricNamespace: 'CustomNameSpace',
+                MetricName: 'BunyanErrorsFooLambdaFunction',
+              },
+            ],
+          },
+        },
+      });
+    });
+
     it('should use globally defined nameTemplate when it`s not provided in definitions', () => {
       let config = {
         nameTemplate: '$[functionName]-global',
