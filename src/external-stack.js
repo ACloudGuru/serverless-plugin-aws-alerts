@@ -217,7 +217,7 @@ class ExternalStack {
       })
       .then((response) => response.Stacks && response.Stacks[0])
       .catch((err) => {
-        if (err.message && err.message.match(/does not exist$/)) {
+        if (err.message && err.message.match(/stack with id .+ does not exist/i)) {
           // Stack doesn't exist yet
           return null;
         }
@@ -466,7 +466,7 @@ class ExternalStack {
       })
       .then(() => this.waitForExternalStack(externalStackName, 'update'))
       .then(null, (err) => {
-        if (err.message && err.message.match(/^No updates/)) {
+        if (err.message && err.message.match(/no updates are to be performed/i)) {
           // Stack is unchanged, ignore error
           this.serverless.cli.log(
             `External alert stack ${externalStackName} has not changed.`
