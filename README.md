@@ -277,7 +277,7 @@ custom:
       barExceptions:
         metric: barExceptions
         threshold: 0
-        statistic: Minimum
+        statistic: Sum
         period: 60
         evaluationPeriods: 1
         comparisonOperator: GreaterThanThreshold
