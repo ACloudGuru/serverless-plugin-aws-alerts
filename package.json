@@ -39,9 +39,6 @@
     "pinst": "^2.1.4",
     "prettier": "^2.2.1"
   },
-  "peerDependencies": {
-    "serverless": "^2.4.0"
-  },
   "engines": {
     "node": ">=8.10.0"
   },
