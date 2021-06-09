@@ -296,6 +296,28 @@ class AlertsPlugin {
         } else {
           alertTopics[key] = topic;
         }
+
+        const subscriptions = (notifications || []).reduce((memo, n) => {
+          const nameSuffix = n.name || '';
+          const cfRef = `AwsAlerts${upperFirst(key)}${upperFirst(n.protocol)}${nameSuffix}Subscription`;
+
+          if (memo[cfRef]) {
+            throw new Error('Subscription with the same protocol already exists! Use the name property to uniquely identify it');
+          }
+
+          return Object.assign(memo, {
+            [cfRef]: {
+              Type: 'AWS::SNS::Subscription',
+              Properties: {
+                TopicArn: topic,
+                Protocol: n.protocol,
+                Endpoint: n.endpoint,
+              },
+            },
+          });
+        }, {});
+
+        this.addCfResources(subscriptions);
       } else {
         const cfRef = `AwsAlerts${
           customAlarmName ? upperFirst(customAlarmName) : ''
