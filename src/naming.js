@@ -58,6 +58,33 @@ class Naming {
       ? `${interpolatedPrefix}-${interpolatedTemplate}`
       : interpolatedTemplate;
   }
+
+  prepareCustomMetrics(metrics, functionName, funcRef) {
+    if (!metrics) return metrics;
+    if (!Array.isArray(metrics)) return metrics;
+
+    return metrics.map((metric) => {
+      if (
+        metric.MetricStat &&
+        metric.MetricStat.Metric &&
+        metric.MetricStat.Metric.Dimensions &&
+        Array.isArray(metric.MetricStat.Metric.Dimensions)
+      ) {
+        const dimensions = metric.MetricStat.Metric.Dimensions;
+        for (let i = 0; i < dimensions.length; i++) {
+          const dimension = dimensions[i];
+          if (typeof dimension.Value === 'string') {
+            dimension.Value = dimension.Value.replace(
+              '$[functionName]',
+              functionName
+            );
+            dimension.Value = dimension.Value.replace('$[functionId]', funcRef);
+          }
+        }
+      }
+      return metric;
+    });
+  }
 }
 
 module.exports = Naming;

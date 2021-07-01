@@ -9,7 +9,6 @@ class AlertsPlugin {
   constructor(serverless, options) {
     this.serverless = serverless;
     this.options = options;
-
     serverless.configSchemaHandler.defineFunctionProperties('aws', {
       properties: {
         alarms: {
@@ -22,7 +21,6 @@ class AlertsPlugin {
     this.providerNaming = this.awsProvider.naming;
     this.naming = new Naming();
     this.externalStack = new ExternalStack(serverless, options);
-
     this.hooks = {
       'package:compileEvents': this.compile.bind(this),
       'after:deploy:deploy': this.externalStack.afterDeployGlobal.bind(
@@ -231,6 +229,32 @@ class AlertsPlugin {
           ThresholdMetricId: 'ad1',
         },
       };
+    } else if (definition.type === 'custom') {
+      alarm = {
+        Type: 'AWS::CloudWatch::Alarm',
+        Properties: {
+          ActionsEnabled: definition.actionsEnabled,
+          AlarmDescription: definition.description,
+          EvaluationPeriods: definition.evaluationPeriods,
+          DatapointsToAlarm: definition.datapointsToAlarm,
+          ComparisonOperator: definition.comparisonOperator,
+          TreatMissingData: treatMissingData,
+          OKActions: okActions,
+          AlarmActions: alarmActions,
+          InsufficientDataActions: insufficientDataActions,
+          Threshold: definition.threshold,
+        },
+      };
+
+      if (definition.metrics) {
+        alarm.Properties.Metrics = this.naming.prepareCustomMetrics(
+          definition.metrics,
+          functionName,
+          functionRef
+        );
+      } else if (dimensions) {
+        alarm.Properties.Dimensions = dimensions;
+      }
     } else {
       throw new Error(
         `Missing type for alarm ${definition.name} on function ${functionName}, must be one of 'static' or 'anomalyDetection'`
@@ -242,7 +266,7 @@ class AlertsPlugin {
         template: definition.nameTemplate,
         prefixTemplate: definition.prefixTemplate,
         functionLogicalId: functionRef,
-        metricName: definition.metric,
+        metricName: definition.metricName || definition.metric,
         metricId,
         functionName,
         stackName,
@@ -400,6 +424,7 @@ class AlertsPlugin {
 
     this.serverless.service.getAllFunctions().forEach((functionName) => {
       const functionObj = this.serverless.service.getFunction(functionName);
+      const functionFullName = functionObj.name;
 
       const normalizedFunctionName = this.providerNaming.getLambdaLogicalId(
         functionName
@@ -429,15 +454,16 @@ class AlertsPlugin {
           const cf = this.getAlarmCloudFormation(
             alertTopics,
             alarm,
-            functionName,
-            normalizedFunctionName
+            functionFullName,
+            normalizedFunctionName,
+            functionObj
           );
 
           statements[key] = cf;
 
           const logMetricCF = this.getLogMetricCloudFormation(
             alarm,
-            functionName,
+            functionFullName,
             normalizedFunctionName,
             functionObj
           );
