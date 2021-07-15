@@ -101,7 +101,6 @@ class AlertsPlugin {
     if (!functionRef) {
       return;
     }
-
     const okActions = [];
     const alarmActions = [];
     const insufficientDataActions = [];
@@ -282,7 +281,6 @@ class AlertsPlugin {
         stackName,
       });
     }
-
     return alarm;
   }
 
@@ -426,9 +424,8 @@ class AlertsPlugin {
       const functionObj = this.serverless.service.getFunction(functionName);
       const functionFullName = functionObj.name;
 
-      const normalizedFunctionName = this.providerNaming.getLambdaLogicalId(
-        functionName
-      );
+      const normalizedFunctionName =
+        this.providerNaming.getLambdaLogicalId(functionName);
 
       const functionAlarms = this.getFunctionAlarms(
         functionObj,
@@ -450,7 +447,10 @@ class AlertsPlugin {
           alarm.name,
           functionName
         );
-        if (alarm.enabled) {
+        if (
+          alarm.enabled &&
+          !this.ignoreFunctionByPrefixes(alarm, functionName)
+        ) {
           const cf = this.getAlarmCloudFormation(
             alertTopics,
             alarm,
@@ -477,6 +477,20 @@ class AlertsPlugin {
 
       this.addCfResources(alarmStatements);
     });
+  }
+
+  ignoreFunctionByPrefixes(alarm, functionName) {
+    if (!Array.isArray(alarm.ignoreFunctionWithPrefix)) {
+      return false;
+    }
+
+    for (let i = 0; i < alarm.ignoreFunctionWithPrefix.length; i++) {
+      const prefix = alarm.ignoreFunctionWithPrefix[i];
+      if (functionName.indexOf(prefix) !== -1) {
+        return true;
+      }
+    }
+    return false;
   }
 
   getDashboardTemplates(configDashboards, stage) {

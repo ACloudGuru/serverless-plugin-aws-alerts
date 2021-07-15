@@ -1,3 +1,4 @@
+const { cloneDeep } = require('lodash');
 const { upperFirst } = require('./helpers');
 
 const getNormalisedName = (name) =>
@@ -63,7 +64,8 @@ class Naming {
     if (!metrics) return metrics;
     if (!Array.isArray(metrics)) return metrics;
 
-    return metrics.map((metric) => {
+    return metrics.map((originalMetric) => {
+      const metric = cloneDeep(originalMetric);
       if (
         metric.MetricStat &&
         metric.MetricStat.Metric &&
