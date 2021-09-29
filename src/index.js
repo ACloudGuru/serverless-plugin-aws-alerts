@@ -75,7 +75,19 @@ class AlertsPlugin {
           }));
         }
       } else if (_.isObject(alarm)) {
-        result.push(_.merge({}, definitions[alarm.name], alarm));
+        let definition = definitions[alarm.name];
+        if(_.isFunction(definition)){
+          definition = definition(functionName, this.serverless)
+          for (const def of definition) {
+            result.push({
+              ...def,
+              ...alarm.overrides,
+              name: `${alarm.name}${def.nameSuffix || ''}`
+            });
+          }
+        }else{
+          result.push(_.merge({}, definition, alarm));
+        }
       }
 
       return result;
