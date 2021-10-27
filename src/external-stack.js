@@ -104,8 +104,9 @@ class ExternalStack {
           const refName = resource[key];
           if (!preMergedResources[refName]) {
             // It's an unresolved reference. Try to find it in the main stack.
-            const mainResource = this.serverless.service.provider
-              .compiledCloudFormationTemplate.Resources[refName];
+            const mainResource =
+              this.serverless.service.provider.compiledCloudFormationTemplate
+                .Resources[refName];
             if (
               mainResource &&
               mainResource.Properties &&
@@ -374,8 +375,8 @@ class ExternalStack {
       ContentType: 'application/json',
     };
 
-    const deploymentBucketObject = this.serverless.service.provider
-      .deploymentBucketObject;
+    const deploymentBucketObject =
+      this.serverless.service.provider.deploymentBucketObject;
     if (deploymentBucketObject) {
       params = this.setServersideEncryptionOptions(
         params,
