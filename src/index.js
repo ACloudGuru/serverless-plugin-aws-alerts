@@ -401,9 +401,8 @@ class AlertsPlugin {
     this.serverless.service.getAllFunctions().forEach((functionName) => {
       const functionObj = this.serverless.service.getFunction(functionName);
 
-      const normalizedFunctionName = this.providerNaming.getLambdaLogicalId(
-        functionName
-      );
+      const normalizedFunctionName =
+        this.providerNaming.getLambdaLogicalId(functionName);
 
       const functionAlarms = this.getFunctionAlarms(
         functionObj,
