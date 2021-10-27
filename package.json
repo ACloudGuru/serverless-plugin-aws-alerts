@@ -8,7 +8,7 @@
     "lint-fix": "eslint . --fix",
     "test": "jest --coverage",
     "test:watch": "jest --watch",
-    "postinstall": "husky install",
+    "prepare": "husky install",
     "prepublishOnly": "pinst --disable",
     "postpublish": "pinst --enable"
   },
