@@ -11,6 +11,6 @@
     "serverless-plugin-aws-alerts": "^1.2.4"
   },
   "dependencies": {
-    "serverless": "^1.71.3"
+    "serverless": "^2.0.0"
   }
 }
