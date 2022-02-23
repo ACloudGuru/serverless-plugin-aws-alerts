@@ -86,19 +86,6 @@ describe('#naming', () => {
       );
       expect(actual).toEqual(expected);
     });
-
-    it('should use function name derived from funcref when dimensions are undefined', () => {
-      const expected = [{ "Name": "FunctionName", "Value": { 'Ref': 'funcName' } }]
-      const actual = naming.getDimensionsList(undefined, 'funcName')
-      expect(actual).toEqual(expected);
-    })
-
-    it('should not include FunctionName when omitFunctionNameDimension is true', () => {
-      const expected = [{ "Name": "Duck", "Value": "QUACK" }]
-      const actual = naming.getDimensionsList([{ 'Name': 'Duck', 'Value': 'QUACK' }], 'funcName', true);
-      expect(actual).toEqual(expected);
-    });
-
   });
 
   describe('#getAlarmName', () => {

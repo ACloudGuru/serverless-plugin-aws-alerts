@@ -453,107 +453,6 @@ describe('#index', () => {
       ).toEqual({});
     });
 
-    it('should not create SNS topic when an object including Fn::Join is passed', () => {
-      const topic = {
-        'Fn::Join': [
-          ':',
-          [
-            'arn:aws:sns',
-            '${self:provider.region}',
-            {Ref: 'AWS::AccountId'},
-            'ok-topic'
-          ]
-        ],
-      }
-      const plugin = pluginFactory({
-        topics: {
-          ok: topic
-        }
-      });
-
-      const config = plugin.getConfig();
-      const topics = plugin.compileAlertTopics(config);
-
-      expect(topics).toEqual({
-        ok: topic
-      });
-
-      expect(plugin.serverless.service.provider.compiledCloudFormationTemplate.Resources).toEqual({});
-    });
-
-    it('should not create SNS topic when an object including Ref is passed', () => {
-      const topic = {
-        Ref: 'OkTopicLogicalId',
-      }
-      const plugin = pluginFactory({
-        topics: {
-          ok: topic
-        }
-      });
-
-      const config = plugin.getConfig();
-      const topics = plugin.compileAlertTopics(config);
-
-      expect(topics).toEqual({
-        ok: topic
-      });
-
-      expect(plugin.serverless.service.provider.compiledCloudFormationTemplate.Resources).toEqual({});
-    });
-
-    it('should not create SNS topic when an object including Fn::Join is passed under "topic"', () => {
-      const topic = {
-        'Fn::Join': [
-          ':',
-          [
-            'arn:aws:sns',
-            '${self:provider.region}',
-            {Ref: 'AWS::AccountId'},
-            'ok-topic'
-          ]
-        ],
-      }
-      const plugin = pluginFactory({
-        topics: {
-          ok: {
-            topic
-          }
-        }
-      });
-
-      const config = plugin.getConfig();
-      const topics = plugin.compileAlertTopics(config);
-
-      expect(topics).toEqual({
-        ok: topic
-      });
-
-      expect(plugin.serverless.service.provider.compiledCloudFormationTemplate.Resources).toEqual({});
-    });
-
-    it('should not create SNS topic when an object including Ref is passed under "topic"', () => {
-      const topic = {
-        Ref: 'OkTopicLogicalId',
-      }
-      const plugin = pluginFactory({
-        topics: {
-          ok: {
-            topic
-          }
-        }
-      });
-
-      const config = plugin.getConfig();
-      const topics = plugin.compileAlertTopics(config);
-
-      expect(topics).toEqual({
-        ok: topic
-      });
-
-      expect(plugin.serverless.service.provider.compiledCloudFormationTemplate.Resources).toEqual({});
-    });
-
-
     it('should create SNS topic when name is passed', () => {
       const topicName = 'ok-topic';
       const plugin = pluginFactory({
@@ -1382,7 +1281,7 @@ describe('#index', () => {
         Properties: {
           AlarmDescription: definition.description,
           Namespace: definition.namespace,
-          MetricName: `${functionName}-${definition.metric}`,
+          MetricName: definition.metric,
           Threshold: definition.threshold,
           Statistic: definition.statistic,
           Period: definition.period,
@@ -1444,7 +1343,7 @@ describe('#index', () => {
         Properties: {
           AlarmDescription: definition.description,
           Namespace: definition.namespace,
-          MetricName: `${functionName}-${definition.metric}`,
+          MetricName: definition.metric,
           Threshold: definition.threshold,
           ExtendedStatistic: definition.statistic,
           Period: definition.period,
@@ -1508,7 +1407,7 @@ describe('#index', () => {
         Properties: {
           AlarmDescription: definition.description,
           Namespace: definition.namespace,
-          MetricName: `${functionName}-${definition.metric}`,
+          MetricName: definition.metric,
           Threshold: definition.threshold,
           ExtendedStatistic: definition.statistic,
           Period: definition.period,
@@ -1575,7 +1474,7 @@ describe('#index', () => {
           AlarmName: `fooservice-dev-${functionName}-${functionRef}-${definition.metric}-${definition.metric}`,
           AlarmDescription: definition.description,
           Namespace: definition.namespace,
-          MetricName: `${functionName}-${definition.metric}`,
+          MetricName: definition.metric,
           Threshold: definition.threshold,
           Period: definition.period,
           EvaluationPeriods: definition.evaluationPeriods,
