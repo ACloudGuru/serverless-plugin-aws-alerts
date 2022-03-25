@@ -482,6 +482,7 @@ class AlertsPlugin {
     const provider = service.provider;
     const stage = this.options.stage;
     const region = this.options.region || provider.region;
+    const config = this.getConfig();
     const dashboardTemplates = this.getDashboardTemplates(
       configDashboards,
       stage
@@ -497,7 +498,8 @@ class AlertsPlugin {
         stage,
         region,
         functions,
-        d
+        d,
+        config.dashboardConfig ?? {}
       );
 
       const cfResource =

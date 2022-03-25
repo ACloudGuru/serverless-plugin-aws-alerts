@@ -490,6 +490,14 @@ dashboards:
     - default
 ```
 
+Using external API Gateway:
+```yaml
+alarms:
+  dashboards: true
+  dashboardConfig:
+    apiName: 'my-api-name-here'
+```
+
 ## License
 
 MIT © [A Cloud Guru](https://acloud.guru/)
