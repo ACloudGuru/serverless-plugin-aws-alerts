@@ -499,7 +499,7 @@ class AlertsPlugin {
         region,
         functions,
         d,
-        config.dashboardConfig ?? {}
+        config.dashboardConfig ? config.dashboardConfig : {}
       );
 
       const cfResource =
