@@ -1,6 +1,7 @@
 const createWidget = (config) => {
-  const apiName =
-    config.dashboardConfig.apiName ?? `${config.stage}-${config.service}`;
+  const apiName = config.dashboardConfig.apiName
+    ? config.dashboardConfig.apiName
+    : `${config.stage}-${config.service}`;
 
   const widget = {
     type: 'metric',
