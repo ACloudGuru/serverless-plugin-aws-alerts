@@ -99,7 +99,8 @@ class ExternalStack {
       }
     } else if (typeof resource === 'object') {
       for (const key in resource) {
-        if (key === 'Ref' && typeof resource[key] === 'string') {
+        if (key === "Ref" && typeof resource[key] === "string") {
+          if (resource[key].startsWith('AWS::')) return
           // Found a (Lambda function) reference. See if it's unresolved.
           const refName = resource[key];
           if (!preMergedResources[refName]) {
