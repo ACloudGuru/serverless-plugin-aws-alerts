@@ -764,21 +764,6 @@ describe('#index', () => {
             ],
           },
         },
-        FooLambdaFunctionBunyanErrorsLogMetricFilterOK: {
-          Type: 'AWS::Logs::MetricFilter',
-          DependsOn: 'foo',
-          Properties: {
-            FilterPattern: '',
-            LogGroupName: '/aws/lambda/foo',
-            MetricTransformations: [
-              {
-                MetricValue: 0,
-                MetricNamespace: 'fooservice-dev',
-                MetricName: 'BunyanErrorsFooLambdaFunction',
-              },
-            ],
-          },
-        },
       });
     });
 

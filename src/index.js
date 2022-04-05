@@ -320,6 +320,8 @@ class AlertsPlugin {
           [cfRef]: this.getSnsTopicCloudFormation(topic, notifications),
         });
       }
+    } else if (isTopicConfigAnObject) {
+      alertTopics[key] = topicConfig;
     }
   }
 
@@ -354,7 +356,6 @@ class AlertsPlugin {
       alarm.name
     );
     const logMetricCFRefALERT = `${logMetricCFRefBase}ALERT`;
-    const logMetricCFRefOK = `${logMetricCFRefBase}OK`;
 
     const cfLogName = this.providerNaming.getLogGroupLogicalId(functionName);
     const metricNamespace = this.providerNaming.getStackName();
@@ -374,21 +375,6 @@ class AlertsPlugin {
           MetricTransformations: [
             {
               MetricValue: 1,
-              MetricNamespace: metricNamespace,
-              MetricName: metricName,
-            },
-          ],
-        },
-      },
-      [logMetricCFRefOK]: {
-        Type: 'AWS::Logs::MetricFilter',
-        DependsOn: cfLogName,
-        Properties: {
-          FilterPattern: '',
-          LogGroupName: logGroupName,
-          MetricTransformations: [
-            {
-              MetricValue: 0,
               MetricNamespace: metricNamespace,
               MetricName: metricName,
             },
