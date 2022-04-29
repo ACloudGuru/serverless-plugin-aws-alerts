@@ -484,7 +484,7 @@ describe('#index', () => {
       });
     });
 
-    it('should create SNS topic with notificaitons', () => {
+    it('should create SNS topic with notifications', () => {
       const topicName = 'ok-topic';
       const plugin = pluginFactory({
         topics: {
@@ -523,6 +523,93 @@ describe('#index', () => {
                 Endpoint: 'test@email.com',
               },
             ],
+          },
+        },
+      });
+    });
+
+    it('should create SNS subscription for existing topic', () => {
+      const plugin = pluginFactory({
+        topics: {
+          ok: {
+            topic: {
+              Ref: 'AwsAlertsAlarm',
+            },
+            notifications: [
+              {
+                protocol: 'email',
+                endpoint: 'test@email.com',
+              },
+            ],
+          },
+        },
+      });
+
+      const config = plugin.getConfig();
+      const topics = plugin.compileAlertTopics(config);
+
+      expect(topics).toEqual({
+        ok: {
+          Ref: `AwsAlertsAlarm`,
+        },
+      });
+
+      expect(
+        plugin.serverless.service.provider.compiledCloudFormationTemplate
+          .Resources
+      ).toEqual({
+        AwsAlertsOkEmailSubscription: {
+          Type: 'AWS::SNS::Subscription',
+          Properties: {
+            TopicArn: {
+              Ref: 'AwsAlertsAlarm',
+            },
+            Protocol: 'email',
+            Endpoint: 'test@email.com',
+          },
+        },
+      });
+    });
+
+    it('should create SNS subscription for existing topic with a custom name suffix', () => {
+      const plugin = pluginFactory({
+        topics: {
+          ok: {
+            topic: {
+              Ref: 'AwsAlertsAlarm',
+            },
+            notifications: [
+              {
+                name: 'Test',
+                protocol: 'email',
+                endpoint: 'test@email.com',
+              },
+            ],
+          },
+        },
+      });
+
+      const config = plugin.getConfig();
+      const topics = plugin.compileAlertTopics(config);
+
+      expect(topics).toEqual({
+        ok: {
+          Ref: `AwsAlertsAlarm`,
+        },
+      });
+
+      expect(
+        plugin.serverless.service.provider.compiledCloudFormationTemplate
+          .Resources
+      ).toEqual({
+        AwsAlertsOkEmailTestSubscription: {
+          Type: 'AWS::SNS::Subscription',
+          Properties: {
+            TopicArn: {
+              Ref: 'AwsAlertsAlarm',
+            },
+            Protocol: 'email',
+            Endpoint: 'test@email.com',
           },
         },
       });
