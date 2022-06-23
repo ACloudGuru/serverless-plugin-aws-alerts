@@ -10,13 +10,18 @@ class AlertsPlugin {
     this.serverless = serverless;
     this.options = options;
 
-    serverless.configSchemaHandler.defineFunctionProperties('aws', {
-      properties: {
-        alarms: {
-          type: 'array',
+    if (
+      serverless.configSchemaHandler &&
+      serverless.configSchemaHandler.defineFunctionProperties
+    ) {
+      serverless.configSchemaHandler.defineFunctionProperties('aws', {
+        properties: {
+          alarms: {
+            type: 'array',
+          },
         },
-      },
-    });
+      });
+    }
 
     this.awsProvider = this.serverless.getProvider('aws');
     this.providerNaming = this.awsProvider.naming;
