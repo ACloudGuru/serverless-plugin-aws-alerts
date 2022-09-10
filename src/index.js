@@ -231,6 +231,55 @@ class AlertsPlugin {
           ThresholdMetricId: 'ad1',
         },
       };
+    } else if (definition.type === 'successRate') {
+      alarm = {
+        Type: 'AWS::CloudWatch::Alarm',
+        Properties: {
+          ActionsEnabled: definition.actionsEnabled,
+          AlarmDescription: definition.description,
+          EvaluationPeriods: definition.evaluationPeriods,
+          DatapointsToAlarm: definition.datapointsToAlarm,
+          ComparisonOperator: definition.comparisonOperator,
+          TreatMissingData: treatMissingData,
+          OKActions: okActions,
+          AlarmActions: alarmActions,
+          InsufficientDataActions: insufficientDataActions,
+          Metrics: [
+            {
+              Id: 'errors',
+              ReturnData: false,
+              MetricStat: {
+                Metric: {
+                  Namespace: namespace || 'AWS/Lambda',
+                  MetricName: 'Errors',
+                  Dimensions: dimensions,
+                },
+                Period: definition.period,
+                Stat: 'Sum',
+              },
+            },
+            {
+              Id: 'count',
+              ReturnData: false,
+              MetricStat: {
+                Metric: {
+                  Namespace: namespace || 'AWS/Lambda',
+                  MetricName: 'Invocations',
+                  Dimensions: dimensions,
+                },
+                Period: definition.period,
+                Stat: 'Sum',
+              },
+            },
+            {
+              Id: 'successRate',
+              Expression: `( 1 - (errors / count) ) * 100`,
+              ReturnData: true,
+            },
+          ],
+          Threshold: definition.threshold,
+        },
+      };
     } else {
       throw new Error(
         `Missing type for alarm ${definition.name} on function ${functionName}, must be one of 'static' or 'anomalyDetection'`
