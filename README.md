@@ -1,6 +1,6 @@
-forked
+#forked
 - inprogress work for success rate alarm
-
+  - todo: auto create composite  alarm of all successrate alarms
 
 # Serverless AWS Alerts Plugin
   [![NPM version][npm-image]][npm-url]
