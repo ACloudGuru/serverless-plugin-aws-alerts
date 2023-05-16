@@ -1652,7 +1652,7 @@ describe('#index', () => {
             'FooSuccessRateDropAlarm'
           ],
           alarmsActions: [
-            'AwsAlertsPagingTopic'
+            'AwsAlertsAlarm'
           ]
         },
       },
@@ -1660,7 +1660,7 @@ describe('#index', () => {
         'successRateDrop'
       ],
       topics: {
-        paging: {
+        alarm: {
           topic: 'api-paging-alarm-topic-test',
           notifications:[
             {
@@ -1698,14 +1698,14 @@ describe('#index', () => {
         Foo1SuccessRateDropAlarm: {
           Type: 'AWS::CloudWatch::Alarm',
         },
-        AwsAlertsPagingTopic: {
+        AwsAlertsAlarm: {
           Type: 'AWS::SNS::Topic',
         },
         AlertsCompositeCompositeSuccessAlarm: {
           Type: 'AWS::CloudWatch::CompositeAlarm',
           Properties: expect.objectContaining({
             AlarmRule: 'ALARM(fooservice-dev-foo-successRateDrop)',
-            AlarmActions: [{ Ref: 'AwsAlertsPagingTopic' }],
+            AlarmActions: [{ Ref: 'AwsAlertsAlarm' }],
           }),
         },
       });
@@ -1738,14 +1738,14 @@ describe('#index', () => {
         Foo1SuccessRateDropAlarm: {
           Type: 'AWS::CloudWatch::Alarm',
         },
-        AwsAlertsPagingTopic: {
+        AwsAlertsAlarm: {
           Type: 'AWS::SNS::Topic',
         },
         AlertsCompositeCompositeSuccessAlarm: {
           Type: 'AWS::CloudWatch::CompositeAlarm',
           Properties: expect.objectContaining({
             AlarmRule: 'ALARM(fooservice-dev-foo-successRateDrop) OR ALARM(fooservice-dev-foo1-successRateDrop)',
-            AlarmActions: [{ Ref: 'AwsAlertsPagingTopic' }],
+            AlarmActions: [{ Ref: 'AwsAlertsAlarm' }],
           }),
         },
       });
@@ -1778,7 +1778,7 @@ describe('#index', () => {
         Foo1SuccessRateDropAlarm: {
           Type: 'AWS::CloudWatch::Alarm',
         },
-        AwsAlertsPagingTopic: {
+        AwsAlertsAlarm: {
           Type: 'AWS::SNS::Topic',
         },
       });
@@ -1805,7 +1805,7 @@ describe('#index', () => {
         plugin.serverless.service.provider.compiledCloudFormationTemplate
           .Resources
       ).toMatchObject({
-        AwsAlertsPagingTopic: {
+        AwsAlertsAlarm: {
           Type: 'AWS::SNS::Topic',
         },
       });
