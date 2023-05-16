@@ -5,9 +5,9 @@ const Plugin = require('./index');
 
 const testServicePath = path.join(__dirname, '.tmp');
 
-const pluginFactory = (alarmsConfig, s) => {
+const pluginFactory = (alarmsConfig, s, functionsToUse) => {
   const stage = s || 'dev';
-  const functions = {
+  const functions = functionsToUse || {
     foo: {
       name: 'foo',
     },
@@ -47,6 +47,7 @@ const pluginFactory = (alarmsConfig, s) => {
   };
   return new Plugin(serverless, {
     stage,
+    region: 'local-test',
   });
 };
 
@@ -1625,6 +1626,187 @@ describe('#index', () => {
             },
           ],
           ThresholdMetricId: 'ad1',
+        },
+      });
+    });
+  });
+
+  describe('#compileCompositeAlarms', () => {
+    const config = {
+      definitions: {
+        successRateDrop: {
+          type: 'successRate',
+          nameTemplate: '$[functionName]-successRateDrop',
+          period: 300, //5min
+          evaluationPeriods: 3,
+          datapointsToAlarm: 3,
+          threshold: 99,
+          comparisonOperator: 'LessThanThreshold',
+          treatMissingData: 'breaching',
+        },
+        compositeSuccessAlarm: {
+          type: 'composite',
+          description: 'A compile success alarm',
+          actionsEnabled: true,
+          alarmsToInclude: [
+            'FooSuccessRateDropAlarm'
+          ],
+          alarmsActions: [
+            'AwsAlertsPagingTopic'
+          ]
+        },
+      },
+      alarms: [
+        'successRateDrop'
+      ],
+      topics: {
+        paging: {
+          topic: 'api-paging-alarm-topic-test',
+          notifications:[
+            {
+              protocol: 'email',
+              endpoint: 'test@email.com',
+            }
+          ]
+        }
+      },
+    };
+
+    const functions = {
+      foo: {
+        name: 'foo',
+      },
+      foo1: {
+        name: 'foo1',
+      },
+    }
+
+    it('should compile only foo function alarms into composite', () => {
+      const plugin = pluginFactory(config, 'dev', functions);
+
+      plugin.compile();
+
+      const resources = plugin.serverless.service.provider.compiledCloudFormationTemplate.Resources
+      expect(Object.keys(resources)).toHaveLength(4)
+      expect(
+        plugin.serverless.service.provider.compiledCloudFormationTemplate
+          .Resources
+      ).toMatchObject({
+        FooSuccessRateDropAlarm: {
+          Type: 'AWS::CloudWatch::Alarm',
+        },
+        Foo1SuccessRateDropAlarm: {
+          Type: 'AWS::CloudWatch::Alarm',
+        },
+        AwsAlertsPagingTopic: {
+          Type: 'AWS::SNS::Topic',
+        },
+        AlertsCompositeCompositeSuccessAlarm: {
+          Type: 'AWS::CloudWatch::CompositeAlarm',
+          Properties: expect.objectContaining({
+            AlarmRule: 'ALARM(fooservice-dev-foo-successRateDrop)',
+            AlarmActions: [{ Ref: 'AwsAlertsPagingTopic' }],
+          }),
+        },
+      });
+    });
+
+    it('should compile all function alarms into composite', () => {
+      const innerConfig = {
+        ...config,
+        definitions: {
+          ...config.definitions,
+          compositeSuccessAlarm: {
+            ...config.definitions.compositeSuccessAlarm,
+            alarmsToInclude: undefined,
+          }
+        }
+      }
+      const plugin = pluginFactory(innerConfig, 'dev', functions);
+
+      plugin.compile();
+
+      const resources = plugin.serverless.service.provider.compiledCloudFormationTemplate.Resources
+      expect(Object.keys(resources)).toHaveLength(4)
+      expect(
+        plugin.serverless.service.provider.compiledCloudFormationTemplate
+          .Resources
+      ).toMatchObject({
+        FooSuccessRateDropAlarm: {
+          Type: 'AWS::CloudWatch::Alarm',
+        },
+        Foo1SuccessRateDropAlarm: {
+          Type: 'AWS::CloudWatch::Alarm',
+        },
+        AwsAlertsPagingTopic: {
+          Type: 'AWS::SNS::Topic',
+        },
+        AlertsCompositeCompositeSuccessAlarm: {
+          Type: 'AWS::CloudWatch::CompositeAlarm',
+          Properties: expect.objectContaining({
+            AlarmRule: 'ALARM(fooservice-dev-foo-successRateDrop) OR ALARM(fooservice-dev-foo1-successRateDrop)',
+            AlarmActions: [{ Ref: 'AwsAlertsPagingTopic' }],
+          }),
+        },
+      });
+    });
+
+    it('should skip composite alarms that are marked disabled', () => {
+      const innerConfig = {
+        ...config,
+        definitions: {
+          ...config.definitions,
+          compositeSuccessAlarm: {
+            ...config.definitions.compositeSuccessAlarm,
+            enabled: false,
+          }
+        }
+      }
+      const plugin = pluginFactory(innerConfig, 'dev', functions);
+
+      plugin.compile();
+
+      const resources = plugin.serverless.service.provider.compiledCloudFormationTemplate.Resources
+      expect(Object.keys(resources)).toHaveLength(3)
+      expect(
+        plugin.serverless.service.provider.compiledCloudFormationTemplate
+          .Resources
+      ).toMatchObject({
+        FooSuccessRateDropAlarm: {
+          Type: 'AWS::CloudWatch::Alarm',
+        },
+        Foo1SuccessRateDropAlarm: {
+          Type: 'AWS::CloudWatch::Alarm',
+        },
+        AwsAlertsPagingTopic: {
+          Type: 'AWS::SNS::Topic',
+        },
+      });
+    });
+
+    it('should skip composite alarms if all alarms are disabled', () => {
+      const innerConfig = {
+        ...config,
+        definitions: {
+          ...config.definitions,
+          successRateDrop: {
+            ...config.definitions.successRateDrop,
+            enabled: false,
+          }
+        }
+      }
+      const plugin = pluginFactory(innerConfig, 'dev', functions);
+
+      plugin.compile();
+
+      const resources = plugin.serverless.service.provider.compiledCloudFormationTemplate.Resources
+      expect(Object.keys(resources)).toHaveLength(1)
+      expect(
+        plugin.serverless.service.provider.compiledCloudFormationTemplate
+          .Resources
+      ).toMatchObject({
+        AwsAlertsPagingTopic: {
+          Type: 'AWS::SNS::Topic',
         },
       });
     });

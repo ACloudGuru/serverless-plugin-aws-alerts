@@ -568,6 +568,101 @@ class AlertsPlugin {
     this.addCfResources(cf);
   }
 
+  _getCfResourceAndName(prefix, definitionName) {
+    const service = this.serverless.service;
+    const provider = service.provider;
+    const stage = this.options.stage;
+    const region = this.options.region || provider.region;
+    const capitalDefinitionName = upperFirst(definitionName);
+    return {
+      cfResource: `Alerts${prefix}${capitalDefinitionName}`,
+      cfName: `${service.service}-${stage}-${region}-${capitalDefinitionName}`,
+    };
+  }
+
+  _getFilteredResourcesAsArray(resourcesKeys) {
+    const resources =
+      this.serverless.service.provider.compiledCloudFormationTemplate.Resources;
+    return Object.keys(resources)
+      .filter(
+        (resource) =>
+          !resourcesKeys ||
+          resourcesKeys.length === 0 ||
+          resourcesKeys.indexOf(resource) !== -1
+      )
+      .map((key) => resources[key]);
+  }
+
+  _resolveAlarmRules(definition) {
+    const alarmsToInclude = this._getFilteredResourcesAsArray(
+      definition.alarmsToInclude
+    )
+      .filter(
+        (resource) =>
+          resource.Type === 'AWS::CloudWatch::Alarm' &&
+          resource.Properties.enabled !== false
+      )
+      .map((resource) => resource.Properties.AlarmName);
+
+    const alarmRule = alarmsToInclude
+      .map((alarmToInclude) => `ALARM(${alarmToInclude})`)
+      .join(' OR ');
+
+    return alarmRule;
+  }
+
+  _resolveAlarmActions(definition) {
+    if (!definition.alarmsActions?.length){
+      return [];
+    }
+
+    const resourcesObj =
+      this.serverless.service.provider.compiledCloudFormationTemplate.Resources;
+    const resourcesCfNames = Object.keys(resourcesObj)
+
+    const topicsToInclude = []
+    for (const alarmAction of definition.alarmsActions) {
+      if (resourcesCfNames.indexOf(alarmAction) !== -1) {
+        const resource = resourcesObj[alarmAction]
+        if (resource.Type === 'AWS::SNS::Topic' && resource.Properties.enabled !== false) {
+          topicsToInclude.push({ Ref: alarmAction })
+        }
+      }
+    }
+    return topicsToInclude;
+  }
+
+  compileCompositeAlarms(config, definitions, alertTopics) {
+    Object.keys(definitions).forEach((definitionName) => {
+      const definition = definitions[definitionName];
+      if (definition.type === 'composite' && definition.enabled !== false) {
+        const alarmRule = this._resolveAlarmRules(definition);
+        // only create the composite alarm if there is at least one alarm to include
+        if (alarmRule !== '') {
+          const cf = {};
+          const { cfResource, cfName } = this._getCfResourceAndName(
+            'Composite',
+            definitionName
+          );
+          const alarmActions = this._resolveAlarmActions(definition);
+          const compositeAlarm = {
+            Type: 'AWS::CloudWatch::CompositeAlarm',
+            Properties: {
+              AlarmName: cfName,
+              AlarmDescription: definition.description,
+              ActionsEnabled: definition.actionsEnabled,
+              AlarmRule: this._resolveAlarmRules(definition),
+              AlarmActions: alarmActions,
+            },
+          };
+
+          cf[cfResource] = compositeAlarm;
+          this.addCfResources(cf);
+        }
+      }
+    });
+  }
+
   compile() {
     const config = this.getConfig();
     if (!config) {
@@ -586,6 +681,8 @@ class AlertsPlugin {
     const alertTopics = this.compileAlertTopics(config);
 
     this.compileAlarms(config, definitions, alertTopics);
+
+    this.compileCompositeAlarms(config, definitions, alertTopics);
 
     if (config.dashboards) {
       this.compileDashboards(config.dashboards);
