@@ -1,6 +1,6 @@
 #forked
 - inprogress work for success rate alarm
-  - todo: auto create composite  alarm of all successrate alarms
+- inprogress auto create composite  alarm of all alarms or only for the defined ones in alarmsToInclude attribute
 
 # Serverless AWS Alerts Plugin
   [![NPM version][npm-image]][npm-url]
@@ -41,6 +41,55 @@ custom:
     alarms:
       - functionErrors
       - functionThrottles
+```
+
+### SuccessRate Usage
+```yaml
+# serverless.yml
+
+plugins:
+  - serverless-plugin-aws-alerts
+
+custom:
+  alerts:
+    stages: 
+      - prod
+      - dev
+
+    dashboards: false
+    definitions:  # these defaults are merged with your definitions
+      successRateDrop:
+        type: successRate
+        nameTemplate: $[functionName]-successRateDrop
+        period: 300 #5min
+        evaluationPeriods: 3
+        datapointsToAlarm: 3
+        threshold: 99
+        comparisonOperator: LessThanThreshold
+        treatMissingData: breaching # breaching/ignore recommended for high/low traffic services
+        actionsEnabled: false # to ensure that only the composite will send notifications
+      compositeSuccessAlarm:
+        type: composite
+        description: 'A compile success alarm'
+        actionsEnabled: true
+        alarmsToInclude: # if omit all functions alarms, not only successRate will be included
+          - FooSuccessRateDropAlarm 
+        
+    alarms:
+      - successRateDrop
+
+    topics:
+      alarm:
+        topic: ${self:service}-paging-alarm-topic-${sls:stage}
+        notifications:
+          - protocol: https
+            endpoint: https://receiver.com/enqueue # replace for the real endpoint
+          # - protocol: email
+          #   endpoint: user@domain.com
+
+functions:
+  foo:
+    handler: foo.handler
 ```
 
 ### Advanced Usage
