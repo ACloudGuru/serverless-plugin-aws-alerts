@@ -1810,5 +1810,46 @@ describe('#index', () => {
         },
       });
     });
+
+    it('should generate the alarm actions with default AwsAlertsAlarm', () => {
+      const innerConfig = {
+        ...config,
+        definitions: {
+          ...config.definitions,
+          compositeSuccessAlarm: {
+            ...config.definitions.compositeSuccessAlarm,
+            alarmsActions: undefined,
+            alarmsToInclude: undefined,
+          }
+        }
+      }
+      const plugin = pluginFactory(innerConfig, 'dev', functions);
+
+      plugin.compile();
+
+      const resources = plugin.serverless.service.provider.compiledCloudFormationTemplate.Resources
+      expect(Object.keys(resources)).toHaveLength(4)
+      expect(
+        plugin.serverless.service.provider.compiledCloudFormationTemplate
+          .Resources
+      ).toMatchObject({
+        FooSuccessRateDropAlarm: {
+          Type: 'AWS::CloudWatch::Alarm',
+        },
+        Foo1SuccessRateDropAlarm: {
+          Type: 'AWS::CloudWatch::Alarm',
+        },
+        AwsAlertsAlarm: {
+          Type: 'AWS::SNS::Topic',
+        },
+        AlertsCompositeCompositeSuccessAlarm: {
+          Type: 'AWS::CloudWatch::CompositeAlarm',
+          Properties: expect.objectContaining({
+            AlarmRule: 'ALARM(fooservice-dev-foo-successRateDrop) OR ALARM(fooservice-dev-foo1-successRateDrop)',
+            AlarmActions: [{ Ref: 'AwsAlertsAlarm' }],
+          }),
+        },
+      });
+    });
   });
 });

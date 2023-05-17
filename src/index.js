@@ -612,8 +612,9 @@ class AlertsPlugin {
   }
 
   _resolveAlarmActions(definition) {
-    if (!definition.alarmsActions?.length){
-      return [];
+    let alarmsActions = definition.alarmsActions
+    if (!alarmsActions?.length) {
+      alarmsActions = ['AwsAlertsAlarm'];
     }
 
     const resourcesObj =
@@ -621,7 +622,7 @@ class AlertsPlugin {
     const resourcesCfNames = Object.keys(resourcesObj)
 
     const topicsToInclude = []
-    for (const alarmAction of definition.alarmsActions) {
+    for (const alarmAction of alarmsActions) {
       if (resourcesCfNames.indexOf(alarmAction) !== -1) {
         const resource = resourcesObj[alarmAction]
         if (resource.Type === 'AWS::SNS::Topic' && resource.Properties.enabled !== false) {
