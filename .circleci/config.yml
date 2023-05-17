@@ -1,0 +1,227 @@
+version: 2.1
+orbs:
+  slack: circleci/slack@3.4.2
+
+commands:
+
+  install_deps:
+    description: Install dependencies
+    steps:
+      - run:
+          name: Setup NPM Token 
+          command: |
+            echo "//registry.npmjs.org/:_authToken=$NPM_TOKEN" > ~/.npmrc
+      - restore_cache:
+          key: npm-v1-{{ checksum "package-lock.json" }}-{{ arch }}
+      - run:
+          name: Install dependencies
+          command: npm ci
+      - save_cache:
+          key: npm-v1-{{ checksum "package-lock.json" }}-{{ arch }}
+          paths:
+            - node_modules
+
+  notify_approval:
+    description: Send approval notification
+    steps:
+      - run:
+          name: Send slack webhook
+          command: |
+            COMMIT_MESSAGE=$(git log --format=%B -n 1)
+            curl -0 -v -X POST ${WEBHOOK_URL} \
+            -H 'Content-Type: text/json; charset=utf-8' \
+            -d @- \<<EOF
+            {
+              "blocks": [
+              {
+                "type": "header",
+                "text": {
+                  "type": "plain_text",
+                  "text": "Deploy waiting for approval",
+                  "emoji": true
+                }
+              },
+              {
+                "type": "section",
+                "fields": [
+                {
+                  "type": "mrkdwn",
+                  "text": "*Project:*\n<https://github.com/spytecgps/${CIRCLE_PROJECT_REPONAME}|${CIRCLE_PROJECT_REPONAME}>"
+                },
+                {
+                  "type": "mrkdwn",
+                  "text": "*Committer:*\n${CIRCLE_USERNAME}"
+                },
+                {
+                  "type": "mrkdwn",
+                  "text": "*Branch:*\n<https://github.com/spytecgps/${CIRCLE_PROJECT_REPONAME}/tree/${CIRCLE_BRANCH}|${CIRCLE_BRANCH}>"
+                },
+                {
+                  "type": "mrkdwn",
+                  "text": "*Commit:*\n${CIRCLE_SHA1:0:7}"
+                },
+                {
+                  "type": "mrkdwn",
+                  "text": "*Message*\n${COMMIT_MESSAGE}"
+                }
+                ]
+              },
+              {
+                "type": "actions",
+                "elements": [
+                {
+                  "type": "button",
+                  "text": {
+                    "type": "plain_text",
+                    "emoji": true,
+                    "text": "Visit Job"
+                  },
+                  "style": "primary",
+                  "url": "${CIRCLE_BUILD_URL}",
+                  "value": "click_me_123"
+                }
+                ]
+              }
+              ]
+            }
+            EOF
+
+
+  notify_deploy:
+    description: Send npm publish notification
+    steps:
+      - run:
+          name: Send slack webhook
+          command: |
+            TAG=$(git describe --tags)
+            curl -0 -v -X POST ${WEBHOOK_URL} \
+            -H 'Content-Type: text/json; charset=utf-8' \
+            -d @- \<<EOF
+            {
+              "blocks": [
+              {
+                "type": "section",
+                "text": {
+                  "type": "mrkdwn",
+                  "text": "*Published @spytecgps/${CIRCLE_PROJECT_REPONAME} to npm successfully!* :party:"
+                }
+              },
+              {
+                "type": "divider"
+              },
+              {
+                "type": "section",
+                "fields": [
+                {
+                  "type": "mrkdwn",
+                  "text": "*Project:*\n<https://github.com/spytecgps/${CIRCLE_PROJECT_REPONAME}|${CIRCLE_PROJECT_REPONAME}>"
+                },
+                {
+                  "type": "mrkdwn",
+                  "text": "*Committer:*\n${CIRCLE_USERNAME}"
+                },
+                {
+                  "type": "mrkdwn",
+                  "text": "*Branch:*\n<https://github.com/spytecgps/${CIRCLE_PROJECT_REPONAME}/tree/${CIRCLE_BRANCH}|${CIRCLE_BRANCH}>"
+                },
+                {
+                  "type": "mrkdwn",
+                  "text": "*Commit:*\n${CIRCLE_SHA1:0:7}"
+                },
+                {
+                  "type": "mrkdwn",
+                  "text": "*Version*\n${TAG}"
+                }
+                ]
+              }
+              ]
+            }
+            EOF
+
+  run_unit_tests:
+    description: Unit tests
+    steps:
+      - run:
+          name: Unit tests
+          command: npm run test
+      - store_test_results:
+          path: ./reports/junit/
+      - store_artifacts:
+          path: coverage
+
+jobs:
+
+  build:
+    docker:
+      - image: cimg/node:12.22.3-browsers
+    steps:
+      - checkout
+      - install_deps
+      - run_unit_tests
+      - persist_to_workspace:
+          root: .
+          paths: .
+
+  notify-approval:
+    description: Wait for approval to publish
+    docker:
+      - image: cimg/node:12.20
+    working_directory: ~/app
+    steps:
+      - attach_workspace:
+          at: ~/app
+      - notify_approval
+
+  publish:
+    description: Bump version and publish package to npm
+    working_directory: ~/app
+    docker:
+      - image: cimg/node:12.20
+    steps:
+      - attach_workspace:
+          at: ~/app
+      - install_deps
+      - run:
+          name: Bump version and tag
+          command: |
+            mkdir ~/.ssh
+            ssh-keyscan github.com >> ~/.ssh/known_hosts
+            git config --global user.email "circle-ci@$GITHUB_ORG.io"
+            git config --global user.name "circle-ci"
+            npm version patch -m "Bumped version to %s [ci skip]"
+            git push -u origin ${CIRCLE_BRANCH} && git push --tags
+      - run:
+          name: Publish to npm
+          command: npm publish
+      - notify_deploy
+
+workflows:
+  version: 2
+  build_and_publish_package:
+    jobs:
+      - build:
+          context:
+            - npm-global
+      - notify-approval:
+          name: notify-approval
+          requires:
+            - build
+          context:
+            - slack
+          filters:
+            branches:
+              only: master
+      - approval:
+          type: approval
+          requires:
+            - build
+          filters:
+            branches:
+              only: master
+      - publish:
+          name: publish
+          requires:
+            - approval
+          context:
+            - slack
+            - npm-global
