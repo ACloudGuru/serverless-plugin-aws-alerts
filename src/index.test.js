@@ -1648,27 +1648,21 @@ describe('#index', () => {
           type: 'composite',
           description: 'A compile success alarm',
           actionsEnabled: true,
-          alarmsToInclude: [
-            'FooSuccessRateDropAlarm'
-          ],
-          alarmsActions: [
-            'AwsAlertsAlarm'
-          ]
+          alarmsToInclude: ['FooSuccessRateDropAlarm'],
+          alarmsActions: ['AwsAlertsAlarm'],
         },
       },
-      alarms: [
-        'successRateDrop'
-      ],
+      alarms: ['successRateDrop'],
       topics: {
         alarm: {
           topic: 'api-paging-alarm-topic-test',
-          notifications:[
+          notifications: [
             {
               protocol: 'email',
               endpoint: 'test@email.com',
-            }
-          ]
-        }
+            },
+          ],
+        },
       },
     };
 
@@ -1679,15 +1673,17 @@ describe('#index', () => {
       foo1: {
         name: 'foo1',
       },
-    }
+    };
 
     it('should compile only foo function alarms into composite', () => {
       const plugin = pluginFactory(config, 'dev', functions);
 
       plugin.compile();
 
-      const resources = plugin.serverless.service.provider.compiledCloudFormationTemplate.Resources
-      expect(Object.keys(resources)).toHaveLength(4)
+      const resources =
+        plugin.serverless.service.provider.compiledCloudFormationTemplate
+          .Resources;
+      expect(Object.keys(resources)).toHaveLength(4);
       expect(
         plugin.serverless.service.provider.compiledCloudFormationTemplate
           .Resources
@@ -1707,6 +1703,7 @@ describe('#index', () => {
             AlarmRule: 'ALARM(fooservice-dev-foo-successRateDrop)',
             AlarmActions: [{ Ref: 'AwsAlertsAlarm' }],
           }),
+          DependsOn: ['fooservice-dev-foo-successRateDrop'],
         },
       });
     });
@@ -1719,15 +1716,17 @@ describe('#index', () => {
           compositeSuccessAlarm: {
             ...config.definitions.compositeSuccessAlarm,
             alarmsToInclude: undefined,
-          }
-        }
-      }
+          },
+        },
+      };
       const plugin = pluginFactory(innerConfig, 'dev', functions);
 
       plugin.compile();
 
-      const resources = plugin.serverless.service.provider.compiledCloudFormationTemplate.Resources
-      expect(Object.keys(resources)).toHaveLength(4)
+      const resources =
+        plugin.serverless.service.provider.compiledCloudFormationTemplate
+          .Resources;
+      expect(Object.keys(resources)).toHaveLength(4);
       expect(
         plugin.serverless.service.provider.compiledCloudFormationTemplate
           .Resources
@@ -1744,9 +1743,14 @@ describe('#index', () => {
         AlertsCompositeCompositeSuccessAlarm: {
           Type: 'AWS::CloudWatch::CompositeAlarm',
           Properties: expect.objectContaining({
-            AlarmRule: 'ALARM(fooservice-dev-foo-successRateDrop) OR ALARM(fooservice-dev-foo1-successRateDrop)',
+            AlarmRule:
+              'ALARM(fooservice-dev-foo-successRateDrop) OR ALARM(fooservice-dev-foo1-successRateDrop)',
             AlarmActions: [{ Ref: 'AwsAlertsAlarm' }],
           }),
+          DependsOn: [
+            'fooservice-dev-foo-successRateDrop',
+            'fooservice-dev-foo1-successRateDrop',
+          ],
         },
       });
     });
@@ -1759,15 +1763,17 @@ describe('#index', () => {
           compositeSuccessAlarm: {
             ...config.definitions.compositeSuccessAlarm,
             enabled: false,
-          }
-        }
-      }
+          },
+        },
+      };
       const plugin = pluginFactory(innerConfig, 'dev', functions);
 
       plugin.compile();
 
-      const resources = plugin.serverless.service.provider.compiledCloudFormationTemplate.Resources
-      expect(Object.keys(resources)).toHaveLength(3)
+      const resources =
+        plugin.serverless.service.provider.compiledCloudFormationTemplate
+          .Resources;
+      expect(Object.keys(resources)).toHaveLength(3);
       expect(
         plugin.serverless.service.provider.compiledCloudFormationTemplate
           .Resources
@@ -1792,15 +1798,17 @@ describe('#index', () => {
           successRateDrop: {
             ...config.definitions.successRateDrop,
             enabled: false,
-          }
-        }
-      }
+          },
+        },
+      };
       const plugin = pluginFactory(innerConfig, 'dev', functions);
 
       plugin.compile();
 
-      const resources = plugin.serverless.service.provider.compiledCloudFormationTemplate.Resources
-      expect(Object.keys(resources)).toHaveLength(1)
+      const resources =
+        plugin.serverless.service.provider.compiledCloudFormationTemplate
+          .Resources;
+      expect(Object.keys(resources)).toHaveLength(1);
       expect(
         plugin.serverless.service.provider.compiledCloudFormationTemplate
           .Resources
@@ -1820,15 +1828,17 @@ describe('#index', () => {
             ...config.definitions.compositeSuccessAlarm,
             alarmsActions: undefined,
             alarmsToInclude: undefined,
-          }
-        }
-      }
+          },
+        },
+      };
       const plugin = pluginFactory(innerConfig, 'dev', functions);
 
       plugin.compile();
 
-      const resources = plugin.serverless.service.provider.compiledCloudFormationTemplate.Resources
-      expect(Object.keys(resources)).toHaveLength(4)
+      const resources =
+        plugin.serverless.service.provider.compiledCloudFormationTemplate
+          .Resources;
+      expect(Object.keys(resources)).toHaveLength(4);
       expect(
         plugin.serverless.service.provider.compiledCloudFormationTemplate
           .Resources
@@ -1845,9 +1855,14 @@ describe('#index', () => {
         AlertsCompositeCompositeSuccessAlarm: {
           Type: 'AWS::CloudWatch::CompositeAlarm',
           Properties: expect.objectContaining({
-            AlarmRule: 'ALARM(fooservice-dev-foo-successRateDrop) OR ALARM(fooservice-dev-foo1-successRateDrop)',
+            AlarmRule:
+              'ALARM(fooservice-dev-foo-successRateDrop) OR ALARM(fooservice-dev-foo1-successRateDrop)',
             AlarmActions: [{ Ref: 'AwsAlertsAlarm' }],
           }),
+          DependsOn: [
+            'fooservice-dev-foo-successRateDrop',
+            'fooservice-dev-foo1-successRateDrop',
+          ],
         },
       });
     });

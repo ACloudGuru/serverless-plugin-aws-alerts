@@ -580,53 +580,57 @@ class AlertsPlugin {
     };
   }
 
-  _getFilteredResourcesAsArray(resourcesKeys) {
+  _getFilteredResourcesAsArray(resourcesKeys, resourceType, includeDisabled) {
     const resources =
       this.serverless.service.provider.compiledCloudFormationTemplate.Resources;
     return Object.keys(resources)
       .filter(
         (resource) =>
-          !resourcesKeys ||
-          resourcesKeys.length === 0 ||
-          resourcesKeys.indexOf(resource) !== -1
+          resources[resource].Type === resourceType &&
+          (includeDisabled ||
+            resources[resource].Properties.enabled !== false) &&
+          (!resourcesKeys ||
+            resourcesKeys.length === 0 ||
+            resourcesKeys.indexOf(resource) !== -1)
       )
       .map((key) => resources[key]);
   }
 
-  _resolveAlarmRules(definition) {
-    const alarmsToInclude = this._getFilteredResourcesAsArray(
-      definition.alarmsToInclude
-    )
-      .filter(
-        (resource) =>
-          resource.Type === 'AWS::CloudWatch::Alarm' &&
-          resource.Properties.enabled !== false
-      )
-      .map((resource) => resource.Properties.AlarmName);
+  _resolveAlarmsNames(definition) {
+    return this._getFilteredResourcesAsArray(
+      definition.alarmsToInclude,
+      'AWS::CloudWatch::Alarm',
+      true
+    ).map((resource) => resource.Properties.AlarmName);
+  }
 
-    const alarmRule = alarmsToInclude
-      .map((alarmToInclude) => `ALARM(${alarmToInclude})`)
+  _resolveAlarmRules(alarmsNames) {
+    const alarmRule = alarmsNames
+      .map((alarmName) => `ALARM(${alarmName})`)
       .join(' OR ');
 
     return alarmRule;
   }
 
   _resolveAlarmActions(definition) {
-    let alarmsActions = definition.alarmsActions
+    let alarmsActions = definition.alarmsActions;
     if (!alarmsActions?.length) {
       alarmsActions = ['AwsAlertsAlarm'];
     }
 
     const resourcesObj =
       this.serverless.service.provider.compiledCloudFormationTemplate.Resources;
-    const resourcesCfNames = Object.keys(resourcesObj)
+    const resourcesCfNames = Object.keys(resourcesObj);
 
-    const topicsToInclude = []
+    const topicsToInclude = [];
     for (const alarmAction of alarmsActions) {
       if (resourcesCfNames.indexOf(alarmAction) !== -1) {
-        const resource = resourcesObj[alarmAction]
-        if (resource.Type === 'AWS::SNS::Topic' && resource.Properties.enabled !== false) {
-          topicsToInclude.push({ Ref: alarmAction })
+        const resource = resourcesObj[alarmAction];
+        if (
+          resource.Type === 'AWS::SNS::Topic' &&
+          resource.Properties.enabled !== false
+        ) {
+          topicsToInclude.push({ Ref: alarmAction });
         }
       }
     }
@@ -637,9 +641,9 @@ class AlertsPlugin {
     Object.keys(definitions).forEach((definitionName) => {
       const definition = definitions[definitionName];
       if (definition.type === 'composite' && definition.enabled !== false) {
-        const alarmRule = this._resolveAlarmRules(definition);
+        const alarmsNames = this._resolveAlarmsNames(definition);
         // only create the composite alarm if there is at least one alarm to include
-        if (alarmRule !== '') {
+        if (alarmsNames?.length > 0) {
           const cf = {};
           const { cfResource, cfName } = this._getCfResourceAndName(
             'Composite',
@@ -652,9 +656,10 @@ class AlertsPlugin {
               AlarmName: cfName,
               AlarmDescription: definition.description,
               ActionsEnabled: definition.actionsEnabled,
-              AlarmRule: this._resolveAlarmRules(definition),
+              AlarmRule: this._resolveAlarmRules(alarmsNames),
               AlarmActions: alarmActions,
             },
+            DependsOn: alarmsNames,
           };
 
           cf[cfResource] = compositeAlarm;
