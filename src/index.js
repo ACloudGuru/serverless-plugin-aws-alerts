@@ -593,20 +593,26 @@ class AlertsPlugin {
             resourcesKeys.length === 0 ||
             resourcesKeys.indexOf(resource) !== -1)
       )
-      .map((key) => resources[key]);
+      .map((key) => ({
+        cfLogicalId: key,
+        cfResource: resources[key],
+      }));
   }
 
-  _resolveAlarmsNames(definition) {
+  _resolveAlarmsPhysicalLogicalIds(definition) {
     return this._getFilteredResourcesAsArray(
       definition.alarmsToInclude,
       'AWS::CloudWatch::Alarm',
       true
-    ).map((resource) => resource.Properties.AlarmName);
+    ).map((filteredResource) => ({
+      cfLogicalId: filteredResource.cfLogicalId,
+      cfPhysicalId: filteredResource.cfResource.Properties.AlarmName,
+    }));
   }
 
-  _resolveAlarmRules(alarmsNames) {
-    const alarmRule = alarmsNames
-      .map((alarmName) => `ALARM(${alarmName})`)
+  _resolveAlarmRules(physicalLogicalIds) {
+    const alarmRule = physicalLogicalIds
+      .map((physicalLogicalId) => `ALARM(${physicalLogicalId.cfPhysicalId})`)
       .join(' OR ');
 
     return alarmRule;
@@ -641,9 +647,10 @@ class AlertsPlugin {
     Object.keys(definitions).forEach((definitionName) => {
       const definition = definitions[definitionName];
       if (definition.type === 'composite' && definition.enabled !== false) {
-        const alarmsNames = this._resolveAlarmsNames(definition);
+        const physicalLogicalIds =
+          this._resolveAlarmsPhysicalLogicalIds(definition);
         // only create the composite alarm if there is at least one alarm to include
-        if (alarmsNames?.length > 0) {
+        if (physicalLogicalIds?.length > 0) {
           const cf = {};
           const { cfResource, cfName } = this._getCfResourceAndName(
             'Composite',
@@ -656,10 +663,10 @@ class AlertsPlugin {
               AlarmName: cfName,
               AlarmDescription: definition.description,
               ActionsEnabled: definition.actionsEnabled,
-              AlarmRule: this._resolveAlarmRules(alarmsNames),
+              AlarmRule: this._resolveAlarmRules(physicalLogicalIds),
               AlarmActions: alarmActions,
             },
-            DependsOn: alarmsNames,
+            DependsOn: physicalLogicalIds.map((alarm) => alarm.cfLogicalId),
           };
 
           cf[cfResource] = compositeAlarm;

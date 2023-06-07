@@ -1703,7 +1703,7 @@ describe('#index', () => {
             AlarmRule: 'ALARM(fooservice-dev-foo-successRateDrop)',
             AlarmActions: [{ Ref: 'AwsAlertsAlarm' }],
           }),
-          DependsOn: ['fooservice-dev-foo-successRateDrop'],
+          DependsOn: ['FooSuccessRateDropAlarm'],
         },
       });
     });
@@ -1747,10 +1747,7 @@ describe('#index', () => {
               'ALARM(fooservice-dev-foo-successRateDrop) OR ALARM(fooservice-dev-foo1-successRateDrop)',
             AlarmActions: [{ Ref: 'AwsAlertsAlarm' }],
           }),
-          DependsOn: [
-            'fooservice-dev-foo-successRateDrop',
-            'fooservice-dev-foo1-successRateDrop',
-          ],
+          DependsOn: ['FooSuccessRateDropAlarm', 'Foo1SuccessRateDropAlarm'],
         },
       });
     });
@@ -1859,10 +1856,7 @@ describe('#index', () => {
               'ALARM(fooservice-dev-foo-successRateDrop) OR ALARM(fooservice-dev-foo1-successRateDrop)',
             AlarmActions: [{ Ref: 'AwsAlertsAlarm' }],
           }),
-          DependsOn: [
-            'fooservice-dev-foo-successRateDrop',
-            'fooservice-dev-foo1-successRateDrop',
-          ],
+          DependsOn: ['FooSuccessRateDropAlarm', 'Foo1SuccessRateDropAlarm'],
         },
       });
     });
