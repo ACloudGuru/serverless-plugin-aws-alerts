@@ -8,7 +8,7 @@ A Serverless plugin to easily add CloudWatch alarms to functions
 
 ## Installation
 ```bash
-npm i serverless-plugin-aws-alerts
+npm i serverless-plugin-aws-alerts --save-dev
 
 OR
 

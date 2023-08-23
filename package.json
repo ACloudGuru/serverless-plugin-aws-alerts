@@ -1,6 +1,6 @@
 {
   "name": "serverless-plugin-aws-alerts",
-  "version": "1.7.3",
+  "version": "1.7.5",
   "description": "",
   "main": "src/index.js",
   "scripts": {
@@ -40,7 +40,7 @@
     "prettier": "^2.2.1"
   },
   "peerDependencies": {
-    "serverless": "^2.4.0"
+    "serverless": "^2.4.0 || 3"
   },
   "engines": {
     "node": ">=8.10.0"
