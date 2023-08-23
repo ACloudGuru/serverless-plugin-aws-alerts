@@ -279,7 +279,7 @@ class AlertsPlugin {
 
   _addAlertTopic(key, topics, alertTopics, customAlarmName) {
     const topicConfig = topics[key];
-    const isTopicConfigAnObject = _.isObject(topicConfig);
+    const isTopicConfigAnObject = isObject(topicConfig);
     const isTopicConfigAnImport = isTopicConfigAnObject && topicConfig.topic['Fn::ImportValue'];
     const isTopicConfigAReference = isTopicConfigAnObject && topicConfig.topic['Fn::Join']
 
